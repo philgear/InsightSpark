@@ -1,0 +1,96 @@
+{
+  "name": "Insight Spark",
+  "short_name": "InsightSpark",
+  "id": "/",
+  "description": "A creative companion that uses lateral thinking strategies to generate novel insights and solutions for your problems using Gemini AI.",
+  "theme_color": "#1C2B3C",
+  "background_color": "#1C2B3C",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "scope": "/",
+  "start_url": "/index.html",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "assets/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://picsum.photos/seed/screenshot1/540/960",
+      "sizes": "540x960",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Generator View with creative strategies"
+    },
+    {
+      "src": "https://picsum.photos/seed/screenshot2/540/960",
+      "sizes": "540x960",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Generated insights organized in cards"
+    },
+    {
+      "src": "https://picsum.photos/seed/screenshot3/540/960",
+      "sizes": "540x960",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Saved items and care plans in the Spark Deck"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Creative Spark",
+      "short_name": "Creative",
+      "description": "Start a new session in Creative Mode.",
+      "url": "/#/creative",
+      "icons": [{ "src": "assets/icons/icon-96x96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "New Care Plan",
+      "short_name": "Care Plan",
+      "description": "Start a new session in Care Mode.",
+      "url": "/#/care",
+      "icons": [{ "src": "assets/icons/icon-96x96.png", "sizes": "96x96" }]
+    }
+  ]
+}
