@@ -1,0 +1,32 @@
+<figure role="figure" aria-labelledby="chart-title" class="bg-[var(--card-bg-subtle)] p-4 rounded-xl border border-[var(--border-color)]">
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-4">
+    <h4 id="chart-title" class="font-bold text-[var(--text-color)] shrink-0">Vitals Over Time</h4>
+    <div class="flex flex-wrap gap-2 justify-end">
+      @for (metric of metrics; track metric.key) {
+        <button 
+          (click)="toggleVital(metric.key)"
+          class="flex items-center gap-2 text-xs font-medium py-1 px-3 rounded-full border transition-colors"
+          [class.bg-white/10]="visibleVitals().has(metric.key)"
+          [class.opacity-50]="!visibleVitals().has(metric.key) && visibleVitals().size > 0"
+          [style.border-color]="metric.color"
+          [attr.aria-pressed]="visibleVitals().has(metric.key)"
+          >
+          <div class="w-2 h-2 rounded-full" [style.background-color]="metric.color" aria-hidden="true"></div>
+          {{ metric.name }}
+        </button>
+      }
+    </div>
+  </div>
+  
+  <div #chartContainer class="relative">
+    @if (vitalsHistory().length < 2) {
+      <div class="flex items-center justify-center h-[300px] text-center text-[var(--text-color-muted)]">
+        <p>Change vitals in the card above to see trends here.<br>At least two data points are needed to draw a graph.</p>
+      </div>
+    }
+  </div>
+
+  <div class="sr-only" aria-live="polite" role="status">
+    {{ chartSummary() }}
+  </div>
+</figure>
