@@ -10,7 +10,7 @@ import { IconComponent } from './icon.component';
     <section class="space-y-8 animate-in fade-in">
       <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[var(--text-highlight)] to-[var(--text-accent)]">Help & Pro Tips</h2>
+          <h2 class="text-transparent bg-clip-text bg-gradient-to-r from-[var(--text-highlight)] to-[var(--text-accent)]">Help & Pro Tips</h2>
           <p class="text-[var(--text-color-muted)] mt-1">Get the most out of Insight Spark in {{ appMode() === 'creative' ? 'Creative' : 'Care' }} Mode.</p>
         </div>
       </header>
@@ -18,7 +18,7 @@ import { IconComponent } from './icon.component';
       @if (appMode() === 'creative') {
         <div class="space-y-6">
           <div class="bg-[var(--card-bg)] p-6 rounded-2xl border border-[var(--border-color)]">
-              <h3 class="font-bold text-lg text-[var(--text-accent)] flex items-center gap-2 mb-2">
+              <h3 class="text-[var(--text-accent)] flex items-center gap-2 mb-2">
                 <app-icon name="sparkles" [size]="20"></app-icon>
                 Crafting the Perfect Prompt
               </h3>
@@ -29,7 +29,7 @@ import { IconComponent } from './icon.component';
               </ul>
           </div>
           <div class="bg-[var(--card-bg)] p-6 rounded-2xl border border-[var(--border-color)]">
-              <h3 class="font-bold text-lg text-[var(--text-accent)] flex items-center gap-2 mb-2">
+              <h3 class="text-[var(--text-accent)] flex items-center gap-2 mb-2">
                 <app-icon name="dice" [size]="20"></app-icon>
                 Using the Spark Plugs
               </h3>
@@ -43,7 +43,7 @@ import { IconComponent } from './icon.component';
       } @else {
         <div class="space-y-6">
           <div class="bg-[var(--card-bg)] p-6 rounded-2xl border border-[var(--border-color)]">
-              <h3 class="font-bold text-lg text-[var(--text-accent)] flex items-center gap-2 mb-2">
+              <h3 class="text-[var(--text-accent)] flex items-center gap-2 mb-2">
                 <app-icon name="shield" [size]="20"></app-icon>
                 HIPAA Compliance & Safety
               </h3>
@@ -54,7 +54,7 @@ import { IconComponent } from './icon.component';
               </ul>
           </div>
           <div class="bg-[var(--card-bg)] p-6 rounded-2xl border border-[var(--border-color)]">
-              <h3 class="font-bold text-lg text-[var(--text-accent)] flex items-center gap-2 mb-2">
+              <h3 class="text-[var(--text-accent)] flex items-center gap-2 mb-2">
                 <app-icon name="heart-pulse" [size]="20"></app-icon>
                 Thinking in Systems
               </h3>

@@ -11,7 +11,7 @@
            <app-icon name="sparkles" [size]="24" class="text-white"></app-icon>
         </div>
         <div>
-          <h1 class="text-xl font-bold font-serif bg-clip-text text-transparent bg-gradient-to-r from-[var(--text-color)] via-[var(--text-highlight)] to-[var(--text-accent)]">Insight Spark</h1>
+          <h1 class="bg-clip-text text-transparent bg-gradient-to-r from-[var(--text-color)] via-[var(--text-highlight)] to-[var(--text-accent)]">Insight Spark</h1>
           <p class="text-xs text-[var(--text-color-muted)] hidden sm:block tracking-wide">A Fluid Thinking Partner</p>
         </div>
       </button>
@@ -48,7 +48,7 @@
   
   <!-- Update Available Banner -->
   @if (isUpdateAvailable()) {
-    <div class="bg-blue-600 text-white p-3 flex justify-center items-center gap-4 non-printable">
+    <div role="status" class="bg-blue-600 text-white p-3 flex justify-center items-center gap-4 non-printable">
       <p>A new version of Insight Spark is available!</p>
       <button (click)="reloadApp()" class="bg-white text-blue-600 font-bold py-1 px-3 rounded">Reload</button>
       <button (click)="dismissUpdate()" class="absolute right-4" aria-label="Dismiss update notification">
@@ -71,13 +71,13 @@
                   <div class="proton-particles"></div>
                 </div>
               </div>
-              <h2 class="text-xl font-bold font-serif text-[var(--text-color-muted)] animate-magic-eight-ball">{{ suggestedInsight() }}</h2>
+              <h2 class="text-[var(--text-color-muted)] animate-magic-eight-ball italic">{{ suggestedInsight() }}</h2>
             </div>
           } @else if (error()) {
             <!-- Error State -->
             <div role="alert" aria-live="assertive" class="flex flex-col items-center justify-center h-full text-center bg-[var(--card-bg)] p-8 organic-shape">
               <app-icon name="x" [size]="48" class="text-red-500 mb-4"></app-icon>
-              <h2 class="text-3xl font-serif italic font-bold mb-2">An Error Occurred</h2>
+              <h2 class="italic mb-2">An Error Occurred</h2>
               <p class="text-[var(--text-color-muted)] mb-6">{{ error() }}</p>
               <button (click)="editQuery()" class="bg-gradient-to-r from-pink-500 to-red-500 text-white font-bold py-3 px-6 organic-button shadow-lg transition-all flex items-center gap-2 mx-auto">
                 <app-icon name="edit" [size]="16"></app-icon>
@@ -91,7 +91,7 @@
               <header class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
                   <p class="text-sm font-medium text-[var(--text-accent)] uppercase tracking-wider">A new perspective for:</p>
-                  <h2 id="results-heading" class="text-4xl md:text-6xl font-serif italic font-bold mt-2 text-[var(--text-color)]">
+                  <h2 id="results-heading" class="italic mt-2 text-[var(--text-color)]">
                     {{ problemInput() }}
                   </h2>
                 </div>
@@ -113,7 +113,7 @@
               
               @if (structuredProblem(); as problem) {
                 <div class="bg-[var(--card-bg-subtle)] p-6 organic-shape">
-                  <h3 class="text-xl font-bold font-serif italic text-[var(--text-accent)]">{{problem.title}}</h3>
+                  <h3 class="italic text-[var(--text-accent)]">{{problem.title}}</h3>
                   <p><strong class="font-semibold text-[var(--text-color-muted)]">Condition:</strong> {{problem.condition}}</p>
                   <p><strong class="font-semibold text-[var(--text-color-muted)]">Goal:</strong> {{problem.goal}}</p>
                   <div>
@@ -135,7 +135,7 @@
                       <div class="w-10 h-10 rounded-lg bg-[var(--strategy-color)]/20 flex items-center justify-center text-[var(--strategy-color)]">
                         <app-icon [name]="getStrategyIcon(result.strategyName)" [size]="24"></app-icon>
                       </div>
-                      <h3 class="text-lg font-bold font-serif italic text-[var(--strategy-color)]">{{ result.strategyName }}</h3>
+                      <h3 class="italic text-[var(--strategy-color)]">{{ result.strategyName }}</h3>
                     </header>
                     <div class="space-y-4 flex-1">
                       @for (insight of result.insights; track insight.text; let i = $index) {
@@ -148,14 +148,14 @@
                             </p>
                           }
                           <div class="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button (click)="copyToClipboard(insight.text, id)" class="p-1.5 rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)]" [attr.aria-label]="'Copy insight ' + (i+1)">
+                            <button (click)="copyToClipboard(insight.text, id)" class="p-1.5 rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)]" [attr.aria-label]="formatAriaLabel('Copy insight', insight.text)">
                               @if (copiedId() === id) {
                                 <app-icon name="check" [size]="16" class="text-green-500"></app-icon>
                               } @else {
                                 <app-icon name="copy" [size]="16"></app-icon>
                               }
                             </button>
-                            <button (click)="toggleInsightSave(insight, result.strategyName)" class="p-1.5 rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)]" [attr.aria-label]="'Save insight ' + (i+1)">
+                            <button (click)="toggleInsightSave(insight, result.strategyName)" class="p-1.5 rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)]" [attr.aria-label]="formatAriaLabel(isInsightSaved(insight.text) ? 'Unsave insight' : 'Save insight', insight.text)">
                                <app-icon name="bookmark" [size]="16" [class]="isInsightSaved(insight.text) ? 'fill-current text-[var(--text-highlight)]' : ''"></app-icon>
                             </button>
                           </div>
@@ -171,7 +171,7 @@
 
               @if (appMode() === 'care' && savedInsightsForCurrentProblem().length > 0) {
                 <div class="text-center py-8">
-                  <h3 class="text-3xl font-bold font-serif italic mb-2">Synthesize a Care Plan</h3>
+                  <h3 class="italic mb-2">Synthesize a Care Plan</h3>
                   <p class="text-[var(--text-color-muted)] mb-4">You've saved {{ savedInsightsForCurrentProblem().length }} insight(s) for this goal. Ready to build a plan?</p>
                   <button (click)="generateCarePlan()" [disabled]="isGeneratingCarePlan()" class="font-bold py-3 px-6 organic-button shadow-lg transition-all flex items-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--primary-cta-bg)] text-[var(--primary-cta-text)] hover:bg-[var(--primary-cta-hover-bg)]">
                     @if(isGeneratingCarePlan()) {
@@ -186,11 +186,11 @@
               }
               
               @if (carePlan(); as plan) {
-                <div class="mt-12 printable-section" id="care-plan-section">
+                <section class="mt-12 printable-section" id="care-plan-section" aria-labelledby="care-plan-heading">
                     <div class="p-6 md:p-8 organic-shape">
                         <header class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6 border-b border-[var(--border-color)] pb-6">
                             <div>
-                                <h3 class="text-3xl font-bold font-serif italic text-[var(--text-accent)]">Synthesized Care Plan</h3>
+                                <h3 id="care-plan-heading" class="italic text-[var(--text-accent)]">Synthesized Care Plan</h3>
                                 <p class="text-[var(--text-color-muted)] mt-1">Based on your saved insights for: {{ problemInput() }}</p>
                             </div>
                             <div class="flex items-center gap-2 flex-wrap non-printable">
@@ -221,7 +221,7 @@
                         <div class="space-y-6">
                             @for (section of getCarePlanSections(plan); track section.id) {
                                 <div>
-                                    <h4 class="text-lg font-semibold font-serif flex items-center gap-3 mb-2">
+                                    <h4 class="flex items-center gap-3 mb-2">
                                         <app-icon [name]="section.icon" [size]="20" class="text-[var(--text-accent)]"></app-icon>
                                         {{ section.title }}
                                     </h4>
@@ -234,7 +234,7 @@
                             }
                         </div>
                     </div>
-                </div>
+                </section>
               }
             </section>
           } @else {
@@ -261,7 +261,7 @@
                 @if (appMode() === 'care') {
                   <div class="space-y-4">
                     <div>
-                      <h3 class="font-bold font-serif italic text-lg text-[var(--text-accent)] flex items-center gap-2 mb-2">
+                      <h3 class="italic text-[var(--text-accent)] flex items-center gap-2 mb-2">
                         <app-icon name="user-check" [size]="20"></app-icon>
                         Adopt a Persona
                       </h3>
@@ -295,7 +295,7 @@
                 <div class="space-y-4">
                   <div>
                     <div class="flex items-center justify-between">
-                      <h3 class="font-bold font-serif italic text-lg text-[var(--text-accent)] flex items-center gap-2 mb-2">
+                      <h3 class="italic text-[var(--text-accent)] flex items-center gap-2 mb-2">
                         <app-icon [name]="appMode() === 'care' ? 'clipboard-list' : 'sparkles'" [size]="20"></app-icon>
                         {{ appMode() === 'care' ? 'Select Care Approaches' : 'Choose Your Spark Plugs' }}
                       </h3>
@@ -320,7 +320,7 @@
                               <app-icon [name]="strategy.icon" [size]="20" 
                                         class="text-[var(--text-color-muted)]"
                                         [class.text-[var(--text-highlight)]]="isStrategySelected(strategy.id)"></app-icon>
-                              <h4 class="font-bold">{{ appMode() === 'care' ? strategy.careModeName : strategy.name }}</h4>
+                              <h4>{{ appMode() === 'care' ? strategy.careModeName : strategy.name }}</h4>
                           </div>
                         </div>
                         <p class="text-xs text-[var(--text-color-muted)]">
@@ -338,7 +338,7 @@
                 <div class="pt-8">
                   <button (click)="generateInsights()" 
                           [disabled]="isGenerateDisabled()" 
-                          class="w-full font-bold text-lg py-5 px-8 rounded-xl shadow-lg flex items-center justify-center gap-3 transition-all duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100 bg-[var(--primary-cta-bg)] text-[var(--primary-cta-text)] hover:bg-[var(--primary-cta-hover-bg)]">
+                          class="generate-button w-full font-bold text-lg py-5 px-8 rounded-xl shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
                     <app-icon [name]="generateButtonIcon()" [size]="22"></app-icon>
                     <span>{{ generateButtonText() }}</span>
                   </button>
@@ -351,7 +351,7 @@
           <section class="animate-pop space-y-6">
             <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h2 class="text-4xl font-bold font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-[var(--text-highlight)] to-[var(--text-accent)]">Your Spark Deck</h2>
+                <h2 class="italic text-transparent bg-clip-text bg-gradient-to-r from-[var(--text-highlight)] to-[var(--text-accent)]">Your Spark Deck</h2>
                 <p class="text-[var(--text-color-muted)] mt-1">{{ savedCount() }} saved item(s)</p>
               </div>
               @if (savedCount() > 0) {
@@ -373,7 +373,7 @@
             @if (savedCount() === 0) {
               <div class="text-center py-20 bg-[var(--card-bg-subtle)] organic-shape">
                 <app-icon name="bookmark" [size]="48" class="text-[var(--text-color-muted)] mx-auto mb-4"></app-icon>
-                <h3 class="text-xl font-bold font-serif">Your Spark Deck is Empty</h3>
+                <h3 class="font-serif">Your Spark Deck is Empty</h3>
                 <p class="text-[var(--text-color-muted)] mt-2">Generate some insights and use the bookmark icon to save your favorites!</p>
               </div>
             } @else {
@@ -393,7 +393,7 @@
                               <span>Strategy: <strong class="font-semibold">{{ item.strategyName }}</strong></span>
                             </div>
                           </div>
-                          <button (click)="deleteItem(item.id)" class="p-2 rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)]" [attr.aria-label]="'Delete saved insight: ' + item.text">
+                          <button (click)="deleteItem(item.id)" class="p-2 rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)]" [attr.aria-label]="formatAriaLabel('Delete saved insight', item.text)">
                             <app-icon name="trash" [size]="16"></app-icon>
                           </button>
                       </div>
@@ -406,7 +406,7 @@
                             <app-icon name="heart-pulse" [size]="24"></app-icon>
                           </div>
                           <div class="flex-1">
-                            <h4 class="font-bold font-serif">Care Plan for: {{ item.problem }}</h4>
+                            <h4 class="font-serif">Care Plan for: {{ item.problem }}</h4>
                             <div class="text-xs text-[var(--text-color-muted)] mt-1">Saved: <strong class="font-semibold">{{ formatDate(item.timestamp) }}</strong></div>
                           </div>
                           <div class="flex items-center gap-1">
@@ -417,7 +417,7 @@
                                     <app-icon name="copy" [size]="16"></app-icon>
                                 }
                             </button>
-                            <button (click)="deleteItem(item.id)" class="p-2 rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)]" [attr.aria-label]="'Delete saved care plan for: ' + item.problem">
+                            <button (click)="deleteItem(item.id)" class="p-2 rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)]" [attr.aria-label]="formatAriaLabel('Delete saved care plan for', item.problem)">
                                 <app-icon name="trash" [size]="16"></app-icon>
                             </button>
                             <button (click)="toggleCollapse(item.id)" class="p-2 rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)]" [attr.aria-expanded]="!isCollapsed(item.id)">
@@ -429,7 +429,7 @@
                           <div class="mt-4 pt-4 border-t border-[var(--border-color)] space-y-4 pl-14">
                             @for (section of getCarePlanSections(item.plan); track section.id) {
                               <div>
-                                  <h5 class="text-sm font-semibold font-serif flex items-center gap-2 mb-1">
+                                  <h5 class="flex items-center gap-2 mb-1">
                                       <app-icon [name]="section.icon" [size]="16" class="text-[var(--text-color-muted)]"></app-icon>
                                       {{ section.title }}
                                   </h5>
