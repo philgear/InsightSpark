@@ -59,10 +59,16 @@ export class StorageService {
 
   // --- Theme Management ---
   getTheme(): Theme {
-    const theme = localStorage.getItem(this.THEME_STORAGE_KEY);
-    if (theme === 'light' || theme === 'dark') {
-      return theme;
+    const storedTheme = localStorage.getItem(this.THEME_STORAGE_KEY);
+    if (storedTheme === 'light' || storedTheme === 'dark') {
+      return storedTheme;
     }
+
+    // If no theme is stored, respect the user's system preference
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      return 'light';
+    }
+
     // Default to dark theme if nothing is set or value is invalid
     return 'dark';
   }

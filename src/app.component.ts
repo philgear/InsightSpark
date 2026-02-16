@@ -171,7 +171,7 @@ export class AppComponent implements OnDestroy {
         body.classList.remove('light-theme');
       }
       // Also update meta theme-color for browser UI consistency
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', currentTheme === 'light' ? '#FAF8F2' : '#1C2B3C');
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', currentTheme === 'light' ? '#FFFACD' : '#1A2E44');
     });
   }
 
@@ -491,4 +491,18 @@ export class AppComponent implements OnDestroy {
   formatDate = (ts: number): string => new Date(ts).toLocaleString(undefined, {
     month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
   });
+
+  /**
+   * Creates a descriptive and truncated ARIA label for an interactive element.
+   * @param prefix A short, actionable prefix (e.g., "Copy insight").
+   * @param content The dynamic content to include in the label.
+   * @param maxLength The maximum length of the content part.
+   * @returns A formatted string for use in an aria-label attribute.
+   */
+  formatAriaLabel(prefix: string, content: string, maxLength = 50): string {
+    const truncatedContent = content.length > maxLength 
+      ? content.substring(0, maxLength - 3) + '...' 
+      : content;
+    return `${prefix}: "${truncatedContent}"`;
+  }
 }

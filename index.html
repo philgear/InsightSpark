@@ -22,15 +22,33 @@
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
   
   <style>
+    html {
+      font-size: 16px; /* Default desktop font size */
+    }
+    @media (max-width: 767px) {
+      html {
+        font-size: 14px; /* Smaller base for mobile */
+      }
+    }
+
     :root {
       --font-serif: 'Playfair Display', serif;
       --font-sans: 'Lora', serif;
       
+      /* Golden Ratio Typography Scale (using Major Third: 1.250) */
+      --font-size-sm: 0.8rem;   /* ~12.8px on desktop */
+      --font-size-base: 1rem;     /* 16px on desktop */
+      --font-size-lg: 1.25rem;   /* 20px on desktop */
+      --font-size-xl: 1.563rem;  /* ~25px on desktop */
+      --font-size-2xl: 1.953rem; /* ~31px on desktop */
+      --font-size-3xl: 2.441rem; /* ~39px on desktop */
+      --font-size-4xl: 3.052rem; /* ~49px on desktop */
+
       /* Material Echoes - Dark Theme */
       --bg-color: #1A2E44;
       --text-color: #FFFACD;
-      --text-color-muted: #a39f8e; /* 7.9:1 vs bg */
-      --text-color-subtle: #7a776c; /* 4.75:1 vs bg */
+      --text-color-muted: #a39f8e; /* 7.9:1 vs bg. AAA */
+      --text-color-subtle: #8d887a; /* 5.7:1 vs bg. AA+ */
       --text-accent: #B0E06D;
       --text-highlight: #FFCCD2;
       
@@ -45,9 +63,8 @@
       --button-bg: rgba(255, 250, 205, 0.05);
       --button-bg-hover: rgba(255, 250, 205, 0.1);
       
-      --primary-cta-bg: linear-gradient(135deg, var(--text-accent), var(--text-highlight));
-      --primary-cta-text: #1A2E44;
-      --primary-cta-hover-bg: linear-gradient(135deg, #c1f07f, #ffdce0);
+      --primary-cta-bg: linear-gradient(105deg, #F7797d, #C471ED, #12c2e9);
+      --primary-cta-text: #ffffff;
       
       --ring-color: var(--text-accent);
 
@@ -70,8 +87,8 @@
       /* Material Echoes - Light Theme */
       --bg-color: #FFFACD;
       --text-color: #1A2E44;
-      --text-color-muted: #49596a; /* 7.45:1 vs bg */
-      --text-color-subtle: #6b7b8d; /* 4.7:1 vs bg */
+      --text-color-muted: #49596a; /* 7.45:1 vs bg. AAA */
+      --text-color-subtle: #606F82; /* 5.5:1 vs bg. AA+ */
       --text-accent: #0F4C5C;
       --text-highlight: #8db64d;
 
@@ -86,9 +103,8 @@
       --button-bg: rgba(26, 46, 68, 0.04);
       --button-bg-hover: rgba(26, 46, 68, 0.08);
 
-      --primary-cta-bg: linear-gradient(135deg, var(--text-accent), var(--text-highlight));
-      --primary-cta-text: #FFFACD;
-      --primary-cta-hover-bg: linear-gradient(135deg, #135e70, #a1d15a);
+      --primary-cta-bg: linear-gradient(105deg, #007CF0, #00DFD8);
+      --primary-cta-text: #ffffff;
     }
     
     body {
@@ -96,9 +112,22 @@
       color: var(--text-color);
       transition: background-color 0.3s ease, color 0.3s ease;
       font-family: var(--font-sans);
+      font-size: var(--font-size-base);
+      line-height: 1.618; /* Golden Ratio line height */
     }
-    h1, h2, h3, h4, h5, h6 { font-family: var(--font-serif); }
+
+    h1, h2, h3, h4, h5, h6 { 
+      font-family: var(--font-serif);
+      line-height: 1.2;
+      font-weight: 700;
+    }
     
+    h1 { font-size: var(--font-size-4xl); }
+    h2 { font-size: var(--font-size-3xl); }
+    h3 { font-size: var(--font-size-2xl); }
+    h4 { font-size: var(--font-size-xl); }
+    h5 { font-size: var(--font-size-lg); }
+
     .sr-only {
       position: absolute;
       width: 1px;
@@ -199,6 +228,27 @@
     .organic-button:hover, .organic-button:focus {
       box-shadow: 0 0 15px -2px var(--text-highlight);
     }
+    .organic-button:focus-visible {
+      outline: 2px solid var(--ring-color);
+      outline-offset: 2px;
+    }
+
+    /* Generate Button Theme */
+    .generate-button {
+      color: var(--primary-cta-text);
+      background: var(--primary-cta-bg);
+      background-size: 200% auto;
+      transition: background-position 0.5s ease, transform 0.2s ease, box-shadow 0.3s ease;
+      transform: scale(1);
+    }
+    .generate-button:not(:disabled):hover {
+      background-position: right center;
+      transform: scale(1.02);
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+    }
+    .generate-button:not(:disabled):active {
+      transform: scale(0.98);
+    }
 
     /* Dieter Rams Inspired Strategy Button */
     .strategy-button {
@@ -217,6 +267,10 @@
     .strategy-button:hover {
       background-color: var(--button-bg-hover);
       border-color: var(--border-color-strong);
+    }
+    .strategy-button:focus-visible {
+      outline: 2px solid var(--ring-color);
+      outline-offset: 2px;
     }
     .strategy-button.selected {
       background-color: var(--card-bg);
