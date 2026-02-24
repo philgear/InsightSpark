@@ -1,27 +1,26 @@
 import { Component, signal, computed, WritableSignal, inject, effect, untracked, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IconComponent } from './icon.component';
 import { AppComponent } from '../../app.component';
 import { VitalsService } from '../../services/vitals.service';
 import { VitalsTrendGraphComponent } from './vitals-trend-graph.component';
 
 // Define a type for patient status for clarity
-type PatientStatus = {
+interface PatientStatus {
   text: string;
   colorClass: string; // Tailwind CSS class for color
-};
+}
 
 @Component({
   selector: 'app-medical-data-card',
   standalone: true,
-  imports: [CommonModule, IconComponent, VitalsTrendGraphComponent],
+  imports: [CommonModule, VitalsTrendGraphComponent],
   templateUrl: './medical-data-card.component.html',
 })
 export class MedicalDataCardComponent implements OnDestroy {
   // Inject the parent component to access its signals and methods
   public parent = inject(AppComponent);
   private vitalsService = inject(VitalsService);
-  private debounceTimer: any;
+  private debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
   // --- Component state for unique IDs for a11y ---
   readonly heartRateId = 'hr-' + crypto.randomUUID();
@@ -129,7 +128,7 @@ export class MedicalDataCardComponent implements OnDestroy {
     max: number
   ) {
     const inputElement = event.target as HTMLInputElement;
-    let numericValue = parseInt(inputElement.value, 10);
+    const numericValue = parseInt(inputElement.value, 10);
 
     if (isNaN(numericValue)) {
       inputElement.value = String(valueSignal());

@@ -12,33 +12,33 @@
         </div>
         <div>
           <h1 class="bg-clip-text text-transparent bg-gradient-to-r from-[var(--text-color)] via-[var(--text-highlight)] to-[var(--text-accent)]">Insight Spark</h1>
-          <p class="text-xs text-[var(--text-color-muted)] hidden sm:block tracking-wide">A Fluid Thinking Partner</p>
+          <p class="text-sm text-[var(--text-color-muted)] hidden sm:block tracking-wide">A Fluid Thinking Partner</p>
         </div>
       </button>
       
       <div class="flex items-center gap-4">
         <!-- Mode Switcher -->
         <div class="bg-[var(--button-bg)] border border-[var(--border-color)] rounded-full p-1 flex items-center text-sm font-medium">
-          <button (click)="navigateTo('creative')" [class.bg-[var(--card-bg)]]="appMode() === 'creative'" [class.text-[var(--text-color)]]="appMode() === 'creative'" [class.text-[var(--text-color-muted)]]="appMode() !== 'creative'" class="px-3 py-1 organic-button transition-colors" [attr.aria-pressed]="appMode() === 'creative'">
+          <button (click)="navigateTo('creative')" [class.bg-[var(--card-bg)]]="appMode() === 'creative'" [class.text-[var(--text-color)]]="appMode() === 'creative'" [class.text-[var(--text-color-muted)]]="appMode() !== 'creative'" class="px-4 py-2 min-h-[48px] min-w-[48px] organic-button transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-pressed]="appMode() === 'creative'">
             Creative
           </button>
-          <button (click)="navigateTo('care')" [class.bg-[var(--card-bg)]]="appMode() === 'care'" [class.text-[var(--text-color)]]="appMode() === 'care'" [class.text-[var(--text-color-muted)]]="appMode() !== 'care'" class="px-3 py-1 organic-button transition-colors" [attr.aria-pressed]="appMode() === 'care'">
+          <button (click)="navigateTo('care')" [class.bg-[var(--card-bg)]]="appMode() === 'care'" [class.text-[var(--text-color)]]="appMode() === 'care'" [class.text-[var(--text-color-muted)]]="appMode() !== 'care'" class="px-4 py-2 min-h-[48px] min-w-[48px] organic-button transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-pressed]="appMode() === 'care'">
             Care
           </button>
         </div>
 
         <!-- Right Side Icons -->
         <div class="flex items-center gap-2">
-          <button (click)="setView('saved')" class="relative p-2 rounded-full hover:bg-[var(--button-bg-hover)] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-color)] focus:ring-[var(--ring-color)]" aria-label="View saved insights">
+          <button (click)="setView('saved')" class="relative flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-color)] focus:ring-[var(--ring-color)]" aria-label="View saved insights">
             <app-icon name="bookmark" [size]="20" class="text-[var(--text-color-muted)]"></app-icon>
             @if (savedCount() > 0) {
-              <span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--text-accent)] text-xs font-bold text-white">{{ savedCount() }}</span>
+              <span class="absolute top-0 right-0 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--text-accent)] text-xs font-bold text-white">{{ savedCount() }}</span>
             }
           </button>
-          <button (click)="setView('help')" class="p-2 rounded-full hover:bg-[var(--button-bg-hover)] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-color)] focus:ring-[var(--ring-color)]" aria-label="Help">
+          <button (click)="setView('help')" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-color)] focus:ring-[var(--ring-color)]" aria-label="Help">
             <app-icon name="help-circle" [size]="20" class="text-[var(--text-color-muted)]"></app-icon>
           </button>
-          <button (click)="toggleTheme()" class="p-2 rounded-full hover:bg-[var(--button-bg-hover)] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-color)] focus:ring-[var(--ring-color)]" [attr.aria-label]="'Switch to ' + (theme() === 'dark' ? 'light' : 'dark') + ' theme'">
+          <button (click)="toggleTheme()" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-color)] focus:ring-[var(--ring-color)]" [attr.aria-label]="'Switch to ' + (theme() === 'dark' ? 'light' : 'dark') + ' theme'">
             <app-icon [name]="theme() === 'dark' ? 'sun' : 'moon'" [size]="20" class="text-[var(--text-color-muted)]"></app-icon>
           </button>
         </div>
@@ -50,9 +50,9 @@
   @if (isUpdateAvailable()) {
     <div role="status" class="bg-blue-600 text-white p-3 flex justify-center items-center gap-4 non-printable">
       <p>A new version of Insight Spark is available!</p>
-      <button (click)="reloadApp()" class="bg-white text-blue-600 font-bold py-1 px-3 rounded">Reload</button>
-      <button (click)="dismissUpdate()" class="absolute right-4" aria-label="Dismiss update notification">
-        <app-icon name="x" [size]="16"></app-icon>
+      <button (click)="reloadApp()" class="bg-white text-blue-600 font-bold py-2 px-4 min-h-[48px] min-w-[48px] rounded focus:outline-none focus:ring-2 focus:ring-white">Reload</button>
+      <button (click)="dismissUpdate()" class="absolute right-4 flex items-center justify-center min-w-[48px] min-h-[48px] focus:outline-none focus:ring-2 focus:ring-white rounded-full" aria-label="Dismiss update notification">
+        <app-icon name="x" [size]="20"></app-icon>
       </button>
     </div>
   }
@@ -79,8 +79,8 @@
               <app-icon name="x" [size]="48" class="text-red-500 mb-4"></app-icon>
               <h2 class="italic mb-2">An Error Occurred</h2>
               <p class="text-[var(--text-color-muted)] mb-6">{{ error() }}</p>
-              <button (click)="editQuery()" class="bg-gradient-to-r from-pink-500 to-red-500 text-white font-bold py-3 px-6 organic-button shadow-lg transition-all flex items-center gap-2 mx-auto">
-                <app-icon name="edit" [size]="16"></app-icon>
+              <button (click)="editQuery()" class="bg-gradient-to-r from-pink-500 to-red-500 text-white font-bold py-3 px-6 min-h-[48px] min-w-[48px] organic-button shadow-lg transition-all flex items-center justify-center gap-2 mx-auto focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                <app-icon name="edit" [size]="20"></app-icon>
                 Try Again
               </button>
             </div>
@@ -96,16 +96,16 @@
                   </h2>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
-                   <button (click)="editQuery()" class="flex items-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 organic-button border border-[var(--border-color)] transition-colors">
-                    <app-icon name="edit" [size]="16"></app-icon>
+                   <button (click)="editQuery()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                    <app-icon name="edit" [size]="18"></app-icon>
                     <span>Edit Query</span>
                   </button>
                    <div class="bg-[var(--button-bg)] border border-[var(--border-color)] rounded-full p-1 flex items-center text-sm font-medium">
-                    <button (click)="resultsViewMode.set('list')" [class.bg-[var(--card-bg)]]="resultsViewMode() === 'list'" class="p-2 organic-button transition-colors" [attr.aria-pressed]="resultsViewMode() === 'list'" aria-label="Switch to list view">
-                      <app-icon name="list" [size]="16"></app-icon>
+                    <button (click)="resultsViewMode.set('list')" [class.bg-[var(--card-bg)]]="resultsViewMode() === 'list'" class="flex items-center justify-center min-w-[48px] min-h-[48px] organic-button transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-pressed]="resultsViewMode() === 'list'" aria-label="Switch to list view">
+                      <app-icon name="list" [size]="20"></app-icon>
                     </button>
-                    <button (click)="resultsViewMode.set('graph')" [class.bg-[var(--card-bg)]]="resultsViewMode() === 'graph'" class="p-2 organic-button transition-colors" [attr.aria-pressed]="resultsViewMode() === 'graph'" aria-label="Switch to graph view">
-                      <app-icon name="git-branch" [size]="16"></app-icon>
+                    <button (click)="resultsViewMode.set('graph')" [class.bg-[var(--card-bg)]]="resultsViewMode() === 'graph'" class="flex items-center justify-center min-w-[48px] min-h-[48px] organic-button transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-pressed]="resultsViewMode() === 'graph'" aria-label="Switch to graph view">
+                      <app-icon name="git-branch" [size]="20"></app-icon>
                     </button>
                   </div>
                 </div>
@@ -147,16 +147,16 @@
                               {{insight.influence}}
                             </p>
                           }
-                          <div class="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button (click)="copyToClipboard(insight.text, id)" class="p-1.5 rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)]" [attr.aria-label]="formatAriaLabel('Copy insight', insight.text)">
+                          <div class="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
+                            <button (click)="copyToClipboard(insight.text, id)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-label]="formatAriaLabel('Copy insight', insight.text)">
                               @if (copiedId() === id) {
-                                <app-icon name="check" [size]="16" class="text-green-500"></app-icon>
+                                <app-icon name="check" [size]="20" class="text-green-500"></app-icon>
                               } @else {
-                                <app-icon name="copy" [size]="16"></app-icon>
+                                <app-icon name="copy" [size]="20"></app-icon>
                               }
                             </button>
-                            <button (click)="toggleInsightSave(insight, result.strategyName)" class="p-1.5 rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)]" [attr.aria-label]="formatAriaLabel(isInsightSaved(insight.text) ? 'Unsave insight' : 'Save insight', insight.text)">
-                               <app-icon name="bookmark" [size]="16" [class]="isInsightSaved(insight.text) ? 'fill-current text-[var(--text-highlight)]' : ''"></app-icon>
+                            <button (click)="toggleInsightSave(insight, result.strategyName)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-label]="formatAriaLabel(isInsightSaved(insight.text) ? 'Unsave insight' : 'Save insight', insight.text)">
+                               <app-icon name="bookmark" [size]="20" [class]="isInsightSaved(insight.text) ? 'fill-current text-[var(--text-highlight)]' : ''"></app-icon>
                             </button>
                           </div>
                         </div>
@@ -173,12 +173,12 @@
                 <div class="text-center py-8">
                   <h3 class="italic mb-2">Synthesize a Care Plan</h3>
                   <p class="text-[var(--text-color-muted)] mb-4">You've saved {{ savedInsightsForCurrentProblem().length }} insight(s) for this goal. Ready to build a plan?</p>
-                  <button (click)="generateCarePlan()" [disabled]="isGeneratingCarePlan()" class="font-bold py-3 px-6 organic-button shadow-lg transition-all flex items-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--primary-cta-bg)] text-[var(--primary-cta-text)] hover:bg-[var(--primary-cta-hover-bg)]">
+                  <button (click)="generateCarePlan()" [disabled]="isGeneratingCarePlan()" class="font-bold py-3 px-6 min-h-[48px] min-w-[48px] organic-button shadow-lg transition-all flex items-center justify-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--primary-cta-bg)] text-[var(--primary-cta-text)] hover:bg-[var(--primary-cta-hover-bg)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
                     @if(isGeneratingCarePlan()) {
-                      <app-icon name="loader" [size]="16" class="animate-spin"></app-icon>
+                      <app-icon name="loader" [size]="20" class="animate-spin"></app-icon>
                       <span>Generating...</span>
                     } @else {
-                      <app-icon name="sparkles" [size]="16"></app-icon>
+                      <app-icon name="sparkles" [size]="20"></app-icon>
                       <span>Generate Care Plan</span>
                     }
                   </button>
@@ -194,26 +194,26 @@
                                 <p class="text-[var(--text-color-muted)] mt-1">Based on your saved insights for: {{ problemInput() }}</p>
                             </div>
                             <div class="flex items-center gap-2 flex-wrap non-printable">
-                                <button (click)="saveCarePlan()" [disabled]="isCarePlanSaved()" class="flex items-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 organic-button border border-[var(--border-color)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                                <button (click)="saveCarePlan()" [disabled]="isCarePlanSaved()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
                                     @if (isCarePlanSaved()) {
-                                        <app-icon name="check" [size]="16"></app-icon>
+                                        <app-icon name="check" [size]="18"></app-icon>
                                         <span>Saved</span>
                                     } @else {
-                                        <app-icon name="bookmark" [size]="16"></app-icon>
+                                        <app-icon name="bookmark" [size]="18"></app-icon>
                                         <span>Save Plan</span>
                                     }
                                 </button>
-                                <button (click)="copyCarePlan()" class="flex items-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 organic-button border border-[var(--border-color)] transition-colors">
+                                <button (click)="copyCarePlan()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
                                     @if (isCarePlanCopied()) {
-                                        <app-icon name="check" [size]="16" class="text-green-500"></app-icon>
+                                        <app-icon name="check" [size]="18" class="text-green-500"></app-icon>
                                         <span>Copied!</span>
                                     } @else {
-                                        <app-icon name="copy" [size]="16"></app-icon>
+                                        <app-icon name="copy" [size]="18"></app-icon>
                                         <span>Copy</span>
                                     }
                                 </button>
-                                <button (click)="printPlan()" class="flex items-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 organic-button border border-[var(--border-color)] transition-colors">
-                                    <app-icon name="printer" [size]="16"></app-icon>
+                                <button (click)="printPlan()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                                    <app-icon name="printer" [size]="18"></app-icon>
                                     <span>Print</span>
                                 </button>
                             </div>
@@ -250,7 +250,7 @@
                     class="w-full h-32 p-4 text-base bg-[var(--card-bg)] border border-[var(--border-color-strong)] rounded-xl focus:ring-2 focus:ring-[var(--ring-color)] focus:outline-none transition-all resize-none shadow-lg"
                     [attr.aria-label]="problemInputAriaLabel()">
                   </textarea>
-                  <span class="absolute bottom-3 right-3 text-xs text-[var(--text-color-subtle)]">{{ problemInput().length }} / 1000</span>
+                  <span class="absolute bottom-3 right-3 text-sm text-[var(--text-color-subtle)]">{{ problemInput().length }} / 1000</span>
                 </div>
 
                 @if (appMode() === 'care') {
@@ -274,17 +274,17 @@
                                 [class.text-[var(--primary-cta-text)]]="activeCareRole() === role.name"
                                 [class.bg-[var(--button-bg)]]="activeCareRole() !== role.name"
                                 [class.hover:bg-[var(--button-bg-hover)]]="activeCareRole() !== role.name"
-                                class="flex items-center gap-2 text-sm font-medium py-2 px-3 organic-button border border-[var(--border-color)] transition-colors">
-                          <app-icon [name]="role.icon" [size]="16"></app-icon>
+                                class="flex items-center justify-center gap-2 text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                          <app-icon [name]="role.icon" [size]="18"></app-icon>
                           <span>{{ role.name }}</span>
                         </button>
                       }
                     </div>
                     @if (gistInput()) {
                       <div class="relative">
-                          <textarea [ngModel]="gistInput()" (ngModelChange)="gistInput.set($event)" class="w-full h-24 p-3 text-sm bg-[var(--card-bg-subtle)] border border-[var(--border-color)] rounded-lg focus:ring-1 focus:ring-[var(--ring-color)] focus:outline-none transition-all resize-y" aria-label="Persona guiding principle"></textarea>
-                          <button (click)="clearActiveRole()" class="absolute top-2 right-2 p-1 rounded-full hover:bg-[var(--button-bg)] text-[var(--text-color-muted)]" aria-label="Clear persona">
-                              <app-icon name="x" [size]="14"></app-icon>
+                          <textarea [ngModel]="gistInput()" (ngModelChange)="gistInput.set($event)" class="w-full h-24 p-3 text-sm bg-[var(--card-bg-subtle)] border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--ring-color)] focus:outline-none transition-all resize-y" aria-label="Persona guiding principle"></textarea>
+                          <button (click)="clearActiveRole()" class="absolute top-2 right-2 flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" aria-label="Clear persona">
+                              <app-icon name="x" [size]="20"></app-icon>
                           </button>
                       </div>
                     }
@@ -300,9 +300,9 @@
                         {{ appMode() === 'care' ? 'Select Care Approaches' : 'Choose Your Spark Plugs' }}
                       </h3>
                       <div class="flex items-center gap-2 text-sm">
-                          <button (click)="selectAllStrategies()" class="hover:underline text-[var(--text-color-muted)]">Select All</button>
+                          <button (click)="selectAllStrategies()" class="hover:underline text-[var(--text-color-muted)] min-h-[48px] min-w-[48px] px-2 focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)] rounded">Select All</button>
                           <span class="text-[var(--text-color-subtle)]">|</span>
-                          <button (click)="clearSelection()" class="hover:underline text-[var(--text-color-muted)]">Clear</button>
+                          <button (click)="clearSelection()" class="hover:underline text-[var(--text-color-muted)] min-h-[48px] min-w-[48px] px-2 focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)] rounded">Clear</button>
                       </div>
                     </div>
                     <p class="text-sm text-[var(--text-color-muted)]">Select a few strategies to apply, or leave blank for a random trio.</p>
@@ -323,7 +323,7 @@
                               <h4>{{ appMode() === 'care' ? strategy.careModeName : strategy.name }}</h4>
                           </div>
                         </div>
-                        <p class="text-xs text-[var(--text-color-muted)]">
+                        <p class="text-sm text-[var(--text-color-muted)]">
                             {{ appMode() === 'care' ? strategy.careModeDescription : strategy.description }}
                         </p>
                       </button>
@@ -338,7 +338,7 @@
                 <div class="pt-8">
                   <button (click)="generateInsights()" 
                           [disabled]="isGenerateDisabled()" 
-                          class="generate-button w-full font-bold text-lg py-5 px-8 rounded-xl shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
+                          class="generate-button w-full font-bold text-lg py-5 px-8 min-h-[48px] rounded-xl shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
                     <app-icon [name]="generateButtonIcon()" [size]="22"></app-icon>
                     <span>{{ generateButtonText() }}</span>
                   </button>
@@ -357,12 +357,12 @@
               @if (savedCount() > 0) {
                 <div class="flex items-center gap-2">
                   <span class="text-sm text-[var(--text-color-muted)]">Sort by:</span>
-                  <button (click)="toggleSort()" class="flex items-center gap-1 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-3 organic-button border border-[var(--border-color)] transition-colors">
+                  <button (click)="toggleSort()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
                     @if (sortOrder() === 'newest') {
-                      <app-icon name="arrow-down" [size]="14"></app-icon>
+                      <app-icon name="arrow-down" [size]="18"></app-icon>
                       <span>Newest</span>
                     } @else {
-                      <app-icon name="arrow-up" [size]="14"></app-icon>
+                      <app-icon name="arrow-up" [size]="18"></app-icon>
                       <span>Oldest</span>
                     }
                   </button>
@@ -387,14 +387,14 @@
                           </div>
                           <div class="flex-1">
                             <p class="leading-relaxed">{{ item.text }}</p>
-                            <div class="text-xs text-[var(--text-color-muted)] mt-2 flex items-center flex-wrap gap-x-4 gap-y-1">
+                            <div class="text-sm text-[var(--text-color-muted)] mt-2 flex items-center flex-wrap gap-x-4 gap-y-1">
                               <span>Saved: <strong class="font-semibold">{{ formatDate(item.timestamp) }}</strong></span>
                               <span>From: <strong class="font-semibold truncate max-w-[200px]">{{ item.problem }}</strong></span>
                               <span>Strategy: <strong class="font-semibold">{{ item.strategyName }}</strong></span>
                             </div>
                           </div>
-                          <button (click)="deleteItem(item.id)" class="p-2 rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)]" [attr.aria-label]="formatAriaLabel('Delete saved insight', item.text)">
-                            <app-icon name="trash" [size]="16"></app-icon>
+                          <button (click)="deleteItem(item.id)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-label]="formatAriaLabel('Delete saved insight', item.text)">
+                            <app-icon name="trash" [size]="20"></app-icon>
                           </button>
                       </div>
                     }
@@ -407,21 +407,21 @@
                           </div>
                           <div class="flex-1">
                             <h4 class="font-serif">Care Plan for: {{ item.problem }}</h4>
-                            <div class="text-xs text-[var(--text-color-muted)] mt-1">Saved: <strong class="font-semibold">{{ formatDate(item.timestamp) }}</strong></div>
+                            <div class="text-sm text-[var(--text-color-muted)] mt-1">Saved: <strong class="font-semibold">{{ formatDate(item.timestamp) }}</strong></div>
                           </div>
                           <div class="flex items-center gap-1">
-                            <button (click)="copyCarePlan(item.plan, item.problem)" class="p-2 rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)]" aria-label="Copy saved care plan">
+                            <button (click)="copyCarePlan(item.plan, item.problem)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" aria-label="Copy saved care plan">
                                 @if (copiedId() === id) {
-                                    <app-icon name="check" [size]="16" class="text-green-500"></app-icon>
+                                    <app-icon name="check" [size]="20" class="text-green-500"></app-icon>
                                 } @else {
-                                    <app-icon name="copy" [size]="16"></app-icon>
+                                    <app-icon name="copy" [size]="20"></app-icon>
                                 }
                             </button>
-                            <button (click)="deleteItem(item.id)" class="p-2 rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)]" [attr.aria-label]="formatAriaLabel('Delete saved care plan for', item.problem)">
-                                <app-icon name="trash" [size]="16"></app-icon>
+                            <button (click)="deleteItem(item.id)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-label]="formatAriaLabel('Delete saved care plan for', item.problem)">
+                                <app-icon name="trash" [size]="20"></app-icon>
                             </button>
-                            <button (click)="toggleCollapse(item.id)" class="p-2 rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)]" [attr.aria-expanded]="!isCollapsed(item.id)">
-                              <app-icon [name]="isCollapsed(item.id) ? 'chevron-down' : 'chevron-up'" [size]="16"></app-icon>
+                            <button (click)="toggleCollapse(item.id)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-expanded]="!isCollapsed(item.id)" [attr.aria-label]="isCollapsed(item.id) ? 'Expand care plan' : 'Collapse care plan'">
+                              <app-icon [name]="isCollapsed(item.id) ? 'chevron-down' : 'chevron-up'" [size]="20"></app-icon>
                             </button>
                           </div>
                         </div>

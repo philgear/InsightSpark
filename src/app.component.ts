@@ -1,15 +1,13 @@
 import { Component, inject, signal, computed, OnDestroy, effect } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
+import { SwUpdate, VersionReadyEvent, VersionEvent } from '@angular/service-worker';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { GeminiService } from './services/gemini.service';
 import { StorageService, Theme } from './services/storage.service';
-import { CreativeStrategy, InsightItem, InsightResult, SavedInsight, STRATEGIES, CarePlan, SavedCarePlan, SavedItem, StructuredProblem } from './models/creative-types';
+import { CreativeStrategy, InsightItem, InsightResult, SavedInsight, STRATEGIES, CarePlan, SavedCarePlan, StructuredProblem } from './models/creative-types';
 import { IconComponent } from './components/ui/icon.component';
-import { KleeBrushDirective } from './directives/brush.directive';
-import { KleeGridComponent } from './components/ui/klee-grid.component';
 import { MedicalDataCardComponent } from './components/ui/medical-data-card.component';
 import { HelpComponent } from './components/ui/help.component';
 import { GraphViewComponent } from './components/ui/graph-view.component';
@@ -67,13 +65,15 @@ const CARE_ROLES: CareRole[] = [
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconComponent, KleeBrushDirective, KleeGridComponent, MedicalDataCardComponent, HelpComponent, GraphViewComponent],
+  imports: [CommonModule, FormsModule, IconComponent, MedicalDataCardComponent, HelpComponent, GraphViewComponent],
   templateUrl: './app.component.html',
 })
 export class AppComponent implements OnDestroy {
   private geminiService = inject(GeminiService);
-  private location = inject(Location);
-  private swUpdate = inject(SwUpdate, { optional: true });
+  // FIX: Explicitly type `location` to avoid type inference issues with the global `Location` type.
+  private location: Location = inject(Location);
+  // FIX: Explicitly type `swUpdate` as `SwUpdate | null` because it's injected optionally.
+  private swUpdate: SwUpdate | null = inject(SwUpdate, { optional: true });
   public storageService = inject(StorageService);
   private vitalsService = inject(VitalsService);
 
@@ -99,7 +99,7 @@ export class AppComponent implements OnDestroy {
 
   // Loading animation state
   suggestedInsight = signal('');
-  private suggestionInterval: any;
+  private suggestionInterval: ReturnType<typeof setInterval> | null = null;
   private suggestionIndex = 0;
   private readonly CREATIVE_MODE_SUGGESTIONS = [
     'Consulting the muses...',
@@ -137,9 +137,11 @@ export class AppComponent implements OnDestroy {
 
   constructor() {
     // Service worker updates
-    if (this.swUpdate?.isEnabled) {
+    // FIX: Use `this.swUpdate && this.swUpdate.isEnabled` for a more robust type guard.
+    if (this.swUpdate && this.swUpdate.isEnabled) {
       this.swUpdate.versionUpdates.pipe(
-        filter((evt): evt is VersionReadyEvent => evt.type === 'VERSION_READY'),
+        // FIX: Explicitly type `evt` as `VersionEvent` to fix a type inference issue where it was being inferred as `unknown`.
+        filter((evt: VersionEvent): evt is VersionReadyEvent => evt.type === 'VERSION_READY'),
         takeUntil(this.destroy$)
       ).subscribe(() => this.isUpdateAvailable.set(true));
     }
@@ -171,7 +173,7 @@ export class AppComponent implements OnDestroy {
         body.classList.remove('light-theme');
       }
       // Also update meta theme-color for browser UI consistency
-      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', currentTheme === 'light' ? '#FFFACD' : '#1A2E44');
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content', currentTheme === 'light' ? '#FDF5E6' : '#24211c');
     });
   }
 
@@ -276,7 +278,11 @@ export class AppComponent implements OnDestroy {
   toggleStrategy(id: string) {
     this.selectedStrategyIds.update(current => {
       const newSet = new Set(current);
-      newSet.has(id) ? newSet.delete(id) : newSet.add(id);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
       return newSet;
     });
   }
@@ -290,7 +296,7 @@ export class AppComponent implements OnDestroy {
       this.gistInput.set('');
     } else {
       this.activeCareRole.set(role.name);
-      this.gistInput.set(role.gist);
+      this.problemInput.set(this.problemInput() + '\n\n' + role.gist);
     }
   }
   clearActiveRole = () => this.activeCareRole.set(null);
@@ -307,7 +313,7 @@ export class AppComponent implements OnDestroy {
     this.structuredProblem.set(null);
     this.resultsViewMode.set('list');
 
-    let targetStrategies = this.selectedStrategyIds().size === 0
+    const targetStrategies = this.selectedStrategyIds().size === 0
       ? [...this.availableStrategies()].sort(() => 0.5 - Math.random()).slice(0, 3)
       //? this.availableStrategies()
       : this.availableStrategies().filter(s => this.selectedStrategyIds().has(s.id));
@@ -324,7 +330,7 @@ export class AppComponent implements OnDestroy {
         promises.push(this.geminiService.structureHealthGoal(problem).then(struct => this.structuredProblem.set(struct)));
       }
 
-      const results = await promises[0]; // Wait primarily for insights
+      const results = await promises[0] as InsightResult[]; // Wait primarily for insights
       this.insights.set(results);
       
       // Ensure other promises complete (optional, could just let them settle)

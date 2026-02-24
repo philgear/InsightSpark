@@ -68,8 +68,8 @@ import { IconComponent } from './icon.component';
       }
       
       <div class="text-center pt-4">
-        <button (click)="back.emit()" class="bg-[var(--primary-cta-bg)] text-[var(--primary-cta-text)] font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-[var(--primary-cta-hover-bg)] transition-all flex items-center gap-2 mx-auto">
-          <app-icon name="sparkles" [size]="16"></app-icon>
+        <button (click)="back.emit()" class="bg-[var(--primary-cta-bg)] text-[var(--primary-cta-text)] font-bold py-3 px-6 min-h-[48px] rounded-lg shadow-lg hover:bg-[var(--primary-cta-hover-bg)] transition-all flex items-center justify-center gap-2 mx-auto focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+          <app-icon name="sparkles" [size]="20"></app-icon>
           Let's Get Started
         </button>
       </div>
