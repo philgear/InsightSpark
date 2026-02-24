@@ -9,7 +9,7 @@
   
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="description" content="A creative companion that uses lateral thinking strategies to generate novel insights and solutions for your problems using Gemini AI.">
-  <meta name="theme-color" content="#08040A">
+  <meta name="theme-color" content="#24211c">
   <!-- iOS specific tags -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,7 +18,7 @@
 
   <!-- Zaha Hadid Inspired Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
   
   <style>
@@ -44,67 +44,79 @@
       --font-size-3xl: 2.441rem; /* ~39px on desktop */
       --font-size-4xl: 3.052rem; /* ~49px on desktop */
 
-      /* Material Echoes - Dark Theme */
-      --bg-color: #1A2E44;
-      --text-color: #FFFACD;
-      --text-color-muted: #a39f8e; /* 7.9:1 vs bg. AAA */
-      --text-color-subtle: #8d887a; /* 5.7:1 vs bg. AA+ */
-      --text-accent: #B0E06D;
-      --text-highlight: #FFCCD2;
+      /* Dried Thistle Palette - Dark Theme */
+      --bg-color: #24211c;
+      --text-color: #FDF5E6;
+      --text-color-muted: #A89F91;
+      --text-color-subtle: #867d71;
+      --text-accent: #9370DB;
+      --text-highlight: #8B5A2B;
       
-      --header-bg: rgba(26, 46, 68, 0.7);
-      --card-bg: rgba(36, 56, 78, 0.8);
-      --card-bg-subtle: rgba(255, 250, 205, 0.05);
+      --header-bg: rgba(36, 33, 28, 0.7);
+      --card-bg: rgba(48, 43, 36, 0.8);
+      --card-bg-subtle: rgba(253, 245, 230, 0.05);
       
-      --border-color: rgba(176, 224, 109, 0.2);
-      --border-color-strong: rgba(176, 224, 109, 0.4);
-      --border-accent: rgba(255, 204, 210, 0.2);
+      --border-color: rgba(147, 112, 219, 0.2);
+      --border-color-strong: rgba(147, 112, 219, 0.4);
+      --border-accent: rgba(139, 90, 43, 0.2);
       
-      --button-bg: rgba(255, 250, 205, 0.05);
-      --button-bg-hover: rgba(255, 250, 205, 0.1);
+      --button-bg: rgba(253, 245, 230, 0.05);
+      --button-bg-hover: rgba(253, 245, 230, 0.1);
       
-      --primary-cta-bg: linear-gradient(105deg, #F7797d, #C471ED, #12c2e9);
-      --primary-cta-text: #ffffff;
+      --primary-cta-bg: linear-gradient(105deg, #9370DB, #8B5A2B);
+      --primary-cta-text: #FDF5E6;
       
       --ring-color: var(--text-accent);
 
-      /* Strategy Colors */
-      --strategy-what-if: #B0E06D;
-      --strategy-constraints: #0F4C5C;
-      --strategy-opposite: #FFCCD2;
-      --strategy-future: #B0E06D;
-      --strategy-child: #0F4C5C;
-      --strategy-alien: #FFCCD2;
-      --strategy-nature: #B0E06D;
-      --strategy-competitor: #0F4C5C;
-      --strategy-simplify: #FFCCD2;
-      --strategy-random: #B0E06D;
-      --strategy-butterfly: #0F4C5C;
-      --strategy-combinatorial: #FFCCD2;
+      /* Adaptive Strategy Colors for Dark Theme (light tints for readability) */
+      --strategy-purple: #9370DB;
+      --strategy-green: #a9c27b;
+      --strategy-chocolate: #d1a279;
+      --strategy-thistle: #A89F91;
+      
+      /* Strategy Colors Assignments */
+      --strategy-what-if: var(--strategy-purple);
+      --strategy-constraints: var(--strategy-green);
+      --strategy-butterfly: var(--strategy-chocolate);
+      --strategy-combinatorial: var(--strategy-thistle);
+      --strategy-opposite: var(--strategy-purple);
+      --strategy-future: var(--strategy-green);
+      --strategy-child: var(--strategy-chocolate);
+      --strategy-alien: var(--strategy-thistle);
+      --strategy-nature: var(--strategy-purple);
+      --strategy-competitor: var(--strategy-green);
+      --strategy-simplify: var(--strategy-chocolate);
+      --strategy-random: var(--strategy-thistle);
     }
 
     .light-theme {
-      /* Material Echoes - Light Theme */
-      --bg-color: #FFFACD;
-      --text-color: #1A2E44;
-      --text-color-muted: #49596a; /* 7.45:1 vs bg. AAA */
-      --text-color-subtle: #606F82; /* 5.5:1 vs bg. AA+ */
-      --text-accent: #0F4C5C;
-      --text-highlight: #8db64d;
+      /* Dried Thistle Palette - Light Theme */
+      --bg-color: #FDF5E6;
+      --text-color: #3B4720;
+      --text-color-muted: #8B5A2B;
+      --text-color-subtle: #A89F91;
+      --text-accent: #8B5A2B;
+      --text-highlight: #9370DB;
 
-      --header-bg: rgba(255, 250, 205, 0.7);
-      --card-bg: rgba(255, 255, 255, 0.8);
-      --card-bg-subtle: rgba(26, 46, 68, 0.03);
+      --header-bg: rgba(253, 245, 230, 0.7);
+      --card-bg: rgba(255, 255, 255, 0.7);
+      --card-bg-subtle: rgba(139, 90, 43, 0.05);
 
-      --border-color: rgba(26, 46, 68, 0.1);
-      --border-color-strong: rgba(26, 46, 68, 0.2);
-      --border-accent: rgba(176, 224, 109, 0.2);
+      --border-color: rgba(139, 90, 43, 0.15);
+      --border-color-strong: rgba(139, 90, 43, 0.25);
+      --border-accent: rgba(147, 112, 219, 0.2);
 
-      --button-bg: rgba(26, 46, 68, 0.04);
-      --button-bg-hover: rgba(26, 46, 68, 0.08);
+      --button-bg: rgba(139, 90, 43, 0.05);
+      --button-bg-hover: rgba(139, 90, 43, 0.1);
 
-      --primary-cta-bg: linear-gradient(105deg, #007CF0, #00DFD8);
-      --primary-cta-text: #ffffff;
+      --primary-cta-bg: linear-gradient(105deg, #9370DB, #8B5A2B);
+      --primary-cta-text: #FDF5E6;
+      
+      /* Adaptive Strategy Colors for Light Theme (darker shades for readability) */
+      --strategy-purple: #7559b1;
+      --strategy-green: #556B2F;
+      --strategy-chocolate: #8B5A2B;
+      --strategy-thistle: #8B5A2B;
     }
     
     body {
@@ -333,7 +345,8 @@
     "@angular/forms": "https://esm.sh/@angular/forms@^21.0.8?external=rxjs",
     "@angular/common": "https://esm.sh/@angular/common@^21.0.8?external=rxjs",
     "@angular/platform-browser": "https://esm.sh/@angular/platform-browser@^21.0.8?external=rxjs",
-    "@angular/service-worker": "https://esm.sh/@angular/service-worker@^21.0.8?external=rxjs"
+    "@angular/service-worker": "https://esm.sh/@angular/service-worker@^21.0.8?external=rxjs",
+    "rxjs/": "https://esm.sh/rxjs@^7.8.2/"
   }
 }
 </script>

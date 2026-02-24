@@ -64,7 +64,7 @@ export class GeminiService {
     maskedText = maskedText.replace(/\b(?:\+?1[.\s-]?)?\(?(\d{3})\)?[.\s-]?(\d{3})[.\s-]?(\d{4})\b/g, '[phone redacted]');
 
     // Mask dates (e.g., MM/DD/YYYY, YYYY-MM-DD, Month D, YYYY)
-    maskedText = maskedText.replace(/\b\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}\b/g, '[date redacted]');
+    maskedText = maskedText.replace(/\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b/g, '[date redacted]');
     maskedText = maskedText.replace(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\w*\s+\d{1,2},?\s+\d{4}\b/gi, '[date redacted]');
 
     // Mask Social Security Number-like patterns

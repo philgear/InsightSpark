@@ -1,9 +1,9 @@
 import { Component, ElementRef, AfterViewInit, ViewChild, inject, signal, effect, untracked, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { VitalsService, VitalsRecord } from '../../services/vitals.service';
-import { IconComponent } from './icon.component';
 
-declare var d3: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const d3: any;
 
 type VitalKey = 'heartRate' | 'bloodOxygen' | 'glucose' | 'activity';
 
@@ -18,7 +18,7 @@ interface VitalMetric {
 @Component({
   selector: 'app-vitals-trend-graph',
   standalone: true,
-  imports: [CommonModule, IconComponent],
+  imports: [CommonModule],
   templateUrl: './vitals-trend-graph.component.html',
 })
 export class VitalsTrendGraphComponent implements AfterViewInit {
@@ -38,6 +38,7 @@ export class VitalsTrendGraphComponent implements AfterViewInit {
   visibleVitals = signal<Set<VitalKey>>(new Set(['heartRate']));
   
   private isInitialized = false;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private svg: any;
 
   chartSummary = computed(() => {
@@ -47,7 +48,7 @@ export class VitalsTrendGraphComponent implements AfterViewInit {
       return 'Not enough data to display trends.';
     }
 
-    let summary = 'Graph showing trends for: ';
+    const summary = 'Graph showing trends for: ';
     const trendSummaries = visibleKeys.map(key => {
       const metric = this.metrics.find(m => m.key === key);
       const firstValue = data[0][key];
@@ -81,7 +82,11 @@ export class VitalsTrendGraphComponent implements AfterViewInit {
   toggleVital(key: VitalKey) {
     this.visibleVitals.update(current => {
       const newSet = new Set(current);
-      newSet.has(key) ? newSet.delete(key) : newSet.add(key);
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
+      }
       return newSet;
     });
   }
@@ -115,7 +120,8 @@ export class VitalsTrendGraphComponent implements AfterViewInit {
       .attr('transform', `translate(0, ${height})`)
       .call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat("%H:%M")));
 
-    const yScales: { [key in VitalKey]?: any } = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const yScales: Record<VitalKey, any> = {} as Record<VitalKey, any>;
     
     // FIX: Explicitly type 'key' to prevent type inference issues.
     visibleKeys.forEach((key: VitalKey) => {

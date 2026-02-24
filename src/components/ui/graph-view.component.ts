@@ -2,7 +2,8 @@ import { Component, input, ElementRef, AfterViewInit, OnChanges, SimpleChanges, 
 import { CommonModule } from '@angular/common';
 import { InsightResult, CreativeStrategy } from '../../models/creative-types';
 
-declare var d3: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const d3: any;
 
 interface GraphNode {
   id: string;
@@ -30,7 +31,9 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
   problem = input.required<string>();
   strategies = input.required<CreativeStrategy[]>();
   
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private svg: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private simulation: any;
   private isInitialized = false;
 
@@ -133,9 +136,11 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
     const height = container.offsetHeight;
 
     this.simulation = d3.forceSimulation(nodes)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .force("link", d3.forceLink(links).id((d: any) => d.id).distance((d:any) => d.source.type === 'problem' ? 220 : 110))
         .force("charge", d3.forceManyBody().strength(-800))
         .force("center", d3.forceCenter(width / 2, height / 2))
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .force("collide", d3.forceCollide().radius((d: any) => d.radius + 18));
 
     this.svg = d3.select(container).append("svg")
@@ -143,6 +148,7 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
     
     const zoom = d3.zoom()
         .scaleExtent([0.1, 4])
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .on("zoom", (event: any) => {
           g.attr("transform", event.transform);
         });
@@ -163,43 +169,57 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
         .selectAll("g")
         .data(nodes)
         .join("g")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .attr("class", (d: any) => `graph-node ${d.type}-node`)
         .call(this.drag(this.simulation));
         
     node.append("circle")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .attr("r", (d: any) => d.radius)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .attr("fill", (d: any) => d.color);
 
     node.append("text")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .attr("dy", (d: any) => d.radius + 12)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .text((d: any) => d.text)
         .clone(true).lower()
         .attr("stroke", "var(--bg-color)");
 
     this.simulation.on("tick", () => {
         link
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .attr("x1", (d: any) => d.source.x)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .attr("y1", (d: any) => d.source.y)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .attr("x2", (d: any) => d.target.x)
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .attr("y2", (d: any) => d.target.y);
 
         node
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             .attr("transform", (d: any) => `translate(${d.x},${d.y})`);
     });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private drag(simulation: any) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function dragstarted(event: any, d: any) {
       if (!event.active) simulation.alphaTarget(0.3).restart();
       d.fx = d.x;
       d.fy = d.y;
     }
     
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function dragged(event: any, d: any) {
       d.fx = event.x;
       d.fy = event.y;
     }
     
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     function dragended(event: any, d: any) {
       if (!event.active) simulation.alphaTarget(0);
       d.fx = null;
