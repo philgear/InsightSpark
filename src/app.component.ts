@@ -131,6 +131,7 @@ export class AppComponent implements OnDestroy {
 
   // Saved Items State
   sortOrder = signal<'newest' | 'oldest'>('newest');
+  searchQuery = signal('');
   collapsedStates = signal<Map<string, boolean>>(new Map());
 
   private destroy$ = new Subject<void>();
@@ -228,6 +229,30 @@ export class AppComponent implements OnDestroy {
     return items.sort((a, b) => this.sortOrder() === 'newest' ? b.timestamp - a.timestamp : a.timestamp - b.timestamp);
   });
 
+  filteredSavedItems = computed(() => {
+    const items = this.sortedSavedItems();
+    const query = this.searchQuery().toLowerCase().trim();
+    
+    if (!query) return items;
+    
+    return items.filter(item => {
+      if (item.type === 'insight') {
+        return item.text.toLowerCase().includes(query) || 
+               item.problem.toLowerCase().includes(query) || 
+               item.strategyName.toLowerCase().includes(query);
+      } else if (item.type === 'care-plan') {
+        return item.problem.toLowerCase().includes(query) || 
+               item.plan.personGoal.toLowerCase().includes(query) ||
+               item.plan.keyInterventions.some(i => i.toLowerCase().includes(query)) ||
+               item.plan.monitoringPlan.some(i => i.toLowerCase().includes(query)) ||
+               item.plan.guidanceAndEducation.some(i => i.toLowerCase().includes(query)) ||
+               item.plan.positiveAchievements.some(i => i.toLowerCase().includes(query)) ||
+               item.plan.recommendations.some(i => i.toLowerCase().includes(query));
+      }
+      return false;
+    });
+  });
+
   savedInsightsForCurrentProblem = computed(() => {
     const allSaved = this.storageService.savedItems();
     const currentInsights = this.insights();
@@ -322,7 +347,7 @@ export class AppComponent implements OnDestroy {
       const mode = this.appMode();
       const problem = this.problemInput();
       
-      const promises: Promise<any>[] = [
+      const promises: Promise<unknown>[] = [
         this.geminiService.generateInsights(problem, targetStrategies, mode, this.gistInput())
       ];
 
