@@ -84,7 +84,7 @@
       --strategy-child: var(--strategy-chocolate);
       --strategy-alien: var(--strategy-thistle);
       --strategy-nature: var(--strategy-purple);
-      --strategy-competitor: var(--strategy-green);
+      --strategy-superpower: var(--strategy-green);
       --strategy-simplify: var(--strategy-chocolate);
       --strategy-random: var(--strategy-thistle);
     }
@@ -216,8 +216,10 @@
       top: -50%; left: -50%;
       background: radial-gradient(circle at 20% 20%, var(--text-accent), transparent 30%),
                   radial-gradient(circle at 80% 70%, var(--text-highlight), transparent 40%);
-      animation: fluid-flow 25s ease-in-out infinite alternate;
       opacity: 0.1; filter: blur(120px);
+    }
+    .fluid-background.animating::before {
+      animation: fluid-flow 25s ease-in-out infinite alternate;
     }
     @keyframes fluid-flow {
       0% { transform: rotate(0deg) scale(1); }

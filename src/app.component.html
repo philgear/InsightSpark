@@ -1,7 +1,7 @@
 <div class="flex flex-col h-screen w-full overflow-hidden relative app-shell bg-[var(--bg-color)] text-[var(--text-color)]">
   
   <!-- Fluid Background -->
-  <div class="fluid-background"></div>
+  <div class="fluid-background" [class.animating]="isLoading()"></div>
 
   <!-- Header -->
   <header class="flex-none bg-[var(--header-bg)] backdrop-blur-sm border-b border-[var(--border-color)] p-4 z-20 shadow-lg relative non-printable">

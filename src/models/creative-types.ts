@@ -148,13 +148,13 @@ export const STRATEGIES: CreativeStrategy[] = [
     careModeDescription: "How can we align the support plan with the body's natural healing processes or daily cycles?"
   },
   { 
-    id: 'competitor', 
-    name: 'Evil Competitor', 
-    description: 'If you were the CEO of the biggest competitor, how would you destroy us?', 
-    icon: 'sword', 
+    id: 'superpower', 
+    name: 'Superpower', 
+    description: 'If you had a magic wand and unlimited resources, how would you solve this? Now, scale it back to reality.', 
+    icon: 'zap', 
     color: '#9D1F3B',
-    careModeName: 'Proactive Planning',
-    careModeDescription: "What are the biggest obstacles that could derail this plan, and how can we proactively address them?"
+    careModeName: 'Ideal Scenario',
+    careModeDescription: "If there were absolutely no barriers to care, what would the perfect support look like?"
   },
   { 
     id: 'simplify', 
