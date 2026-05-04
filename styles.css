@@ -1,0 +1,192 @@
+@import "tailwindcss";
+
+/* ── Global Interactivity ───────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 72px;
+  color-scheme: dark;
+}
+
+:root {
+  accent-color: var(--text-accent);
+}
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "DM Serif Display", serif;
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  h1, h2, h3 {
+    text-shadow: 0 0 32px color-mix(in srgb, var(--text-accent) 35%, transparent);
+  }
+
+  h4, h5, h6 {
+    text-shadow: 0 0 16px color-mix(in srgb, var(--text-accent) 20%, transparent);
+  }
+
+  textarea, input {
+    caret-color: var(--text-accent);
+  }
+
+  button, [role="button"] {
+    user-select: none;
+  }
+}
+
+/* ── Auto-grow problem textarea ─────────────────────────────────── */
+#problem-input {
+  field-sizing: content;
+  min-height: 8rem;
+  max-height: 20rem;
+  resize: none;
+}
+
+/* ── Section card — hover nudge toward next step ────────────────── */
+.step-section {
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.35s ease;
+  will-change: transform;
+}
+.step-section:hover {
+  transform: translateY(5px);
+  box-shadow: 0 20px 40px -12px rgba(0,0,0,0.4);
+}
+
+/* ── Step pour: wrapper that melts into the connector gap ────────── */
+.step-pour {
+  position: relative;
+}
+
+/* The downward melt — hidden by default */
+.step-pour::after {
+  content: '';
+  position: absolute;
+  bottom: -36px;
+  left: 8px;
+  right: 8px;
+  height: 36px;
+  background: linear-gradient(
+    to bottom,
+    var(--card-bg) 0%,
+    color-mix(in srgb, var(--card-bg) 55%, transparent) 45%,
+    transparent 100%
+  );
+  border-left: 1px solid color-mix(in srgb, var(--border-color) 35%, transparent);
+  border-right: 1px solid color-mix(in srgb, var(--border-color) 35%, transparent);
+  border-radius: 0 0 0.75rem 0.75rem;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  transform: scaleY(0.4);
+  transform-origin: top;
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Active: melt pours down */
+.step-pour.active-step::after {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+/* Soften the bottom edge of inner cards when pouring */
+.step-pour.active-step .step-section {
+  border-bottom-color: color-mix(in srgb, var(--border-color) 50%, transparent);
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+}
+
+/* Textarea also softens when active */
+.step-pour.active-step textarea {
+  border-bottom-color: color-mix(in srgb, var(--border-color-strong) 50%, transparent);
+  border-bottom-left-radius: 0.5rem;
+  border-bottom-right-radius: 0.5rem;
+}
+
+/* ── Orb connector — layout, glow from pours, and animations ────── */
+.step-connector {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 0;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Glow received from the pour above */
+.step-connector.active::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 15%; right: 15%;
+  height: 60%;
+  background: radial-gradient(
+    ellipse 70% 100% at 50% 0%,
+    color-mix(in srgb, var(--card-bg) 30%, transparent) 0%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Glow pooling toward the section below */
+.step-connector.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 15%; right: 15%;
+  height: 60%;
+  background: radial-gradient(
+    ellipse 70% 100% at 50% 100%,
+    color-mix(in srgb, var(--card-bg) 30%, transparent) 0%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Orb base */
+.step-connector__orb {
+  position: relative;
+  z-index: 2;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border-color);
+  opacity: 0.4;
+  transition: background 0.5s ease, opacity 0.5s ease, box-shadow 0.5s ease;
+}
+
+/* Middle orb is bigger */
+.step-connector__orb:nth-child(2) {
+  width: 12px;
+  height: 12px;
+  opacity: 0.3;
+}
+
+/* Active orb states */
+.step-connector.active .step-connector__orb {
+  background: var(--text-accent);
+  opacity: 1;
+}
+.step-connector.active .step-connector__orb:nth-child(1) {
+  animation: orb-drift 2s 0.0s ease-in-out infinite alternate;
+  box-shadow: 0 0 8px var(--text-accent);
+}
+.step-connector.active .step-connector__orb:nth-child(2) {
+  background: var(--text-highlight);
+  animation: orb-drift 2s 0.3s ease-in-out infinite alternate;
+  box-shadow: 0 0 14px var(--text-highlight);
+}
+.step-connector.active .step-connector__orb:nth-child(3) {
+  animation: orb-drift 2s 0.6s ease-in-out infinite alternate;
+  box-shadow: 0 0 8px var(--text-accent);
+}
+
+@keyframes orb-drift {
+  0%   { transform: translateY(-3px) scale(0.9);  opacity: 0.7; }
+  100% { transform: translateY(3px)  scale(1.15); opacity: 1; }
+}

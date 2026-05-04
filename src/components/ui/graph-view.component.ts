@@ -1,7 +1,8 @@
-import { Component, input, ElementRef, AfterViewInit, OnChanges, SimpleChanges, ViewChild, effect, untracked } from '@angular/core';
+import { Component, input, ElementRef, AfterViewInit, OnChanges, SimpleChanges, ViewChild, effect, untracked, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { InsightResult, CreativeStrategy } from '../../models/creative-types';
 import { IconComponent } from './icon.component';
+import { KleePaletteService } from '../../services/klee-palette.service';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const d3: any;
@@ -95,6 +96,8 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
   results = input.required<InsightResult[]>();
   problem = input.required<string>();
   strategies = input.required<CreativeStrategy[]>();
+
+  private kleePalette = inject(KleePaletteService);
   
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private svg: any;
@@ -133,6 +136,26 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
     return style.getPropertyValue(`--strategy-${strategyId}`).trim() || 'gray';
   }
 
+  /**
+   * Returns a hex color for a strategy, blended toward --bg-color at the given ratio.
+   * Uses KleePaletteService.blend() — the natural consumer of that unused method.
+   */
+  private getBlendedStrategyColor(strategyName: string, blendRatio = 0): string {
+    const strategyColor = this.getStrategyColor(strategyName);
+    if (blendRatio === 0) return strategyColor;
+    try {
+      const bgColor = getComputedStyle(document.documentElement)
+        .getPropertyValue('--bg-color').trim();
+      // Only blend if both values look like valid hex colors
+      if (/^#[0-9a-f]{3,6}$/i.test(strategyColor) && /^#[0-9a-f]{3,6}$/i.test(bgColor)) {
+        return this.kleePalette.blend(bgColor, strategyColor, blendRatio);
+      }
+    } catch {
+      // Fall back silently — CSS variable may be rgba()
+    }
+    return strategyColor;
+  }
+
   private createGraphData(): { nodes: GraphNode[], links: GraphLink[] } {
     const nodes: GraphNode[] = [];
     const links: GraphLink[] = [];
@@ -161,6 +184,7 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
         text: strategyName,
         fullText: strategyName,
         type: 'strategy',
+        // Strategy nodes: fully saturated strategy color for visual anchoring
         color: this.getStrategyColor(strategyName),
         radius: 20,
       });
@@ -179,7 +203,8 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
           text: insight.text.length > 30 ? insight.text.substring(0, 27) + '...' : insight.text,
           fullText: insight.text,
           type: 'insight',
-          color: this.getStrategyColor(strategyName),
+          // Insight nodes: blended 60% toward bg-color for subtle leaf fill
+          color: this.getBlendedStrategyColor(strategyName, 0.6),
           radius: 10,
         });
 

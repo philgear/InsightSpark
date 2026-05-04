@@ -1,0 +1,16 @@
+{
+  "name": "InsightSpark",
+  "short_name": "InsightSpark",
+  "description": "AI-powered creative insight generator",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1625",
+  "theme_color": "#1a1625",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}

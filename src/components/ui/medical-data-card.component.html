@@ -30,13 +30,13 @@
       </div>
       
       <!-- Data Point: Blood Oxygen -->
-      <div class="bg-[var(--border-color)] p-4 rounded-xl border border-[var(--border-color-strong)] flex flex-col justify-between">
+      <div class="bg-[var(--text-highlight)]/10 p-4 rounded-xl border border-[var(--text-highlight)]/20 flex flex-col justify-between">
         <label [for]="bloodOxygenId" class="text-sm text-[var(--text-color-muted)] mb-2 text-center">Blood Oxygen (SpO2)</label>
         <div class="flex items-center justify-center gap-1">
           <button (click)="adjustVital(bloodOxygen, -1, 80, 100, $event)" [attr.aria-label]="'Decrease Blood Oxygen'" class="w-12 h-12 flex items-center justify-center rounded-full bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)] text-xl">-</button>
           <input type="number" 
               [id]="bloodOxygenId"
-              class="w-16 text-3xl font-semibold text-[var(--text-color)] tabular-nums text-center bg-transparent outline-none focus:ring-2 focus:ring-white/50 rounded-lg transition-all p-1 -m-1"
+              class="w-16 text-3xl font-semibold text-[var(--text-color)] tabular-nums text-center bg-transparent outline-none focus:ring-2 focus:ring-[var(--ring-color)] rounded-lg transition-all p-1 -m-1"
               [value]="bloodOxygen()"
               (change)="onValueChange($event, bloodOxygen, 80, 100)"
               min="80" max="100"

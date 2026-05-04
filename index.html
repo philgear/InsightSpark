@@ -3,14 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet">
   <title>Insight Spark</title>
-  <script src="https://cdn-tailwindcss.vercel.app/"></script>
+  <script>
+    // Polyfill process.env and other Node.js globals for libraries in the browser
+    window.global = window;
+    window.process = { env: { DEBUG: undefined }, version: '', platform: 'browser' };
+    
+    // Global error listener to display uncaught errors on the screen
+    window.addEventListener('error', function(e) {
+      var errDiv = document.createElement('div');
+      errDiv.style.cssText = 'color:red; background:white; position:fixed; z-index:9999; top:0; left:0; padding:20px; border:2px solid red; font-family:monospace; max-width:100vw; overflow:auto;';
+      errDiv.innerHTML = '<strong>Error:</strong> ' + e.message + '<br><small>' + e.filename + ':' + e.lineno + '</small>';
+      if (e.error && e.error.stack) {
+        errDiv.innerHTML += '<br><pre style="font-size:10px; margin-top:10px;">' + e.error.stack + '</pre>';
+      }
+      document.body.appendChild(errDiv);
+    });
+  </script>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="description" content="A creative companion that uses lateral thinking strategies to generate novel insights and solutions for your problems using Gemini AI.">
   <meta name="theme-color" content="#24211c">
   <!-- iOS specific tags -->
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Insight Spark">
@@ -68,6 +87,11 @@
       
       --ring-color: var(--text-accent);
 
+      /* Semantic status tokens (theme-aware) */
+      --color-danger:  #e05c6b;
+      --color-warning: #d4a44c;
+      --color-success: #7aab62;
+
       /* Adaptive Strategy Colors for Dark Theme (light tints for readability) */
       --strategy-purple: #9370DB;
       --strategy-green: #a9c27b;
@@ -111,6 +135,11 @@
 
       --primary-cta-bg: linear-gradient(105deg, #9370DB, #8B5A2B);
       --primary-cta-text: #FDF5E6;
+
+      /* Semantic status tokens (light theme) */
+      --color-danger:  #c0392b;
+      --color-warning: #b7770d;
+      --color-success: #3d7a37;
       
       /* Adaptive Strategy Colors for Light Theme (darker shades for readability) */
       --strategy-purple: #7559b1;
@@ -161,14 +190,39 @@
     /* Hide number input spinners */
     input[type=number]::-webkit-inner-spin-button, 
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type=number] { -moz-appearance: textfield; }
+    input[type=number] { -moz-appearance: textfield; appearance: textfield; }
 
-    /* Shared Animations */
-    @keyframes pop {
-      0% { transform: scale(0.95); opacity: 0; }
-      100% { transform: scale(1); opacity: 1; }
+    /* Shared Animations — @starting-style native enter transitions */
+    .animate-pop {
+      transition:
+        opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+        filter  0.9s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+      @starting-style {
+        opacity: 0;
+        filter: blur(14px);
+        transform: translateY(22px) scale(0.97);
+      }
     }
-    .animate-pop { animation: pop 0.5s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; }
+    /* Staggered child reveal — add .mist-stagger to the parent */
+    .mist-stagger > * {
+      transition:
+        opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+        filter  0.9s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+      @starting-style {
+        opacity: 0;
+        filter: blur(14px);
+        transform: translateY(22px) scale(0.97);
+      }
+    }
+    .mist-stagger > *:nth-child(1)  { transition-delay: 0.05s; }
+    .mist-stagger > *:nth-child(2)  { transition-delay: 0.15s; }
+    .mist-stagger > *:nth-child(3)  { transition-delay: 0.25s; }
+    .mist-stagger > *:nth-child(4)  { transition-delay: 0.35s; }
+    .mist-stagger > *:nth-child(5)  { transition-delay: 0.45s; }
+    .mist-stagger > *:nth-child(6)  { transition-delay: 0.55s; }
+    .mist-stagger > *:nth-child(n+7){ transition-delay: 0.65s; }
 
     @keyframes magic-eight-ball {
       0%, 100% { opacity: 0; transform: translateY(20px) scale(0.9); }
@@ -217,13 +271,16 @@
       background: radial-gradient(circle at 20% 20%, var(--text-accent), transparent 30%),
                   radial-gradient(circle at 80% 70%, var(--text-highlight), transparent 40%);
       opacity: 0.1; filter: blur(120px);
+      animation: fluid-flow 60s ease-in-out infinite alternate;
     }
     .fluid-background.animating::before {
-      animation: fluid-flow 25s ease-in-out infinite alternate;
+      opacity: 0.15;
     }
     @keyframes fluid-flow {
-      0% { transform: rotate(0deg) scale(1); }
-      100% { transform: rotate(360deg) scale(1.2); }
+      0%   { transform: translate(0%, 0%) scale(1); }
+      33%  { transform: translate(8%, -6%) scale(1.08); }
+      66%  { transform: translate(-6%, 8%) scale(1.04); }
+      100% { transform: translate(4%, 4%) scale(1.12); }
     }
 
     .organic-shape {
@@ -269,14 +326,14 @@
       background-color: var(--button-bg);
       border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 1rem;
+      padding: 0.75rem;
       text-align: left;
       transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
       width: 100%;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      min-height: 140px;
+      justify-content: flex-start;
+      min-height: 72px;
     }
     .strategy-button:hover {
       background-color: var(--button-bg-hover);
