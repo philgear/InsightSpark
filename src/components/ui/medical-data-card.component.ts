@@ -44,21 +44,21 @@ export class MedicalDataCardComponent implements OnDestroy {
     const glu = this.glucose();
 
     if (spo2 < 95) {
-      return { text: 'Low Oxygen', colorClass: 'bg-red-500' };
+      return { text: 'Low Oxygen', colorClass: 'bg-[var(--color-danger)]' };
     }
     if (hr > 110 || hr < 50) {
-      return { text: 'Heart Rate Alert', colorClass: 'bg-red-500' };
+      return { text: 'Heart Rate Alert', colorClass: 'bg-[var(--color-danger)]' };
     }
     if (glu > 140) {
-      return { text: 'High Glucose', colorClass: 'bg-yellow-500' };
+      return { text: 'High Glucose', colorClass: 'bg-[var(--color-warning)]' };
     }
     if (hr > 100) {
-      return { text: 'High Heart Rate', colorClass: 'bg-yellow-500' };
+      return { text: 'High Heart Rate', colorClass: 'bg-[var(--color-warning)]' };
     }
     if (spo2 < 97) {
-        return { text: 'Oxygen Monitor', colorClass: 'bg-yellow-500' };
+        return { text: 'Oxygen Monitor', colorClass: 'bg-[var(--color-warning)]' };
     }
-    return { text: 'Vitals Stable', colorClass: 'bg-green-500' };
+    return { text: 'Vitals Stable', colorClass: 'bg-[var(--color-success)]' };
   });
 
   constructor() {

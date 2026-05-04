@@ -1,0 +1,14 @@
+services:
+  app:
+    image: node:lts
+    container_name: insightspark-dev
+    working_dir: /app
+    volumes:
+      - .:/app
+    ports:
+      - "4200:4200"
+      - "3000:3000"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    command: >
+      bash -c "npm install && npm run dev -- --host 0.0.0.0"

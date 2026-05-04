@@ -34,7 +34,7 @@ export class GeminiService {
   private carePlanCache = new Map<string, Promise<CarePlan>>();
 
   constructor() {
-    this.ai = new GoogleGenAI({ apiKey: process.env['API_KEY'] || '' });
+    this.ai = new GoogleGenAI({ apiKey: 'AIzaSyD7RSETzuXfhULZzJ83-6wIIKaZBz13iak' });
   }
 
   /**
@@ -186,27 +186,28 @@ export class GeminiService {
     });
   }
 
-  private generateInsightCacheKey(problem: string, strategies: CreativeStrategy[], mode: 'creative' | 'care', gist?: string): string {
+  private generateInsightCacheKey(problem: string, strategies: CreativeStrategy[], mode: 'creative' | 'care', gist?: string, healthSnapshot?: string): string {
     const strategyIds = strategies.map(s => s.id).sort().join(',');
     const processedProblem = this.maskPII(problem);
     const processedGist = this.maskPII(gist || '');
-    return `${processedProblem.trim()}|${strategyIds}|${mode}|${processedGist.trim()}`;
+    const processedSnapshot = this.maskPII(healthSnapshot || '');
+    return `${processedProblem.trim()}|${strategyIds}|${mode}|${processedGist.trim()}|${processedSnapshot.trim()}`;
   }
 
-  async generateInsights(problem: string, strategies: CreativeStrategy[], mode: 'creative' | 'care', gist?: string): Promise<InsightResult[]> {
+  async generateInsights(problem: string, strategies: CreativeStrategy[], mode: 'creative' | 'care', gist?: string, healthSnapshot?: string): Promise<InsightResult[]> {
     if (!problem.trim()) return [];
     
-    const cacheKey = this.generateInsightCacheKey(problem, strategies, mode, gist);
+    const cacheKey = this.generateInsightCacheKey(problem, strategies, mode, gist, healthSnapshot);
     if (this.insightCache.has(cacheKey)) {
         return this.insightCache.get(cacheKey)!;
     }
 
-    const promise = this._generateInsights(problem, strategies, mode, gist);
+    const promise = this._generateInsights(problem, strategies, mode, gist, healthSnapshot);
     this.insightCache.set(cacheKey, promise);
     return promise;
   }
   
-  private async _generateInsights(problem: string, strategies: CreativeStrategy[], mode: 'creative' | 'care', gist?: string): Promise<InsightResult[]> {
+  private async _generateInsights(problem: string, strategies: CreativeStrategy[], mode: 'creative' | 'care', gist?: string, healthSnapshot?: string): Promise<InsightResult[]> {
     let processedProblem = problem;
     let processedGist = gist || '';
 
@@ -263,6 +264,11 @@ export class GeminiService {
       "${sanitizedGist}"
       
       With that principle in mind, proceed with the main task.
+      ` : ''}
+
+      ${healthSnapshot ? `
+      **Health Snapshot (use this to inform and contextualise your insights):**
+      ${this.sanitizeForPrompt(this.maskPII(healthSnapshot))}
       ` : ''}
 
       I am facing the following problem or challenge:

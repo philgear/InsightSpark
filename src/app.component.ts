@@ -60,6 +60,16 @@ const CARE_ROLES: CareRole[] = [
     icon: 'shield-check',
     gist: 'Champion the person and their family\'s perspective. Frame insights as clear questions they can ask their care team, strategies to ensure their voice is heard and respected, and ways to make sure their personal goals are always at the absolute center of the care plan.' 
   },
+  { 
+    name: 'Family Member', 
+    icon: 'home',
+    gist: 'Step into the shoes of a devoted, caring family member who knows this person deeply. Frame insights with warmth, personal history, and unconditional love. Think about what this person truly values, their daily rhythms, their fears and joys, and how to make support feel like connection rather than obligation.' 
+  },
+  { 
+    name: 'Best Friend', 
+    icon: 'users',
+    gist: 'Speak as a trusted best friend who knows when to be honest and when to just listen. Frame insights without clinical distance — use plain, real language. Think about what this person actually needs to hear, not just what\'s medically correct. Lead with empathy, meet them where they are, and make every suggestion feel like it comes from genuine care.' 
+  },
 ];
 
 @Component({
@@ -97,29 +107,32 @@ export class AppComponent implements OnDestroy {
   structuredProblem = signal<StructuredProblem | null>(null);
   resultsViewMode = signal<'list' | 'graph'>('list');
 
+  // Health snapshot (optional — set by MedicalDataCard "Use as Context" button)
+  healthSnapshot = signal<string | null>(null);
+
   // Loading animation state
   suggestedInsight = signal('');
   private suggestionInterval: ReturnType<typeof setInterval> | null = null;
   private suggestionIndex = 0;
   private readonly CREATIVE_MODE_SUGGESTIONS = [
-    'Consulting the muses...',
-    'Gathering cosmic dust...',
-    'Shaking the possibilities...',
-    'Peering into the future...',
-    'Distilling pure inspiration...',
-    'Aligning the creative stars...',
-    'Tuning into the right frequency...',
-    'Brewing a potent idea...',
+    'Interrogating the obvious...',
+    'Turning the question inside out...',
+    'Asking what the problem is hiding...',
+    'Following the strange thread...',
+    'Dissolving the frame...',
+    'Listening to what isn\'t there...',
+    'Applying pressure to the edges...',
+    'Welcoming the contradiction...',
   ];
   private readonly CARE_MODE_SUGGESTIONS = [
-    'Reviewing care pathways...',
-    'Synthesizing health data...',
-    'Consulting evidence-based practices...',
-    'Formulating holistic approaches...',
-    'Cross-referencing care models...',
-    'Prioritizing personal safety...',
-    'Developing a collaborative plan...',
-    'Focusing on person-centered goals...',
+    'Seeing the person, not the condition...',
+    'Finding what matters most to them...',
+    'Listening between the lines...',
+    'Tracing the path of least friction...',
+    'Holding the full picture...',
+    'Asking what comfort looks like today...',
+    'Building the bridge one step at a time...',
+    'Centering what gives them strength...',
   ];
 
   // Care Plan State
@@ -127,7 +140,7 @@ export class AppComponent implements OnDestroy {
   isGeneratingCarePlan = signal(false);
   isCarePlanCopied = signal(false);
   careRoles = signal<CareRole[]>(CARE_ROLES);
-  activeCareRole = signal<string | null>(null);
+  activeCareRoles = signal<Set<string>>(new Set());
 
   // Saved Items State
   sortOrder = signal<'newest' | 'oldest'>('newest');
@@ -316,15 +329,30 @@ export class AppComponent implements OnDestroy {
   clearSelection = () => this.selectedStrategyIds.set(new Set());
 
   setCareRole(role: CareRole): void {
-    if (this.activeCareRole() === role.name) {
-      this.activeCareRole.set(null);
-      this.gistInput.set('');
+    const current = new Set(this.activeCareRoles());
+    if (current.has(role.name)) {
+      current.delete(role.name);
     } else {
-      this.activeCareRole.set(role.name);
-      this.problemInput.set(this.problemInput() + '\n\n' + role.gist);
+      current.add(role.name);
     }
+    this.activeCareRoles.set(current);
+
+    // Rebuild gistInput from all selected roles
+    const selected = this.careRoles().filter(r => current.has(r.name));
+    this.gistInput.set(
+      selected.length === 0
+        ? ''
+        : selected.length === 1
+          ? selected[0].gist
+          : `Blend the following perspectives into a single, cohesive voice:\n` +
+            selected.map((r, i) => `${i + 1}. **${r.name}**: ${r.gist}`).join('\n')
+    );
   }
-  clearActiveRole = () => this.activeCareRole.set(null);
+  clearActiveRole = () => { this.activeCareRoles.set(new Set()); this.gistInput.set(''); };
+
+  // Called by MedicalDataCardComponent when user clicks "Use as Context"
+  applyDataContext = (context: string) => this.healthSnapshot.set(context);
+  clearHealthSnapshot = () => this.healthSnapshot.set(null);
 
   // --- Core Generation Logic ---
   async generateInsights() {
@@ -348,7 +376,7 @@ export class AppComponent implements OnDestroy {
       const problem = this.problemInput();
       
       const promises: Promise<unknown>[] = [
-        this.geminiService.generateInsights(problem, targetStrategies, mode, this.gistInput())
+        this.geminiService.generateInsights(problem, targetStrategies, mode, this.gistInput() || undefined, this.healthSnapshot() ?? undefined)
       ];
 
       if (mode === 'care') {
@@ -377,7 +405,8 @@ export class AppComponent implements OnDestroy {
     this.clearSelection();
     this.carePlan.set(null);
     this.error.set(null);
-    this.activeCareRole.set(null);
+    this.activeCareRoles.set(new Set());
+    this.healthSnapshot.set(null);
     this.structuredProblem.set(null);
     this.resultsViewMode.set('list');
     this.geminiService.clearCache();
@@ -465,8 +494,8 @@ export class AppComponent implements OnDestroy {
       setTimeout(() => { if (this.copiedId() === id) this.copiedId.set(null); }, 2000);
     }).catch(err => console.error('Failed to copy text: ', err));
   }
-  applyDataContext = (context: string) => this.problemInput.update(c => `${context}${c.trim() ? '\n\n' : ''}${c}`);
-  
+
+
   // --- Save/Delete Logic ---
   toggleInsightSave(item: InsightItem, strategyName: string) {
     const existing = this.findSavedInsight(item.text);

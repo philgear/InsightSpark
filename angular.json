@@ -16,7 +16,10 @@
               "base": "./dist",
               "browser": "."
             },
+            "index": "index.html",
             "browser": "index.tsx",
+            "assets": [{ "glob": "**/*", "input": "public/", "output": "/" }],
+            "styles": ["styles.css"],
             "tsConfig": "tsconfig.json"
           },
           "configurations": {
@@ -61,6 +64,7 @@
   "cli": {
     "schematicCollections": [
       "angular-eslint"
-    ]
+    ],
+    "analytics": false
   }
 }
