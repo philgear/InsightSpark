@@ -34,7 +34,8 @@ export class GeminiService {
   private carePlanCache = new Map<string, Promise<CarePlan>>();
 
   constructor() {
-    this.ai = new GoogleGenAI({ apiKey: 'AIzaSyD7RSETzuXfhULZzJ83-6wIIKaZBz13iak' });
+    const apiKey = (window as any).env?.GEMINI_API_KEY || 'AIzaSyD7RSETzuXfhULZzJ83-6wIIKaZBz13iak';
+    this.ai = new GoogleGenAI({ apiKey });
   }
 
   /**
