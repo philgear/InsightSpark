@@ -17,8 +17,8 @@ FROM nginx:1.27-alpine
 # Remove default nginx static content
 RUN rm -rf /usr/share/nginx/html/*
 
-# Copy Angular build output (browser subfolder is the static SPA)
-COPY --from=builder /app/dist/browser /usr/share/nginx/html
+# Copy Angular build output — angular.json outputs to dist/ directly
+COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Custom nginx config for SPA routing + Cloud Run port 8080
 COPY nginx.conf /etc/nginx/conf.d/default.conf
