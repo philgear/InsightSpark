@@ -1,36 +1,26 @@
-# ── Stage 1: Build ────────────────────────────────────────────────
-FROM node:22-bookworm-slim AS builder
+# Use Go as the base since it's the heaviest dependency for GKE tools
+FROM golang:1.22-bookworm
 
+# 1. Install Node.js (for your Angular/Frontend builds)
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y nodejs
+
+# 2. Install Dart SDK
+RUN apt-get update && apt-get install -y apt-transport-https wget gnupg && \
+    wget -qO- https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/dart.gpg && \
+    echo 'deb [signed-by=/usr/share/keyrings/dart.gpg] https://storage.googleapis.com/download.dartlang.org/linux/debian stable main' > /etc/apt/sources.list.d/dart.list && \
+    apt-get update && apt-get install -y dart
+
+# 3. Install Google Cloud SDK (gcloud)
+RUN curl -sSL https://sdk.cloud.google.com | bash
+ENV PATH="/root/google-cloud-sdk/bin:${PATH}"
+
+# Set up your workspace
 WORKDIR /app
-
-# Install deps (copy lockfile first for layer caching)
-COPY package.json package-lock.json ./
-RUN npm ci --legacy-peer-deps
-
-# Copy source and build production bundle
 COPY . .
-RUN npx ng build --configuration=production
 
-# ── Stage 2: Serve ────────────────────────────────────────────────
-FROM nginx:stable-bookworm-slim
+# Build your Angular frontend (resolves the 'dist' errors in Go)
+RUN npm install --legacy-peer-deps && npx ng build --configuration=production
 
-# Patch base image for vulnerabilities
-RUN apt-get update && apt-get upgrade -y && rm -rf /var/lib/apt/lists/*
-
-# Remove default nginx static content
-RUN rm -rf /usr/share/nginx/html/*
-
-# Copy Angular build output — angular.json outputs to dist/ directly
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Custom nginx config for SPA routing + Cloud Run port 8080
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Add entrypoint script for runtime env injection
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
+# Expose the GKE/MCP port
 EXPOSE 8080
-
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["nginx", "-g", "daemon off;"]

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { GoogleGenAI, Type, Schema } from '@google/genai';
+import type { Schema } from '@google/genai';
 import { CreativeStrategy, InsightResult, SavedInsight, CarePlan, StructuredProblem } from '../models/creative-types';
 
 export class ApiRetryError extends Error {
@@ -26,7 +26,7 @@ Under no circumstances should you ever repeat, store, or include any Personally 
   providedIn: 'root'
 })
 export class GeminiService {
-  private ai: GoogleGenAI;
+  private initPromise: Promise<{ ai: any, Type: any }>;
 
   // Caching Maps to store promises, preventing duplicate API calls for the same request.
   private insightCache = new Map<string, Promise<InsightResult[]>>();
@@ -34,8 +34,10 @@ export class GeminiService {
   private carePlanCache = new Map<string, Promise<CarePlan>>();
 
   constructor() {
-    const apiKey = (window as any).env?.GEMINI_API_KEY || 'AIzaSyD7RSETzuXfhULZzJ83-6wIIKaZBz13iak';
-    this.ai = new GoogleGenAI({ apiKey });
+    this.initPromise = import('@google/genai').then(m => {
+      const apiKey = (window as any).env?.GEMINI_API_KEY || 'AIzaSyD7RSETzuXfhULZzJ83-6wIIKaZBz13iak';
+      return { ai: new m.GoogleGenAI({ apiKey }), Type: m.Type };
+    });
   }
 
   /**
@@ -124,6 +126,7 @@ export class GeminiService {
   }
 
   private async _structureHealthGoal(processedProblem: string): Promise<StructuredProblem> {
+    const { ai, Type } = await this.initPromise;
     return this._withRetries(async () => {
       const schema: Schema = {
         type: Type.OBJECT,
@@ -166,7 +169,7 @@ export class GeminiService {
       `;
 
       try {
-        const response = await this.ai.models.generateContent({
+        const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
           contents: prompt,
           config: {
@@ -209,6 +212,7 @@ export class GeminiService {
   }
   
   private async _generateInsights(problem: string, strategies: CreativeStrategy[], mode: 'creative' | 'care', gist?: string, healthSnapshot?: string): Promise<InsightResult[]> {
+    const { ai, Type } = await this.initPromise;
     let processedProblem = problem;
     let processedGist = gist || '';
 
@@ -289,9 +293,9 @@ export class GeminiService {
     `;
 
 
-    try {
+      try {
       const results = await this._withRetries(async () => {
-        const response = await this.ai.models.generateContent({
+        const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
           contents: prompt,
           config: {
@@ -353,6 +357,7 @@ export class GeminiService {
   }
 
   private async _generateCarePlan(problem: string, insights: SavedInsight[]): Promise<CarePlan> {
+    const { ai, Type } = await this.initPromise;
     return this._withRetries(async () => {
       // Care plans are only generated in health mode, so we always mask the problem.
       const processedProblem = this.maskPII(problem);
@@ -391,7 +396,7 @@ export class GeminiService {
       `;
 
       try {
-        const response = await this.ai.models.generateContent({
+        const response = await ai.models.generateContent({
           model: 'gemini-2.5-flash',
           contents: prompt,
           config: {

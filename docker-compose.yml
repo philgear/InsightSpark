@@ -5,6 +5,8 @@ services:
     working_dir: /app
     volumes:
       - .:/app
+      - /app/node_modules
+      - /app/.angular
     ports:
       - "4200:4200"
       - "3000:3000"

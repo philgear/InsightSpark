@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { VitalsService, VitalsRecord } from '../../services/vitals.service';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const d3: any;
+import * as d3 from 'd3';
 
 type VitalKey = 'heartRate' | 'bloodOxygen' | 'glucose' | 'activity';
 
@@ -154,7 +154,7 @@ export class VitalsTrendGraphComponent implements AfterViewInit {
         .attr('fill', 'none')
         .attr('stroke', metric.color)
         .attr('stroke-width', 2.5)
-        .attr('d', d3.line()
+        .attr('d', d3.line<VitalsRecord>()
           // FIX: Explicitly type 'd' as VitalsRecord for type safety in accessors.
           .x((d: VitalsRecord) => x(new Date(d.timestamp)))
           .y((d: VitalsRecord) => yScale(d[key]))

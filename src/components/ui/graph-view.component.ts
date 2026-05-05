@@ -5,9 +5,9 @@ import { IconComponent } from './icon.component';
 import { KleePaletteService } from '../../services/klee-palette.service';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const d3: any;
+import * as d3 from 'd3';
 
-interface GraphNode {
+interface GraphNode extends d3.SimulationNodeDatum {
   id: string;
   text: string;
   fullText?: string;
@@ -16,9 +16,9 @@ interface GraphNode {
   radius: number;
 }
 
-interface GraphLink {
-  source: string;
-  target: string;
+interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
+  source: string | GraphNode;
+  target: string | GraphNode;
 }
 
 @Component({

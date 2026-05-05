@@ -18,13 +18,21 @@
             },
             "index": "index.html",
             "browser": "index.tsx",
-            "assets": [{ "glob": "**/*", "input": "public/", "output": "/" }],
+            "assets": [
+              "src/assets",
+              { "glob": "**/*", "input": "public/", "output": "/" }
+            ],
             "styles": ["styles.css"],
-            "tsConfig": "tsconfig.json"
+            "tsConfig": "tsconfig.json",
+            "allowedCommonJsDependencies": ["p-retry"]
           },
           "configurations": {
             "production": {
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "optimization": true,
+              "sourceMap": false,
+              "extractLicenses": true,
+              "namedChunks": false
             },
             "development": {
               "optimization": false,

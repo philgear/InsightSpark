@@ -12,6 +12,7 @@ import { MedicalDataCardComponent } from './components/ui/medical-data-card.comp
 import { HelpComponent } from './components/ui/help.component';
 import { GraphViewComponent } from './components/ui/graph-view.component';
 import { VitalsService } from './services/vitals.service';
+import { LojongCleansingComponent } from './components/ui/lojong-cleansing.component';
 
 interface CareRole {
   name: string;
@@ -75,7 +76,7 @@ const CARE_ROLES: CareRole[] = [
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconComponent, MedicalDataCardComponent, HelpComponent, GraphViewComponent],
+  imports: [CommonModule, FormsModule, IconComponent, HelpComponent, GraphViewComponent, LojongCleansingComponent],
   templateUrl: './app.component.html',
 })
 export class AppComponent implements OnDestroy {
@@ -92,6 +93,7 @@ export class AppComponent implements OnDestroy {
   appMode = signal<'creative' | 'care'>('creative');
   isUpdateAvailable = signal(false);
   theme = signal<Theme>('dark');
+  logoPath = computed(() => this.theme() === 'dark' ? 'assets/logo-dark.svg' : 'assets/logo-light.svg');
 
   // Generator State
   problemInput = signal('');

@@ -4,13 +4,20 @@
   "description": "AI-powered creative insight generator",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1a1625",
-  "theme_color": "#1a1625",
+  "background_color": "#24211c",
+  "theme_color": "#24211c",
   "icons": [
     {
-      "src": "favicon.ico",
+      "src": "/favicon.svg",
       "sizes": "any",
-      "type": "image/x-icon"
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

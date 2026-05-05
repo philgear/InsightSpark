@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Lora:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
   <title>Insight Spark</title>
   <script>
     // Polyfill process.env and other Node.js globals for libraries in the browser
     window.global = window;
     window.process = { env: { DEBUG: undefined }, version: '', platform: 'browser' };
-    
+
     // Global error listener to display uncaught errors on the screen
-    window.addEventListener('error', function(e) {
+    window.addEventListener('error', function (e) {
       var errDiv = document.createElement('div');
       errDiv.style.cssText = 'color:red; background:white; position:fixed; z-index:9999; top:0; left:0; padding:20px; border:2px solid red; font-family:monospace; max-width:100vw; overflow:auto;';
       errDiv.innerHTML = '<strong>Error:</strong> ' + e.message + '<br><small>' + e.filename + ':' + e.lineno + '</small>';
@@ -24,10 +25,11 @@
     });
   </script>
   <script src="assets/env-config.js"></script>
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  
+
   <link rel="manifest" href="manifest.webmanifest">
-  <meta name="description" content="A creative companion that uses lateral thinking strategies to generate novel insights and solutions for your problems using Gemini AI.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <meta name="description"
+    content="A creative companion that uses lateral thinking strategies to generate novel insights and solutions for your problems using Gemini AI.">
   <meta name="theme-color" content="#24211c">
   <!-- iOS specific tags -->
   <meta name="mobile-web-app-capable" content="yes">
@@ -36,33 +38,32 @@
   <meta name="apple-mobile-web-app-title" content="Insight Spark">
   <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
 
-  <!-- Zaha Hadid Inspired Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
-  
+
   <style>
     html {
-      font-size: 16px; /* Default desktop font size */
-    }
-    @media (max-width: 767px) {
-      html {
-        font-size: 14px; /* Smaller base for mobile */
-      }
+      font-size: 16px;
+      /* Default desktop font size */
     }
 
     :root {
-      --font-serif: 'Playfair Display', serif;
+      --font-serif: 'DM Serif Display', serif;
       --font-sans: 'Lora', serif;
-      
-      /* Golden Ratio Typography Scale (using Major Third: 1.250) */
-      --font-size-sm: 0.8rem;   /* ~12.8px on desktop */
-      --font-size-base: 1rem;     /* 16px on desktop */
-      --font-size-lg: 1.25rem;   /* 20px on desktop */
-      --font-size-xl: 1.563rem;  /* ~25px on desktop */
-      --font-size-2xl: 1.953rem; /* ~31px on desktop */
-      --font-size-3xl: 2.441rem; /* ~39px on desktop */
-      --font-size-4xl: 3.052rem; /* ~49px on desktop */
+
+      /* Standard Typography Scale */
+      --font-size-sm: 0.75rem;
+      /* 12px */
+      --font-size-base: 0.875rem;
+      /* 14px */
+      --font-size-lg: 1rem;
+      /* 16px */
+      --font-size-xl: 1.125rem;
+      /* 18px */
+      --font-size-2xl: 1.25rem;
+      /* 20px */
+      --font-size-3xl: 1.5rem;
+      /* 24px */
+      --font-size-4xl: 1.875rem;
+      /* 30px */
 
       /* Dried Thistle Palette - Dark Theme */
       --bg-color: #24211c;
@@ -71,34 +72,40 @@
       --text-color-subtle: #867d71;
       --text-accent: #9370DB;
       --text-highlight: #8B5A2B;
-      
+
       --header-bg: rgba(36, 33, 28, 0.7);
       --card-bg: rgba(48, 43, 36, 0.8);
       --card-bg-subtle: rgba(253, 245, 230, 0.05);
-      
+
       --border-color: rgba(147, 112, 219, 0.2);
       --border-color-strong: rgba(147, 112, 219, 0.4);
       --border-accent: rgba(139, 90, 43, 0.2);
-      
+
       --button-bg: rgba(253, 245, 230, 0.05);
       --button-bg-hover: rgba(253, 245, 230, 0.1);
-      
+
       --primary-cta-bg: linear-gradient(105deg, #9370DB, #8B5A2B);
       --primary-cta-text: #FDF5E6;
-      
+
       --ring-color: var(--text-accent);
 
       /* Semantic status tokens (theme-aware) */
-      --color-danger:  #e05c6b;
+      --color-danger: #e05c6b;
       --color-warning: #d4a44c;
       --color-success: #7aab62;
 
-      /* Adaptive Strategy Colors for Dark Theme (light tints for readability) */
-      --strategy-purple: #9370DB;
-      --strategy-green: #a9c27b;
-      --strategy-chocolate: #d1a279;
-      --strategy-thistle: #A89F91;
-      
+      /* Vibrant Strategy Colors - Dark Theme */
+      --strategy-purple: #9d7dfa;
+      --strategy-green: #9ae6b4;
+      --strategy-chocolate: #f6ad55;
+      --strategy-thistle: #cbd5e0;
+
+      /* Icon Colors (Vibrant & Distinct) */
+      --icon-purple: #c084fc;
+      --icon-green: #4ade80;
+      --icon-chocolate: #fb923c;
+      --icon-thistle: #e2e8f0;
+
       /* Strategy Colors Assignments */
       --strategy-what-if: var(--strategy-purple);
       --strategy-constraints: var(--strategy-green);
@@ -112,6 +119,20 @@
       --strategy-superpower: var(--strategy-green);
       --strategy-simplify: var(--strategy-chocolate);
       --strategy-random: var(--strategy-thistle);
+
+      /* Icon Assignments */
+      --strategy-icon-what-if: var(--icon-purple);
+      --strategy-icon-constraints: var(--icon-green);
+      --strategy-icon-butterfly: var(--icon-chocolate);
+      --strategy-icon-combinatorial: var(--icon-thistle);
+      --strategy-icon-opposite: var(--icon-purple);
+      --strategy-icon-future: var(--icon-green);
+      --strategy-icon-child: var(--icon-chocolate);
+      --strategy-icon-alien: var(--icon-thistle);
+      --strategy-icon-nature: var(--icon-purple);
+      --strategy-icon-superpower: var(--icon-green);
+      --strategy-icon-simplify: var(--icon-chocolate);
+      --strategy-icon-random: var(--icon-thistle);
     }
 
     .light-theme {
@@ -138,37 +159,62 @@
       --primary-cta-text: #FDF5E6;
 
       /* Semantic status tokens (light theme) */
-      --color-danger:  #c0392b;
+      --color-danger: #c0392b;
       --color-warning: #b7770d;
       --color-success: #3d7a37;
-      
-      /* Adaptive Strategy Colors for Light Theme (darker shades for readability) */
-      --strategy-purple: #7559b1;
-      --strategy-green: #556B2F;
-      --strategy-chocolate: #8B5A2B;
-      --strategy-thistle: #8B5A2B;
+
+      /* Adaptive Strategy Colors for Light Theme */
+      --strategy-purple: #6b46c1;
+      --strategy-green: #2f855a;
+      --strategy-chocolate: #9c4221;
+      --strategy-thistle: #4a5568;
+
+      /* Icon Colors (Light Theme - Richer Shades) */
+      --icon-purple: #553c9a;
+      --icon-green: #276749;
+      --icon-chocolate: #7b341e;
+      --icon-thistle: #2d3748;
     }
-    
+
     body {
       background-color: var(--bg-color);
       color: var(--text-color);
-      transition: background-color 0.3s ease, color 0.3s ease;
       font-family: var(--font-sans);
       font-size: var(--font-size-base);
-      line-height: 1.618; /* Golden Ratio line height */
+      line-height: 1.618;
+      /* Golden Ratio line height */
     }
 
-    h1, h2, h3, h4, h5, h6 { 
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
       font-family: var(--font-serif);
       line-height: 1.2;
       font-weight: 700;
     }
-    
-    h1 { font-size: var(--font-size-4xl); }
-    h2 { font-size: var(--font-size-3xl); }
-    h3 { font-size: var(--font-size-2xl); }
-    h4 { font-size: var(--font-size-xl); }
-    h5 { font-size: var(--font-size-lg); }
+
+    h1 {
+      font-size: var(--font-size-4xl);
+    }
+
+    h2 {
+      font-size: var(--font-size-3xl);
+    }
+
+    h3 {
+      font-size: var(--font-size-2xl);
+    }
+
+    h4 {
+      font-size: var(--font-size-xl);
+    }
+
+    h5 {
+      font-size: var(--font-size-lg);
+    }
 
     .sr-only {
       position: absolute;
@@ -183,214 +229,440 @@
     }
 
     /* Custom Scrollbar */
-    ::-webkit-scrollbar { width: 8px; }
-    ::-webkit-scrollbar-track { background: var(--bg-color); }
-    ::-webkit-scrollbar-thumb { background: var(--border-color-strong); border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: var(--text-accent); }
-    
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-color);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border-color-strong);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-accent);
+    }
+
     /* Hide number input spinners */
-    input[type=number]::-webkit-inner-spin-button, 
-    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type=number] { -moz-appearance: textfield; appearance: textfield; }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
 
     /* Shared Animations — @starting-style native enter transitions */
     .animate-pop {
       transition:
         opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-        filter  0.9s cubic-bezier(0.16, 1, 0.3, 1),
         transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+
       @starting-style {
         opacity: 0;
-        filter: blur(14px);
         transform: translateY(22px) scale(0.97);
       }
     }
+
     /* Staggered child reveal — add .mist-stagger to the parent */
-    .mist-stagger > * {
+    .mist-stagger>* {
       transition:
         opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-        filter  0.9s cubic-bezier(0.16, 1, 0.3, 1),
         transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+
       @starting-style {
         opacity: 0;
-        filter: blur(14px);
         transform: translateY(22px) scale(0.97);
       }
     }
-    .mist-stagger > *:nth-child(1)  { transition-delay: 0.05s; }
-    .mist-stagger > *:nth-child(2)  { transition-delay: 0.15s; }
-    .mist-stagger > *:nth-child(3)  { transition-delay: 0.25s; }
-    .mist-stagger > *:nth-child(4)  { transition-delay: 0.35s; }
-    .mist-stagger > *:nth-child(5)  { transition-delay: 0.45s; }
-    .mist-stagger > *:nth-child(6)  { transition-delay: 0.55s; }
-    .mist-stagger > *:nth-child(n+7){ transition-delay: 0.65s; }
+
+    .mist-stagger>*:nth-child(1) {
+      transition-delay: 0.05s;
+    }
+
+    .mist-stagger>*:nth-child(2) {
+      transition-delay: 0.15s;
+    }
+
+    .mist-stagger>*:nth-child(3) {
+      transition-delay: 0.25s;
+    }
+
+    .mist-stagger>*:nth-child(4) {
+      transition-delay: 0.35s;
+    }
+
+    .mist-stagger>*:nth-child(5) {
+      transition-delay: 0.45s;
+    }
+
+    .mist-stagger>*:nth-child(6) {
+      transition-delay: 0.55s;
+    }
+
+    .mist-stagger>*:nth-child(n+7) {
+      transition-delay: 0.65s;
+    }
 
     @keyframes magic-eight-ball {
-      0%, 100% { opacity: 0; transform: translateY(20px) scale(0.9); }
-      20%, 80% { opacity: 1; transform: translateY(0) scale(1); }
+
+      0%,
+      100% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.9);
+      }
+
+      20%,
+      80% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
-    .animate-magic-eight-ball { animation: magic-eight-ball 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
-    
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .animate-spin { animation: spin 1s linear infinite; }
-    
+
+    .animate-magic-eight-ball {
+      animation: magic-eight-ball 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+
     /* Proton Laser Loader */
     .proton-track {
-      position: relative; width: 100%; height: 4px;
+      position: relative;
+      width: 100%;
+      height: 4px;
       background: rgba(255, 255, 255, 0.05);
-      border-radius: 9999px; overflow: hidden;
+      border-radius: 9999px;
+      overflow: hidden;
       box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
     }
+
     .proton-stream {
-      position: absolute; top: 0; left: 0;
-      height: 100%; width: 60%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 60%;
       background: linear-gradient(90deg, transparent 0%, var(--text-accent) 40%, #ffffff 50%, var(--text-accent) 60%, transparent 100%);
-      filter: drop-shadow(0 0 8px var(--text-accent));
       mix-blend-mode: screen;
       animation: proton-scan 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
     }
+
     .proton-particles {
-      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       background-image: radial-gradient(white 1px, transparent 0);
-      background-size: 10px 10px; opacity: 0.3;
+      background-size: 10px 10px;
+      opacity: 0.3;
     }
+
     @keyframes proton-scan {
-      0% { transform: translateX(-150%); }
-      50% { filter: drop-shadow(0 0 15px var(--text-highlight)); }
-      100% { transform: translateX(250%); }
+      0% {
+        transform: translateX(-150%);
+      }
+
+      100% {
+        transform: translateX(250%);
+      }
     }
 
     /* Syd Mead / Fluidist UI Styles */
     .fluid-background {
-      position: absolute; inset: 0; overflow: hidden;
-      width: 100%; height: 100%; pointer-events: none; z-index: 0;
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
     }
+
     .fluid-background::before {
-      content: ''; position: absolute;
-      width: 200%; height: 200%;
-      top: -50%; left: -50%;
+      content: '';
+      position: absolute;
+      width: 200%;
+      height: 200%;
+      top: -50%;
+      left: -50%;
       background: radial-gradient(circle at 20% 20%, var(--text-accent), transparent 30%),
-                  radial-gradient(circle at 80% 70%, var(--text-highlight), transparent 40%);
-      opacity: 0.1; filter: blur(120px);
+        radial-gradient(circle at 80% 70%, var(--text-highlight), transparent 40%);
+      opacity: 0.1;
+      filter: blur(120px);
       animation: fluid-flow 60s ease-in-out infinite alternate;
     }
+
     .fluid-background.animating::before {
       opacity: 0.15;
     }
+
     @keyframes fluid-flow {
-      0%   { transform: translate(0%, 0%) scale(1); }
-      33%  { transform: translate(8%, -6%) scale(1.08); }
-      66%  { transform: translate(-6%, 8%) scale(1.04); }
-      100% { transform: translate(4%, 4%) scale(1.12); }
+      0% {
+        transform: translate(0%, 0%) scale(1);
+      }
+
+      33% {
+        transform: translate(8%, -6%) scale(1.08);
+      }
+
+      66% {
+        transform: translate(-6%, 8%) scale(1.04);
+      }
+
+      100% {
+        transform: translate(4%, 4%) scale(1.12);
+      }
     }
 
     .organic-shape {
       position: relative;
       border: 1px solid var(--border-color);
-      background: radial-gradient(circle at top left, rgba(255,255,255,0.05) 0%, transparent 50%), var(--card-bg);
+      background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.05) 0%, transparent 50%), var(--card-bg);
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
     .organic-button {
       border-radius: 9999px;
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      background: var(--button-bg);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .organic-button:hover, .organic-button:focus {
-      box-shadow: 0 0 15px -2px var(--text-highlight);
+
+    .organic-button:hover,
+    .organic-button:focus {
+      background: var(--button-bg-hover);
+      border-color: var(--border-color-strong);
+      box-shadow: 0 4px 15px -2px rgba(0, 0, 0, 0.1), 0 0 10px -2px var(--text-highlight);
+      transform: translateY(-1px);
     }
+
     .organic-button:focus-visible {
       outline: 2px solid var(--ring-color);
       outline-offset: 2px;
     }
 
-    /* Generate Button Theme */
+    /* Premium Generate Button */
     .generate-button {
       color: var(--primary-cta-text);
-      background: var(--primary-cta-bg);
+      background: linear-gradient(135deg, #9370DB 0%, #8B5A2B 50%, #9370DB 100%);
       background-size: 200% auto;
-      transition: background-position 0.5s ease, transform 0.2s ease, box-shadow 0.3s ease;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       transform: scale(1);
+      box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
+
     .generate-button:not(:disabled):hover {
       background-position: right center;
-      transform: scale(1.02);
-      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.5), 0 0 15px -2px var(--text-highlight);
     }
+
     .generate-button:not(:disabled):active {
       transform: scale(0.98);
     }
 
-    /* Dieter Rams Inspired Strategy Button */
+    /* Premium Strategy Chip (Dieter Rams x Zaha Hadid) */
     .strategy-button {
-      background-color: var(--button-bg);
+      background-color: var(--card-bg-subtle);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 0.75rem;
+      border-radius: 12px;
+      padding: 1rem;
       text-align: left;
-      transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       width: 100%;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      min-height: 72px;
+      min-height: 80px;
+      position: relative;
+      overflow: hidden;
     }
+
+    .strategy-button::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), transparent);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
     .strategy-button:hover {
       background-color: var(--button-bg-hover);
       border-color: var(--border-color-strong);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.3);
     }
-    .strategy-button:focus-visible {
-      outline: 2px solid var(--ring-color);
-      outline-offset: 2px;
+
+    .strategy-button:hover::before {
+      opacity: 1;
     }
+
     .strategy-button.selected {
       background-color: var(--card-bg);
       border-color: var(--text-highlight);
-      box-shadow: 0 0 10px -3px var(--text-highlight);
+      box-shadow: 0 0 20px -5px var(--text-highlight), inset 0 0 0 1px var(--text-highlight);
     }
-    .strategy-button.selected h4,
-    .strategy-button.selected app-icon {
-      color: var(--text-highlight);
+
+    .strategy-button.selected h4 {
+      color: var(--text-color);
     }
-    .strategy-button h4,
-    .strategy-button app-icon {
-      transition: color 0.2s ease;
+
+    .strategy-button .strategy-icon {
+      color: var(--strategy-icon-color, var(--text-color-muted));
+      transition: all 0.3s ease;
+    }
+
+    .strategy-button.selected .strategy-icon {
+      filter: drop-shadow(0 0 8px var(--strategy-icon-color));
+      transform: scale(1.1);
     }
 
     /* D3 Graph Styles */
     .graph-container svg {
-      width: 100%; height: 600px;
+      width: 100%;
+      height: 600px;
       border: 1px solid var(--border-color);
       border-radius: 12px;
       background-color: var(--card-bg-subtle);
       cursor: grab;
     }
-    .graph-container svg:active { cursor: grabbing; }
-    .graph-link { stroke: var(--border-color-strong); stroke-opacity: 0.6; }
-    .graph-node circle { stroke: var(--bg-color); stroke-width: 2px; transition: transform 0.2s ease, filter 0.2s ease; }
-    .graph-node:hover circle { transform: scale(1.1); filter: brightness(1.2); }
-    .graph-node text {
-      fill: var(--text-color-muted); font-size: 10px; font-family: var(--font-sans);
-      pointer-events: none; text-anchor: middle; paint-order: stroke;
-      stroke: var(--bg-color); stroke-width: 3px; stroke-linecap: butt; stroke-linejoin: miter;
+
+    .graph-container svg:active {
+      cursor: grabbing;
     }
-    .graph-node.problem-node text { font-size: 14px; font-weight: bold; fill: var(--text-color); font-family: var(--font-serif); }
-    .graph-node.strategy-node text { font-size: 12px; font-weight: bold; }
+
+    .graph-link {
+      stroke: var(--border-color-strong);
+      stroke-opacity: 0.6;
+    }
+
+    .graph-node circle {
+      stroke: var(--bg-color);
+      stroke-width: 2px;
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    .graph-node:hover circle {
+      transform: scale(1.1);
+      filter: brightness(1.2);
+    }
+
+    .graph-node text {
+      fill: var(--text-color-muted);
+      font-size: 10px;
+      font-family: var(--font-sans);
+      pointer-events: none;
+      text-anchor: middle;
+      paint-order: stroke;
+      stroke: var(--bg-color);
+      stroke-width: 3px;
+      stroke-linecap: butt;
+      stroke-linejoin: miter;
+    }
+
+    .graph-node.problem-node text {
+      font-size: 14px;
+      font-weight: bold;
+      fill: var(--text-color);
+      font-family: var(--font-serif);
+    }
+
+    .graph-node.strategy-node text {
+      font-size: 12px;
+      font-weight: bold;
+    }
   </style>
   <style media="print">
-    @page { margin: 0.75in; }
-    body { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    body * { visibility: hidden; background: transparent !important; color: #000 !important; box-shadow: none !important; text-shadow: none !important; }
-    .printable-section, .printable-section * { visibility: visible; }
-    .printable-section { position: absolute; left: 0; top: 0; right: 0; padding: 0; margin: 0; font-family: 'Lora', serif; }
-    .printable-section h2 { font-size: 1.8rem; font-weight: bold; text-align: center; margin-bottom: 1.5rem; font-family: 'Playfair Display', serif; }
-    .printable-section h3, .printable-section h4 { font-size: 1.2rem; font-weight: bold; margin-top: 1.25rem; padding-bottom: 0.25rem; border-bottom: 1px solid #999; font-family: 'Playfair Display', serif; }
-    .printable-section ul { list-style-position: inside; padding-left: 0; margin-top: 0.5rem; }
-    .printable-section li { line-height: 1.6; margin-bottom: 0.5rem; }
-    .printable-section app-icon, .non-printable { display: none !important; }
+    @page {
+      margin: 0.75in;
+    }
+
+    body {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body * {
+      visibility: hidden;
+      background: transparent !important;
+      color: #000 !important;
+      box-shadow: none !important;
+      text-shadow: none !important;
+    }
+
+    .printable-section,
+    .printable-section * {
+      visibility: visible;
+    }
+
+    .printable-section {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      padding: 0;
+      margin: 0;
+      font-family: 'Lora', serif;
+    }
+
+    .printable-section h2 {
+      font-size: 1.8rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-family: 'DM Serif Display', serif;
+    }
+
+    .printable-section h3,
+    .printable-section h4 {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-top: 1.25rem;
+      padding-bottom: 0.25rem;
+      border-bottom: 1px solid #999;
+      font-family: 'DM Serif Display', serif;
+    }
+
+    .printable-section ul {
+      list-style-position: inside;
+      padding-left: 0;
+      margin-top: 0.5rem;
+    }
+
+    .printable-section li {
+      line-height: 1.6;
+      margin-bottom: 0.5rem;
+    }
+
+    .printable-section app-icon,
+    .non-printable {
+      display: none !important;
+    }
   </style>
-<script type="importmap">
+  <script type="importmap">
 {
   "imports": {
     "rxjs": "https://esm.sh/rxjs@^7.8.2?conditions=es2015",
@@ -411,7 +683,10 @@
 }
 </script>
 </head>
-<body class="selection:bg-[var(--text-accent)] selection:text-[var(--primary-cta-text)] antialiased h-screen overflow-hidden">
+
+<body
+  class="selection:bg-[var(--text-accent)] selection:text-[var(--primary-cta-text)] antialiased h-screen overflow-hidden">
   <app-root></app-root>
 </body>
+
 </html>
