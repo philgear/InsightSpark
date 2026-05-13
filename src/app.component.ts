@@ -378,7 +378,16 @@ export class AppComponent implements OnDestroy {
       const problem = this.problemInput();
       
       const promises: Promise<unknown>[] = [
-        this.geminiService.generateInsights(problem, targetStrategies, mode, this.gistInput() || undefined, this.healthSnapshot() ?? undefined)
+        this.geminiService.generateInsights(
+          problem, 
+          targetStrategies, 
+          mode, 
+          this.gistInput() || undefined, 
+          this.healthSnapshot() ?? undefined,
+          (partialInsights) => {
+            this.insights.set(partialInsights);
+          }
+        )
       ];
 
       if (mode === 'care') {

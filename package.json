@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start": "node server.js",
     "dev": "ng serve",
     "build": "ng build",
     "preview": "ng serve --configuration=production",
@@ -20,7 +21,11 @@
     "@angular/platform-browser": "^21.2.0",
     "@angular/service-worker": "^21.2.0",
     "@google/genai": "^1.35.0",
+    "cors": "^2.8.5",
     "d3": "^7.9.0",
+    "express": "^4.19.2",
+    "helmet": "^8.1.0",
+    "partial-json": "^0.1.7",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {

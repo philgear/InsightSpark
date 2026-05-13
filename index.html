@@ -8,23 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Lora:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
   <title>Insight Spark</title>
-  <script>
-    // Polyfill process.env and other Node.js globals for libraries in the browser
-    window.global = window;
-    window.process = { env: { DEBUG: undefined }, version: '', platform: 'browser' };
-
-    // Global error listener to display uncaught errors on the screen
-    window.addEventListener('error', function (e) {
-      var errDiv = document.createElement('div');
-      errDiv.style.cssText = 'color:red; background:white; position:fixed; z-index:9999; top:0; left:0; padding:20px; border:2px solid red; font-family:monospace; max-width:100vw; overflow:auto;';
-      errDiv.innerHTML = '<strong>Error:</strong> ' + e.message + '<br><small>' + e.filename + ':' + e.lineno + '</small>';
-      if (e.error && e.error.stack) {
-        errDiv.innerHTML += '<br><pre style="font-size:10px; margin-top:10px;">' + e.error.stack + '</pre>';
-      }
-      document.body.appendChild(errDiv);
-    });
-  </script>
-  <script src="assets/env-config.js"></script>
 
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
