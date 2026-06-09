@@ -1,6 +1,6 @@
 {
-  "name": "InsightSpark",
-  "short_name": "InsightSpark",
+  "name": "PivotPulse",
+  "short_name": "PivotPulse",
   "description": "AI-powered creative insight generator",
   "start_url": "/",
   "display": "standalone",

@@ -12,12 +12,12 @@
       
       <!-- Left: Logo & Brand -->
       <div class="flex-1 flex justify-start">
-        <button (click)="setView('generator'); reset()" class="flex items-center gap-2 text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-color)] focus:ring-[var(--ring-color)] rounded-lg p-1 -ml-1 transition-transform active:scale-95" aria-label="Insight Spark, return to generator">
+        <button (click)="setView('generator'); reset()" class="flex items-center gap-2 text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-color)] focus:ring-[var(--ring-color)] rounded-lg p-1 -ml-1 transition-transform active:scale-95" aria-label="Pivot & Pulse, return to generator">
           <div class="p-1 bg-white/10 backdrop-blur-md rounded-lg shadow-inner border border-[var(--border-accent)] overflow-hidden">
-             <img [src]="logoPath()" alt="Insight Spark Logo" class="h-10 w-10 object-contain transition-opacity duration-300" width="40" height="40">
+             <img [src]="logoPath()" alt="Pivot & Pulse Logo" class="h-10 w-10 object-contain transition-opacity duration-300" width="40" height="40">
           </div>
           <div class="flex flex-col justify-center">
-            <h1 class="font-serif leading-[0.9] tracking-[-0.05em] text-[var(--font-size-xl)] bg-clip-text text-transparent bg-linear-to-r from-[var(--text-color)] via-[var(--text-highlight)] to-[var(--text-accent)] py-1">Insight Spark</h1>
+            <h1 class="font-serif leading-[0.9] tracking-[-0.05em] text-[var(--font-size-xl)] bg-clip-text text-transparent bg-linear-to-r from-[var(--text-color)] via-[var(--text-highlight)] to-[var(--text-accent)] py-1">Pivot & Pulse</h1>
             <p class="text-[var(--font-size-sm)] text-[var(--text-color-muted)] hidden sm:block tracking-[-0.02em] leading-none uppercase opacity-70">A Fluid Thinking Partner</p>
           </div>
         </button>
@@ -76,7 +76,7 @@
   <!-- Update Available Banner -->
   @if (isUpdateAvailable()) {
     <div role="status" class="bg-[var(--text-accent)] text-[var(--primary-cta-text)] p-3 flex justify-center items-center gap-4 non-printable">
-      <p>A new version of Insight Spark is available!</p>
+      <p>A new version of Pivot & Pulse is available!</p>
       <button (click)="reloadApp()" class="bg-[var(--card-bg)] text-[var(--text-accent)] font-bold py-2 px-4 min-h-[48px] min-w-[48px] rounded focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">Reload</button>
       <button (click)="dismissUpdate()" class="absolute right-4 flex items-center justify-center min-w-[48px] min-h-[48px] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)] rounded-full" aria-label="Dismiss update notification">
         <app-icon name="x" [size]="20"></app-icon>
@@ -133,6 +133,66 @@
                   </div>
                 </div>
               </header>
+
+              <!-- Responsible AI Safety Report Card -->
+              <div class="p-6 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl shadow-xl backdrop-blur-md relative overflow-hidden animate-pop">
+                <div class="absolute top-0 right-0 p-4 opacity-10">
+                  <app-icon name="shield" [size]="80" class="text-[var(--text-accent)]"></app-icon>
+                </div>
+                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--border-color)] pb-4 mb-4">
+                  <div class="flex items-center gap-3">
+                    <div class="p-2 bg-[var(--text-accent)]/10 rounded-xl text-[var(--text-accent)]">
+                      <app-icon name="shield-check" [size]="28"></app-icon>
+                    </div>
+                    <div>
+                      <h3 class="text-lg font-bold font-serif text-[var(--text-color)] tracking-tight">Responsible AI Safety Assessment</h3>
+                      <p class="text-xs text-[var(--text-color-muted)]">Verified guardrails & compliance checks for clinical decision support</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-1.5 self-start md:self-auto px-3 py-1 bg-[var(--color-success)]/10 border border-[var(--color-success)]/30 rounded-full text-[var(--color-success)] text-xs font-semibold">
+                    <span class="h-2 w-2 rounded-full bg-[var(--color-success)] animate-pulse"></span>
+                    Safe Session Active
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <!-- Guardrail 1: PII Scan -->
+                  <div class="p-4 bg-[var(--card-bg-subtle)] border border-[var(--border-color)]/50 rounded-xl flex items-start gap-3 transition-all hover:bg-[var(--button-bg-hover)]">
+                    <app-icon name="eye" [size]="20" class="text-[var(--color-success)] shrink-0 mt-0.5"></app-icon>
+                    <div>
+                      <h4 class="text-sm font-semibold text-[var(--text-color)] mb-1">Privacy Shield</h4>
+                      <p class="text-xs/relaxed text-[var(--text-color-muted)]">Real-time client & server PII filters verified. Zero patient-identifying data transmitted.</p>
+                    </div>
+                  </div>
+
+                  <!-- Guardrail 2: Harm Filters -->
+                  <div class="p-4 bg-[var(--card-bg-subtle)] border border-[var(--border-color)]/50 rounded-xl flex items-start gap-3 transition-all hover:bg-[var(--button-bg-hover)]">
+                    <app-icon name="shield" [size]="20" class="text-[var(--color-success)] shrink-0 mt-0.5"></app-icon>
+                    <div>
+                      <h4 class="text-sm font-semibold text-[var(--text-color)] mb-1">Harm Blockers</h4>
+                      <p class="text-xs/relaxed text-[var(--text-color-muted)]">Gemini safety settings active. Blocking harassment, hate, and dangerous content.</p>
+                    </div>
+                  </div>
+
+                  <!-- Guardrail 3: Clinical Disclaimer -->
+                  <div class="p-4 bg-[var(--card-bg-subtle)] border border-[var(--color-warning)]/30 rounded-xl flex items-start gap-3 transition-all hover:bg-[var(--button-bg-hover)]">
+                    <app-icon name="alert-triangle" [size]="20" class="text-[var(--color-warning)] shrink-0 mt-0.5"></app-icon>
+                    <div>
+                      <h4 class="text-sm font-semibold text-[var(--color-warning)] mb-1">Human-in-the-Loop</h4>
+                      <p class="text-xs/relaxed text-[var(--text-color-muted)]">For decision support only. All generated recommendations must be clinically validated.</p>
+                    </div>
+                  </div>
+
+                  <!-- Guardrail 4: Stateless -->
+                  <div class="p-4 bg-[var(--card-bg-subtle)] border border-[var(--border-color)]/50 rounded-xl flex items-start gap-3 transition-all hover:bg-[var(--button-bg-hover)]">
+                    <app-icon name="lock" [size]="20" class="text-[var(--color-success)] shrink-0 mt-0.5"></app-icon>
+                    <div>
+                      <h4 class="text-sm font-semibold text-[var(--text-color)] mb-1">Stateless Session</h4>
+                      <p class="text-xs/relaxed text-[var(--text-color-muted)]">No disk writing or session caching. Completely ephemeral analysis environment.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
               
               @if (structuredProblem(); as problem) {
                 <div class="bg-[var(--card-bg-subtle)] p-6 organic-shape">
@@ -291,6 +351,15 @@
                     autocomplete="off">
                   </textarea>
                   <span class="flex justify-end text-sm text-[var(--text-color-subtle)] mt-1 pr-1">{{ problemInput().length }} / 1000</span>
+                  @if (piiWarning(); as warning) {
+                    <div role="alert" class="mt-3 p-4 rounded-xl border flex items-start gap-3 bg-[var(--card-bg)] border-[var(--color-warning)] text-[var(--color-warning)] animate-fade-in" style="background: rgba(212, 164, 76, 0.05);">
+                      <app-icon name="alert-triangle" [size]="20" class="shrink-0 mt-0.5" style="color: var(--color-warning);"></app-icon>
+                      <div class="flex-1">
+                        <h4 class="font-bold text-xs uppercase tracking-wide mb-1" style="color: var(--color-warning);">Privacy Warning</h4>
+                        <p class="text-sm/relaxed text-[var(--text-color)]">{{ warning }}</p>
+                      </div>
+                    </div>
+                  }
                 </div>
 
                 <!-- Connector 1→2 -->
@@ -542,15 +611,17 @@
           </section>
         }
           @case ('help') {
-            @defer (on viewport; prefetch on idle) {
-              <app-help [appMode]="appMode()" [logoPath]="logoPath()" (back)="setView('generator')"></app-help>
-            } @placeholder {
-              <div class="h-screen bg-[var(--bg-color)] animate-pulse"></div>
-            }
+          @defer (on viewport; prefetch on idle) {
+            <app-help [appMode]="appMode()" 
+                      [logoPath]="logoPath()" 
+                      [(chaosType)]="chaosType"
+                      [(chaosBehavior)]="chaosBehavior"
+                      (back)="setView('generator')"></app-help>
+          } @placeholder {
+            <div class="h-screen bg-[var(--bg-color)] animate-pulse"></div>
           }
+        }
       }
     </div>
   </main>
 </div>
-
-

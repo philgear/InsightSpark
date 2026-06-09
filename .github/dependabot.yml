@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    # Limit dependency updates to security patches or minor/patch increments
+    # to avoid breaking changes in the clinical care workflow.
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+    ignore:
+      # Ignore major version bumps for critical frameworks to prevent automated breaking updates
+      - dependency-name: "@angular/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

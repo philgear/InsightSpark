@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, model } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconComponent } from './icon.component';
 import { LojongCleansingComponent } from './lojong-cleansing.component';
@@ -16,7 +16,7 @@ import { LojongCleansingComponent } from './lojong-cleansing.component';
           </div>
           <div>
             <h2 class="text-transparent bg-clip-text bg-linear-to-r from-[var(--text-highlight)] to-[var(--text-accent)]">Help & Pro Tips</h2>
-            <p class="text-[var(--text-color-muted)] mt-1">Get the most out of Insight Spark in {{ appMode() === 'creative' ? 'Creative' : 'Care' }} Mode.</p>
+            <p class="text-[var(--text-color-muted)] mt-1">Get the most out of Pivot & Pulse in {{ appMode() === 'creative' ? 'Creative' : 'Care' }} Mode.</p>
           </div>
         </div>
       </header>
@@ -85,6 +85,81 @@ import { LojongCleansingComponent } from './lojong-cleansing.component';
           </div>
         </div>
       }
+
+      <!-- Chaos Simulation Mode -->
+      <div class="bg-[var(--card-bg)] p-6 rounded-2xl border border-[var(--border-color)]">
+        <h3 class="text-[var(--text-accent)] flex items-center gap-2 mb-2">
+          <app-icon name="activity" [size]="20"></app-icon>
+          Developer Settings (Chaos Mode)
+        </h3>
+        <p class="text-sm text-[var(--text-color-muted)] mb-4">
+          Simulate backend API failures (429, 500, or network drops) to test client-side resilience and retry patterns.
+        </p>
+        
+        <div class="space-y-4">
+          <div>
+            <span class="block text-xs font-semibold uppercase tracking-wider text-[var(--text-color-muted)] mb-2">Simulated Failure Type</span>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button (click)="chaosType.set(null)"
+                      [class.bg-[var(--text-accent)]]="chaosType() === null"
+                      [class.text-[var(--primary-cta-text)]]="chaosType() === null"
+                      [class.bg-[var(--button-bg)]]="chaosType() !== null"
+                      [class.hover:bg-[var(--button-bg-hover)]]="chaosType() !== null"
+                      class="text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
+                None (Normal)
+              </button>
+              <button (click)="chaosType.set('429')"
+                      [class.bg-[var(--text-accent)]]="chaosType() === '429'"
+                      [class.text-[var(--primary-cta-text)]]="chaosType() === '429'"
+                      [class.bg-[var(--button-bg)]]="chaosType() !== '429'"
+                      [class.hover:bg-[var(--button-bg-hover)]]="chaosType() !== '429'"
+                      class="text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
+                429 Rate Limit
+              </button>
+              <button (click)="chaosType.set('500')"
+                      [class.bg-[var(--text-accent)]]="chaosType() === '500'"
+                      [class.text-[var(--primary-cta-text)]]="chaosType() === '500'"
+                      [class.bg-[var(--button-bg)]]="chaosType() !== '500'"
+                      [class.hover:bg-[var(--button-bg-hover)]]="chaosType() !== '500'"
+                      class="text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
+                500 Internal Error
+              </button>
+              <button (click)="chaosType.set('drop')"
+                      [class.bg-[var(--text-accent)]]="chaosType() === 'drop'"
+                      [class.text-[var(--primary-cta-text)]]="chaosType() === 'drop'"
+                      [class.bg-[var(--button-bg)]]="chaosType() !== 'drop'"
+                      [class.hover:bg-[var(--button-bg-hover)]]="chaosType() !== 'drop'"
+                      class="text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
+                Network Drop
+              </button>
+            </div>
+          </div>
+
+          @if (chaosType() !== null) {
+            <div class="animate-in slide-in-from-top-2 duration-200">
+              <span class="block text-xs font-semibold uppercase tracking-wider text-[var(--text-color-muted)] mb-2">Failure Behavior</span>
+              <div class="flex gap-2">
+                <button (click)="chaosBehavior.set('transient')"
+                        [class.bg-[var(--text-accent)]]="chaosBehavior() === 'transient'"
+                        [class.text-[var(--primary-cta-text)]]="chaosBehavior() === 'transient'"
+                        [class.bg-[var(--button-bg)]]="chaosBehavior() !== 'transient'"
+                        [class.hover:bg-[var(--button-bg-hover)]]="chaosBehavior() !== 'transient'"
+                        class="flex-1 text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
+                  Transient (Recovers on 3rd attempt)
+                </button>
+                <button (click)="chaosBehavior.set('permanent')"
+                        [class.bg-[var(--text-accent)]]="chaosBehavior() === 'permanent'"
+                        [class.text-[var(--primary-cta-text)]]="chaosBehavior() === 'permanent'"
+                        [class.bg-[var(--button-bg)]]="chaosBehavior() !== 'permanent'"
+                        [class.hover:bg-[var(--button-bg-hover)]]="chaosBehavior() !== 'permanent'"
+                        class="flex-1 text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
+                  Permanent (Always fails)
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
       
       <!-- Lojong Anxiety Cleansing Component -->
       <div class="mt-8 mb-6">
@@ -104,4 +179,7 @@ export class HelpComponent {
   appMode = input.required<'creative' | 'care'>();
   logoPath = input.required<string>();
   back = output<void>();
+  
+  chaosType = model<'429' | '500' | 'drop' | null>(null);
+  chaosBehavior = model<'transient' | 'permanent'>('transient');
 }

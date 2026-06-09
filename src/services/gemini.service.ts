@@ -18,7 +18,9 @@ export class GeminiService {
   private structureCache = new Map<string, Promise<StructuredProblem>>();
   private carePlanCache = new Map<string, Promise<CarePlan>>();
 
-  constructor() {}
+  // Chaos Simulation Configuration
+  public simulatedFailureType: '429' | '500' | 'drop' | null = null;
+  public simulatedFailureBehavior: 'transient' | 'permanent' = 'transient';
 
   /**
    * Clears all caches. Called when starting a new session.
@@ -36,6 +38,20 @@ export class GeminiService {
     let attempt = 0;
     while (true) {
       try {
+        if (this.simulatedFailureType) {
+          const isTransient = this.simulatedFailureBehavior === 'transient';
+          const shouldFail = !isTransient || (isTransient && attempt < 2);
+
+          if (shouldFail) {
+            if (this.simulatedFailureType === '429') {
+              throw new Error('Server returned 429 Too Many Requests (Simulated Chaos)');
+            } else if (this.simulatedFailureType === '500') {
+              throw new Error('Server returned 500 Internal Server Error (Simulated Chaos)');
+            } else if (this.simulatedFailureType === 'drop') {
+              throw new Error('TypeError: Failed to fetch (Simulated Chaos Connection Drop)');
+            }
+          }
+        }
         return await apiCall();
       } catch (error) {
         attempt++;
@@ -161,6 +177,7 @@ export class GeminiService {
                         const partial = parse(buffer);
                         
                         // Normalize strategy names on the client
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         const normalizedResults = partial.map((result: any) => {
                           const originalStrategy = strategies.find(s => {
                             const sName = mode === 'care' ? s.careModeName || s.name : s.name;
@@ -174,14 +191,14 @@ export class GeminiService {
                         
                         finalResults = normalizedResults;
                         onUpdate(normalizedResults);
-                      } catch (e) {
+                      } catch {
                          // Ignore partial parse errors, just wait for next chunk
                       }
                     }
                   } else if (data.error) {
                     throw new Error(data.error);
                   }
-                } catch(e) {
+                } catch {
                   // ignore JSON parse error for SSE message wrapper
                 }
               }
@@ -192,7 +209,8 @@ export class GeminiService {
         // Final parsing attempt to ensure we get everything if onUpdate wasn't called on the last chunk
         try {
            const finalParsed = parse(buffer);
-           const normalizedResults = finalParsed.map((result: any) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const normalizedResults = finalParsed.map((result: any) => {
               const originalStrategy = strategies.find(s => {
                 const sName = mode === 'care' ? s.careModeName || s.name : s.name;
                 return sName.toLowerCase() === (result.strategyName || '').toLowerCase();

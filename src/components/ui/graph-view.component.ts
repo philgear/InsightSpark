@@ -4,7 +4,6 @@ import { InsightResult, CreativeStrategy } from '../../models/creative-types';
 import { IconComponent } from './icon.component';
 import { KleePaletteService } from '../../services/klee-palette.service';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import * as d3 from 'd3';
 
 interface GraphNode extends d3.SimulationNodeDatum {

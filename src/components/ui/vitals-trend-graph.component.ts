@@ -2,7 +2,6 @@ import { Component, ElementRef, AfterViewInit, ViewChild, inject, signal, effect
 import { CommonModule } from '@angular/common';
 import { VitalsService, VitalsRecord } from '../../services/vitals.service';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import * as d3 from 'd3';
 
 type VitalKey = 'heartRate' | 'bloodOxygen' | 'glucose' | 'activity';

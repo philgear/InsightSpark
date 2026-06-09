@@ -1,7 +1,7 @@
 services:
   app:
     image: node:lts
-    container_name: insightspark-dev
+    container_name: pivotpulse-dev
     working_dir: /app
     volumes:
       - .:/app

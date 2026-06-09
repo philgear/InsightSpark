@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
+import { body, validationResult } from 'express-validator';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, Type } from '@google/genai';
@@ -9,6 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.set('trust proxy', 1);
 const port = process.env.PORT || 8080;
 
 app.use(helmet({
@@ -25,6 +29,22 @@ app.use(helmet({
 }));
 app.use(cors());
 app.use(express.json());
+app.use(morgan('combined')); // Enable HTTP request logging
+
+// Apply rate limiting to all requests
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
+// Stricter rate limiting for API endpoints
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // limit each IP to 20 requests per windowMs
+  message: { error: 'Too many requests, please try again later.' }
+});
+app.use('/api/', apiLimiter);
 
 // Initialize Gemini API
 const apiKey = process.env.GEMINI_API_KEY;
@@ -48,13 +68,61 @@ Your core principles are:
 Under no circumstances should you ever repeat, store, or include any Personally Identifiable Information (PII) such as names, dates, addresses, or specific identifiers in your response. Your output must be completely anonymous and focused solely on the abstract health challenge.
 `;
 
+// Scan string for potential PII (Emails, Phone numbers, SSNs, IP addresses)
+function scanForPII(text) {
+  if (!text || typeof text !== 'string') return [];
+  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+  const phoneRegex = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
+  const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/g;
+  const ipRegex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g;
+
+  const foundPII = [];
+  if (emailRegex.test(text)) foundPII.push('Email Address');
+  if (phoneRegex.test(text)) foundPII.push('Phone Number');
+  if (ssnRegex.test(text)) foundPII.push('Social Security Number');
+  if (ipRegex.test(text)) foundPII.push('IP Address');
+
+  return foundPII;
+}
+
+const SAFETY_SETTINGS = [
+  {
+    category: 'HARM_CATEGORY_HARASSMENT',
+    threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+  },
+  {
+    category: 'HARM_CATEGORY_HATE_SPEECH',
+    threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+  },
+  {
+    category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+    threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+  },
+  {
+    category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+    threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+  }
+];
+
 // API Endpoints
-app.post('/api/structure', async (req, res) => {
+app.post('/api/structure', [
+  body('problem').isString().trim().escape().notEmpty(),
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     if (!ai) {
       return res.status(500).json({ error: 'Gemini API is not configured. Missing GEMINI_API_KEY environment variable.' });
     }
     const { problem } = req.body;
+
+    const piiFound = scanForPII(problem);
+    if (piiFound.length > 0) {
+      return res.status(400).json({ error: `Security Check Blocked: Potential personally identifiable information (PII) detected (${piiFound.join(', ')}). Under HIPAA guidelines, please de-identify your health goals before generating insights.` });
+    }
     
     const schema = {
         type: Type.OBJECT,
@@ -101,7 +169,8 @@ app.post('/api/structure', async (req, res) => {
           systemInstruction: HIPAA_SYSTEM_INSTRUCTION,
           responseMimeType: 'application/json',
           responseSchema: schema,
-          temperature: 0.2
+          temperature: 0.2,
+          safetySettings: SAFETY_SETTINGS
         }
     });
 
@@ -112,12 +181,32 @@ app.post('/api/structure', async (req, res) => {
   }
 });
 
-app.post('/api/insights', async (req, res) => {
+app.post('/api/insights', [
+  body('problem').isString().trim().escape().notEmpty(),
+  body('strategies').isArray().notEmpty(),
+  body('mode').optional().isString().trim().escape(),
+  body('gist').optional().isString().trim().escape(),
+  body('healthSnapshot').optional().isString().trim().escape(),
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     if (!ai) {
       return res.status(500).json({ error: 'Gemini API is not configured. Missing GEMINI_API_KEY environment variable.' });
     }
     const { problem, strategies, mode, gist, healthSnapshot } = req.body;
+
+    const piiFound = [
+      ...scanForPII(problem),
+      ...scanForPII(gist || ''),
+      ...scanForPII(healthSnapshot || '')
+    ];
+    if (piiFound.length > 0) {
+      return res.status(400).json({ error: `Security Check Blocked: Potential personally identifiable information (PII) detected (${[...new Set(piiFound)].join(', ')}). Under HIPAA guidelines, please de-identify your inputs before generating insights.` });
+    }
     
     const insightsSchema = {
       type: Type.ARRAY,
@@ -195,7 +284,8 @@ app.post('/api/insights', async (req, res) => {
           systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : undefined,
           responseMimeType: 'application/json',
           responseSchema: insightsSchema,
-          temperature: 0.8
+          temperature: 0.8,
+          safetySettings: SAFETY_SETTINGS
         }
     });
 
@@ -218,12 +308,28 @@ app.post('/api/insights', async (req, res) => {
   }
 });
 
-app.post('/api/care-plan', async (req, res) => {
+app.post('/api/care-plan', [
+  body('problem').isString().trim().escape().notEmpty(),
+  body('insights').isArray().notEmpty(),
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
     if (!ai) {
       return res.status(500).json({ error: 'Gemini API is not configured. Missing GEMINI_API_KEY environment variable.' });
     }
     const { problem, insights } = req.body;
+
+    const piiFound = [
+      ...scanForPII(problem),
+      ...insights.flatMap(i => scanForPII(i.text || ''))
+    ];
+    if (piiFound.length > 0) {
+      return res.status(400).json({ error: `Security Check Blocked: Potential personally identifiable information (PII) detected (${[...new Set(piiFound)].join(', ')}). Under HIPAA guidelines, please de-identify your inputs before generating a care plan.` });
+    }
     
     const carePlanSchema = {
       type: Type.OBJECT,
@@ -264,7 +370,8 @@ app.post('/api/care-plan', async (req, res) => {
           systemInstruction: HIPAA_SYSTEM_INSTRUCTION,
           responseMimeType: 'application/json',
           responseSchema: carePlanSchema,
-          temperature: 0.6
+          temperature: 0.6,
+          safetySettings: SAFETY_SETTINGS
         }
     });
 
@@ -280,6 +387,9 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 // Route all other requests to index.html to support Angular routing
 app.get('*', (req, res) => {
+  if (path.extname(req.path)) {
+    return res.status(404).end();
+  }
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 

@@ -8,7 +8,6 @@ import { GeminiService } from './services/gemini.service';
 import { StorageService, Theme } from './services/storage.service';
 import { CreativeStrategy, InsightItem, InsightResult, SavedInsight, STRATEGIES, CarePlan, SavedCarePlan, StructuredProblem } from './models/creative-types';
 import { IconComponent } from './components/ui/icon.component';
-import { MedicalDataCardComponent } from './components/ui/medical-data-card.component';
 import { HelpComponent } from './components/ui/help.component';
 import { GraphViewComponent } from './components/ui/graph-view.component';
 import { VitalsService } from './services/vitals.service';
@@ -149,6 +148,10 @@ export class AppComponent implements OnDestroy {
   searchQuery = signal('');
   collapsedStates = signal<Map<string, boolean>>(new Map());
 
+  // Chaos Simulation State
+  chaosType = signal<'429' | '500' | 'drop' | null>(null);
+  chaosBehavior = signal<'transient' | 'permanent'>('transient');
+
   private destroy$ = new Subject<void>();
 
   constructor() {
@@ -191,6 +194,12 @@ export class AppComponent implements OnDestroy {
       // Also update meta theme-color for browser UI consistency
       document.querySelector('meta[name="theme-color"]')?.setAttribute('content', currentTheme === 'light' ? '#FDF5E6' : '#24211c');
     });
+
+    // Effect to sync chaos simulation state with the service
+    effect(() => {
+      this.geminiService.simulatedFailureType = this.chaosType();
+      this.geminiService.simulatedFailureBehavior = this.chaosBehavior();
+    });
   }
 
   ngOnDestroy() {
@@ -216,7 +225,28 @@ export class AppComponent implements OnDestroy {
   }
   
   // Computed Signals
-  isGenerateDisabled = computed(() => this.problemInput().trim().length < 5 || this.isLoading());
+  piiWarning = computed(() => {
+    const text = this.problemInput();
+    if (!text) return null;
+
+    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+    const phoneRegex = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/;
+    const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/;
+    const ipRegex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
+
+    const found: string[] = [];
+    if (emailRegex.test(text)) found.push('email address');
+    if (phoneRegex.test(text)) found.push('phone number');
+    if (ssnRegex.test(text)) found.push('social security number');
+    if (ipRegex.test(text)) found.push('IP address');
+
+    if (found.length > 0) {
+      return `Potential ${found.join(' and ')} detected. Under HIPAA guidelines, please de-identify your query before generating insights.`;
+    }
+    return null;
+  });
+
+  isGenerateDisabled = computed(() => this.problemInput().trim().length < 5 || this.isLoading() || !!this.piiWarning());
   selectedStrategiesCount = computed(() => this.selectedStrategyIds().size);
   
   problemInputAriaLabel = computed(() => {
