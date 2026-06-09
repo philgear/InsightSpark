@@ -11,7 +11,7 @@
     "lint": "ng lint"
   },
   "dependencies": {
-    "@angular/build": "21.2.0",
+    "@angular/build": "21.2.14",
     "@angular/cli": "21.2.0",
     "@angular/common": "21.2.0",
     "@angular/compiler": "21.2.0",
@@ -26,22 +26,22 @@
     "express": "4.19.2",
     "express-rate-limit": "8.5.2",
     "express-validator": "7.3.2",
-    "helmet": "8.1.0",
-    "morgan": "1.10.1",
+    "helmet": "8.2.0",
+    "morgan": "1.11.0",
     "partial-json": "0.1.7",
     "rxjs": "7.8.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "latest",
     "@types/d3": "^7.4.3",
-    "@types/node": "^22.14.0",
-    "angular-eslint": "21.2.0",
-    "eslint": "^9.39.2",
+    "@types/node": "^25.9.2",
+    "angular-eslint": "22.0.0",
+    "eslint": "^10.4.1",
     "postcss": "latest",
     "tailwindcss": "latest",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "8.50.1",
-    "vite": "^8.0.10"
+    "typescript": "^6.0.3",
+    "typescript-eslint": "8.61.0",
+    "vite": "^8.0.16"
   },
   "overrides": {
     "picomatch": "^4.0.4",
