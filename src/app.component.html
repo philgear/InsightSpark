@@ -3,9 +3,10 @@
      [class.app-mode-creative]="appMode() === 'creative'">
   
   <!-- Fluid Backgrounds -->
-  <div class="fluid-background" [class.animating]="isLoading()"></div>
+  <div class="fluid-background" [class.animating]="isLoading() || showKeyOverlay()"></div>
   <div class="background-logo-watermark"></div>
 
+  @if (!showKeyOverlay()) {
   <!-- Header -->
   <header class="flex-none bg-[var(--header-bg)] backdrop-blur-md border-b border-[var(--border-color)] p-4 z-20 shadow-lg relative non-printable">
     <div class="max-w-7xl mx-auto flex items-center relative z-10">
@@ -68,6 +69,20 @@
                   [attr.aria-label]="'Switch to ' + (theme() === 'dark' ? 'light' : 'dark') + ' theme'">
             <app-icon [name]="theme() === 'dark' ? 'sun' : 'moon'" [size]="20"></app-icon>
           </button>
+
+          <!-- API Key Connected Status / Clear Key -->
+          <div class="flex items-center gap-2 border-l border-[var(--border-color)] pl-3">
+            <span class="text-xs text-emerald-500 font-medium hidden md:inline-flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1.5 rounded-full" title="Gemini API Key is stored locally">
+              <app-icon name="check" [size]="14"></app-icon>
+              Connected
+            </span>
+            <button (click)="clearApiKey()" 
+                    class="header-chip action-btn text-[var(--color-danger)] !p-2"
+                    title="Change or Remove API Key"
+                    aria-label="Remove Gemini API Key">
+              <app-icon name="key" [size]="20"></app-icon>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -83,31 +98,42 @@
       </button>
     </div>
   }
+  
+  <!-- Demo Mode Banner -->
+  @if (userApiKey() === 'demo-key-active') {
+    <div role="status" class="bg-amber-500/10 border-b border-amber-500/20 text-amber-500 p-2.5 flex justify-center items-center gap-3 text-xs font-semibold tracking-wide uppercase non-printable">
+      <app-icon name="zap" [size]="14"></app-icon>
+      <span>You are running in Demo Mode with mock data</span>
+      <button (click)="clearApiKey()" class="bg-amber-500 text-black px-3 py-1.5 rounded-full font-bold tracking-tight text-[11px] uppercase hover:bg-amber-400 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-amber-500">Connect API Key</button>
+    </div>
+  }
 
   <!-- Main Content -->
   <main class="flex-1 overflow-auto p-4 md:p-8 z-10 relative">
     <div class="max-w-7xl mx-auto">
       @switch (currentView()) {
         @case ('generator') {
+          @if (error()) {
+            <!-- Inline Error Banner -->
+            <div role="alert" class="max-w-4xl mx-auto mb-6 p-4 bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 rounded-xl flex items-start gap-3 relative animate-in slide-in-from-top-2 duration-200 non-printable">
+              <app-icon name="alert-triangle" class="text-[var(--color-danger)] shrink-0 mt-0.5" [size]="20"></app-icon>
+              <div class="flex-1">
+                <h4 class="text-sm font-semibold text-[var(--color-danger)] mb-0.5 font-serif">Generation Error</h4>
+                <p class="text-sm/relaxed text-[var(--text-color)] pr-6">{{ error() }}</p>
+              </div>
+              <button (click)="error.set(null)" class="absolute right-3 top-3 text-[var(--text-color-muted)] hover:text-[var(--text-color)] focus:outline-none" aria-label="Dismiss error">
+                <app-icon name="x" [size]="16"></app-icon>
+              </button>
+            </div>
+          }
+
           @if (isLoading()) {
             <!-- Loading State: Lojong breathing showcase -->
             <div role="status" aria-live="polite" aria-label="Generating insights, please wait"
                  class="flex flex-col items-center justify-center min-h-[60vh] w-full">
               <app-lojong-cleansing class="w-full max-w-lg block"></app-lojong-cleansing>
             </div>
-          } @else if (error()) {
-
-            <!-- Error State -->
-            <div role="alert" aria-live="assertive" class="flex flex-col items-center justify-center h-full text-center bg-[var(--card-bg)] p-8 organic-shape">
-              <app-icon name="x" [size]="48" class="text-red-500 mb-4"></app-icon>
-              <h2 class="mb-2">An Error Occurred</h2>
-              <p class="text-[var(--text-color-muted)] mb-6">{{ error() }}</p>
-              <button (click)="editQuery()" class="bg-[var(--color-danger)] text-[var(--primary-cta-text)] font-bold py-3 px-6 min-h-[48px] min-w-[48px] organic-button shadow-lg transition-all flex items-center justify-center gap-2 mx-auto focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
-                <app-icon name="edit" [size]="20"></app-icon>
-                Try Again
-              </button>
-            </div>
-          }          @else if (insights(); as insightResults) {
+          } @else if (insights(); as insightResults) {
             <!-- Results View -->
             <section role="region" aria-labelledby="results-heading" class="animate-pop space-y-8">
               <!-- Results Header -->
@@ -326,10 +352,84 @@
                 </section>
               }
               
-              @defer (on viewport) {
-                <app-vitals-trend-graph></app-vitals-trend-graph>
-              } @placeholder {
-                <div class="h-64 animate-pulse bg-white/5 rounded-3xl mt-8"></div>
+              @if (appMode() === 'creative' && savedInsightsForCurrentProblem().length > 0) {
+                <div class="text-center py-8">
+                  <h3 class="mb-2 font-serif text-2xl">Synthesize Action Plan (Vertical Thinking)</h3>
+                  <p class="text-[var(--text-color-muted)] mb-4">You've saved {{ savedInsightsForCurrentProblem().length }} insight(s) for this challenge. Ready to structure them into an action plan?</p>
+                  <button (click)="generateCreativePlan()" [disabled]="isGeneratingCreativePlan()" class="font-bold py-3 px-6 min-h-[48px] min-w-[120px] organic-button swirling-surface shadow-lg transition-all flex items-center justify-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--primary-cta-bg)] text-[var(--primary-cta-text)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                    @if(isGeneratingCreativePlan()) {
+                      <app-icon name="loader" [size]="20" class="animate-spin"></app-icon>
+                      <span>Generating...</span>
+                    } @else {
+                      <app-icon name="git-branch" [size]="20"></app-icon>
+                      <span>Generate Action Plan</span>
+                    }
+                  </button>
+                </div>
+              }
+
+              @if (creativePlan(); as plan) {
+                <section class="mt-12 printable-section" id="creative-plan-section" aria-labelledby="creative-plan-heading">
+                    <div class="p-6 md:p-8 organic-shape">
+                        <header class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6 border-b border-[var(--border-color)] pb-6">
+                            <div>
+                                <h3 id="creative-plan-heading" class="text-[var(--text-accent)] font-serif text-3xl">Creative Action Plan</h3>
+                                <p class="text-[var(--text-color-muted)] mt-1">Based on your saved insights for: {{ problemInput() }}</p>
+                            </div>
+                            <div class="flex items-center gap-2 flex-wrap non-printable">
+                                <button (click)="saveCreativePlan()" [disabled]="isCreativePlanSaved()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                                    @if (isCreativePlanSaved()) {
+                                        <app-icon name="check" [size]="18"></app-icon>
+                                        <span>Saved</span>
+                                    } @else {
+                                        <app-icon name="bookmark" [size]="18"></app-icon>
+                                        <span>Save Plan</span>
+                                    }
+                                </button>
+                                <button (click)="copyCreativePlan()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                                    @if (isCreativePlanCopied()) {
+                                        <app-icon name="check" [size]="18" class="text-green-500"></app-icon>
+                                        <span>Copied!</span>
+                                    } @else {
+                                        <app-icon name="copy" [size]="18"></app-icon>
+                                        <span>Copy</span>
+                                    }
+                                </button>
+                                <button (click)="printPlan()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                                    <app-icon name="printer" [size]="18"></app-icon>
+                                    <span>Print</span>
+                                </button>
+                            </div>
+                        </header>
+                        <div class="space-y-6">
+                            @for (section of getCreativePlanSections(plan); track section.id) {
+                                <div>
+                                    <h4 class="flex items-center gap-3 mb-2 font-serif text-xl">
+                                        <app-icon [name]="section.icon" [size]="20" class="text-[var(--text-accent)]"></app-icon>
+                                        {{ section.title }}
+                                    </h4>
+                                    @if (section.title === 'Conceptual Goal') {
+                                        <p class="pl-10 text-[var(--text-color)]">{{ section.items[0] }}</p>
+                                    } @else {
+                                        <ul class="list-disc pl-10 space-y-1 text-[var(--text-color-muted)]">
+                                            @for (item of section.items; track item) {
+                                                <li>{{ item }}</li>
+                                            }
+                                        </ul>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </section>
+              }
+              
+              @if (appMode() === 'care') {
+                @defer (on viewport) {
+                  <app-vitals-trend-graph></app-vitals-trend-graph>
+                } @placeholder {
+                  <div class="h-64 animate-pulse bg-white/5 rounded-3xl mt-8"></div>
+                }
               }
             </section>
           }
@@ -350,7 +450,13 @@
                     [attr.aria-label]="problemInputAriaLabel()"
                     autocomplete="off">
                   </textarea>
-                  <span class="flex justify-end text-sm text-[var(--text-color-subtle)] mt-1 pr-1">{{ problemInput().length }} / 1000</span>
+                  <div class="flex justify-between items-center text-sm text-[var(--text-color-subtle)] mt-1 px-1">
+                    <span class="text-[11px] flex items-center gap-1 opacity-75 hover:opacity-100 transition-opacity">
+                      <app-icon name="key" [size]="12" class="text-[var(--text-accent)]"></app-icon>
+                      Ideas open-shared under CC BY-SA 4.0 | Built by Phil Gear
+                    </span>
+                    <span>{{ problemInput().length }} / 1000</span>
+                  </div>
                   @if (piiWarning(); as warning) {
                     <div role="alert" class="mt-3 p-4 rounded-xl border flex items-start gap-3 bg-[var(--card-bg)] border-[var(--color-warning)] text-[var(--color-warning)] animate-fade-in" style="background: rgba(212, 164, 76, 0.05);">
                       <app-icon name="alert-triangle" [size]="20" class="shrink-0 mt-0.5" style="color: var(--color-warning);"></app-icon>
@@ -604,6 +710,56 @@
                         }
                       </div>
                     }
+                    @case ('creative-plan') {
+                      @let id = 'saved-creative-plan-' + item.problem;
+                      <div class="p-4 organic-shape">
+                        <div class="flex items-start gap-4">
+                          <div class="w-10 h-10 rounded-lg bg-[var(--text-accent)]/20 flex items-center justify-center text-[var(--text-accent)] shrink-0 mt-1">
+                            <app-icon name="git-branch" [size]="24"></app-icon>
+                          </div>
+                          <div class="flex-1">
+                            <h3 class="font-serif">Creative Action Plan for: {{ item.problem }}</h3>
+                            <div class="text-sm text-[var(--text-color-muted)] mt-1">Saved: <strong class="font-semibold">{{ formatDate(item.timestamp) }}</strong></div>
+                          </div>
+                          <div class="flex items-center gap-1">
+                            <button (click)="copyCreativePlan(item.plan, item.problem)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" aria-label="Copy saved action plan">
+                                @if (copiedId() === id) {
+                                    <app-icon name="check" [size]="20" class="text-green-500"></app-icon>
+                                } @else {
+                                    <app-icon name="copy" [size]="20"></app-icon>
+                                }
+                            </button>
+                            <button (click)="deleteItem(item.id)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-label]="formatAriaLabel('Delete saved action plan for', item.problem)">
+                                <app-icon name="trash" [size]="20"></app-icon>
+                            </button>
+                            <button (click)="toggleCollapse(item.id)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-expanded]="!isCollapsed(item.id)" [attr.aria-label]="isCollapsed(item.id) ? 'Expand action plan' : 'Collapse action plan'">
+                              <app-icon [name]="isCollapsed(item.id) ? 'chevron-down' : 'chevron-up'" [size]="20"></app-icon>
+                            </button>
+                          </div>
+                        </div>
+                        @if (!isCollapsed(item.id)) {
+                          <div class="mt-4 pt-4 border-t border-[var(--border-color)] space-y-4 pl-14">
+                            @for (section of getCreativePlanSections(item.plan); track section.id) {
+                              <div>
+                                  <h5 class="flex items-center gap-2 mb-1">
+                                      <app-icon [name]="section.icon" [size]="16" class="text-[var(--text-color-muted)]"></app-icon>
+                                      {{ section.title }}
+                                  </h5>
+                                  @if (section.title === 'Conceptual Goal') {
+                                      <p class="pl-8 text-sm text-[var(--text-color)]">{{ section.items[0] }}</p>
+                                  } @else {
+                                      <ul class="list-disc pl-8 text-sm space-y-1 text-[var(--text-color-muted)]">
+                                          @for (planItem of section.items; track planItem) {
+                                              <li>{{ planItem }}</li>
+                                          }
+                                      </ul>
+                                  }
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
                   }
                 }
               </div>
@@ -624,4 +780,54 @@
       }
     </div>
   </main>
+  } @else {
+    <!-- Glassmorphic Gemini API Key Setup Overlay -->
+    <div class="flex-1 flex items-center justify-center p-4 z-20 relative non-printable animate-pop">
+      <div class="max-w-md w-full bg-white/5 backdrop-blur-xl border border-[var(--border-color)] rounded-2xl p-8 shadow-2xl flex flex-col items-center text-center">
+        
+        <!-- Premium Brand Icon / Logo -->
+        <div class="p-3 bg-white/10 backdrop-blur-md rounded-2xl shadow-inner border border-[var(--border-accent)] overflow-hidden mb-6">
+           <img [src]="logoPath()" alt="Pivot & Pulse Logo" class="h-16 w-16 object-contain" width="64" height="64">
+        </div>
+        
+        <h2 class="font-serif text-[var(--font-size-3xl)] mb-2 tracking-tight">Pivot & Pulse</h2>
+        <p class="text-[var(--font-size-base)] text-[var(--text-color-muted)] mb-6 max-w-sm">
+          Welcome to your fluid thinking partner. To generate insights, please enter your Gemini API Key.
+        </p>
+
+        <div class="w-full flex flex-col gap-4">
+          <div class="relative w-full">
+            <input #apiKeyInput 
+                   type="password" 
+                   placeholder="Enter Gemini API Key (AI_...)" 
+                   class="w-full bg-black/20 border border-[var(--border-color)] rounded-xl py-3 px-4 text-center focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)] text-[var(--text-color)] placeholder-[var(--text-color-muted)] transition-all font-mono"
+                   (keyup.enter)="saveApiKey(apiKeyInput.value)">
+          </div>
+
+          <button (click)="saveApiKey(apiKeyInput.value)" 
+                  class="w-full py-3 px-6 rounded-xl font-bold bg-[var(--text-accent)] text-white hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-[var(--text-accent)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+            Save & Get Started
+          </button>
+          
+          <button (click)="activateDemoMode()" 
+                  class="w-full py-3 px-6 rounded-xl font-semibold bg-white/5 border border-white/10 text-[var(--text-color)] hover:bg-white/10 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+            Try a Demo (No Key Required)
+          </button>
+        </div>
+
+        <div class="mt-6 text-[var(--font-size-sm)] text-[var(--text-color-muted)]">
+          Need a key? Get one for free at 
+          <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" class="text-[var(--text-accent)] hover:underline font-semibold">
+            Google AI Studio (ai.dev)
+          </a>.
+        </div>
+
+        <div class="mt-6 text-xs text-[var(--text-color-muted)] flex flex-wrap justify-center gap-x-4 gap-y-1 opacity-80 border-t border-[var(--border-color)] pt-4 w-full">
+          <a href="/terms" target="_blank" class="hover:text-[var(--text-accent)] transition-colors">Terms & Conditions</a>
+          <span class="text-[var(--border-color)]">•</span>
+          <a href="/privacy" target="_blank" class="hover:text-[var(--text-accent)] transition-colors">Privacy Policy</a>
+        </div>
+      </div>
+    </div>
+  }
 </div>

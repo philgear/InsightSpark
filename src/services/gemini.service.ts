@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CreativeStrategy, InsightResult, SavedInsight, CarePlan, StructuredProblem } from '../models/creative-types';
+import { CreativeStrategy, InsightResult, SavedInsight, CarePlan, StructuredProblem, CreativePlan } from '../models/creative-types';
 import { parse } from 'partial-json';
 
 export class ApiRetryError extends Error {
@@ -17,6 +17,16 @@ export class GeminiService {
   private insightCache = new Map<string, Promise<InsightResult[]>>();
   private structureCache = new Map<string, Promise<StructuredProblem>>();
   private carePlanCache = new Map<string, Promise<CarePlan>>();
+  private creativePlanCache = new Map<string, Promise<CreativePlan>>();
+
+  private getAuthHeaders(headers: Record<string, string> = {}): Record<string, string> {
+    const userApiKey = localStorage.getItem('user_gemini_api_key');
+    const authHeaders = { ...headers };
+    if (userApiKey) {
+      authHeaders['x-gemini-api-key'] = userApiKey;
+    }
+    return authHeaders;
+  }
 
   // Chaos Simulation Configuration
   public simulatedFailureType: '429' | '500' | 'drop' | null = null;
@@ -29,6 +39,7 @@ export class GeminiService {
     this.insightCache.clear();
     this.structureCache.clear();
     this.carePlanCache.clear();
+    this.creativePlanCache.clear();
   }
 
   /**
@@ -54,10 +65,22 @@ export class GeminiService {
         }
         return await apiCall();
       } catch (error) {
+        const errMessage = (error as Error).message || '';
+        
+        // Fail fast on specific API key or billing cap issues (exclude transient 429/RESOURCE_EXHAUSTED rate limits from failing fast)
+        if (
+          errMessage.includes('monthly spending cap') ||
+          errMessage.includes('API key') ||
+          errMessage.includes('not valid') ||
+          errMessage.includes('Billing')
+        ) {
+          throw new ApiRetryError(errMessage);
+        }
+
         attempt++;
         if (attempt > maxRetries) {
           console.error(`API call failed after ${maxRetries + 1} attempts.`, error);
-          throw new ApiRetryError(`The request failed after multiple attempts due to a network or server issue. Please check your connection and try again.`);
+          throw new ApiRetryError(errMessage ? `failed after multiple attempts: ${errMessage}` : `The request failed after multiple attempts due to a network or server issue. Please check your connection and try again.`);
         }
         
         const delay = initialDelay * Math.pow(2, attempt - 1);
@@ -68,6 +91,18 @@ export class GeminiService {
   }
 
   async structureHealthGoal(problem: string): Promise<StructuredProblem> {
+    if (this.isDemoMode()) {
+      return {
+        title: "Hip Recovery & Gardening Connection",
+        condition: "Post-hip fracture recovery",
+        goal: "Safely rebuild mobility and maintain emotional well-being through modified gardening activities.",
+        barriers: [
+          "Fear of falling or re-injury",
+          "Inability to bend down or lift heavy watering cans",
+          "Fatigue and limited standing tolerance"
+        ]
+      };
+    }
     const cacheKey = problem.trim();
     if (this.structureCache.has(cacheKey)) {
         return this.structureCache.get(cacheKey)!;
@@ -82,14 +117,21 @@ export class GeminiService {
     return this._withRetries(async () => {
       const response = await fetch('/api/structure', {
         method: 'POST',
-        headers: {
+        headers: this.getAuthHeaders({
           'Content-Type': 'application/json'
-        },
+        }),
         body: JSON.stringify({ problem })
       });
 
       if (!response.ok) {
-        throw new Error(`Server returned ${response.status} ${response.statusText}`);
+        let errorMsg = `Server returned ${response.status} ${response.statusText}`;
+        try {
+          const errData = await response.json();
+          if (errData && errData.error) errorMsg = errData.error;
+        } catch {
+          // Ignore error parsing, fall back to default msg
+        }
+        throw new Error(errorMsg);
       }
 
       return response.json();
@@ -110,6 +152,13 @@ export class GeminiService {
     onUpdate?: (partial: InsightResult[]) => void
   ): Promise<InsightResult[]> {
     if (!problem.trim()) return [];
+    if (this.isDemoMode()) {
+      const mockData = this.getMockInsights(problem, strategies, mode);
+      if (onUpdate) {
+        setTimeout(() => onUpdate(mockData), 600);
+      }
+      return mockData;
+    }
     
     const cacheKey = this.generateInsightCacheKey(problem, strategies, mode, gist, healthSnapshot);
     if (this.insightCache.has(cacheKey)) {
@@ -133,9 +182,9 @@ export class GeminiService {
       const results = await this._withRetries(async () => {
         const response = await fetch('/api/insights', {
           method: 'POST',
-          headers: {
+          headers: this.getAuthHeaders({
             'Content-Type': 'application/json'
-          },
+          }),
           body: JSON.stringify({
             problem,
             strategies,
@@ -146,7 +195,14 @@ export class GeminiService {
         });
 
         if (!response.ok) {
-          throw new Error(`Server returned ${response.status} ${response.statusText}`);
+          let errorMsg = `Server returned ${response.status} ${response.statusText}`;
+          try {
+            const errData = await response.json();
+            if (errData && errData.error) errorMsg = errData.error;
+          } catch {
+            // Ignore error parsing, fall back to default msg
+          }
+          throw new Error(errorMsg);
         }
 
         const reader = response.body?.getReader();
@@ -230,10 +286,8 @@ export class GeminiService {
       return results;
     } catch (error) {
       console.error(`Failed to generate insights for problem: '${problem}'`, error);
-      if (strategies.length > 0) {
-        throw new Error("Failed to generate any insights. Please check your connection or try again.");
-      }
-      return [];
+      const errMsg = (error as Error).message || "Failed to generate any insights. Please check your connection or try again.";
+      throw new Error(errMsg);
     }
   }
 
@@ -245,6 +299,35 @@ export class GeminiService {
   async generateCarePlan(problem: string, insights: SavedInsight[]): Promise<CarePlan> {
     if (insights.length === 0) {
       throw new Error("No insights provided to generate a care plan.");
+    }
+    if (this.isDemoMode()) {
+      return {
+        personGoal: "Re-engage in modified gardening activities to safely build mobility and lift mood post-hip recovery.",
+        keyInterventions: [
+          "Install waist-high raised garden beds to eliminate bending requirements.",
+          "Perform seated planting exercises using lightweight, ergonomic hand tools.",
+          "Schedule daily 10-minute supported walking segments in the garden paths with a physical therapist or helper."
+        ],
+        monitoringPlan: [
+          "Observe pain levels and balance stability during movement.",
+          "Monitor daily mood score and verbal engagement levels.",
+          "Track total active standing/walking minutes in the garden."
+        ],
+        guidanceAndEducation: [
+          "Teach the 'nose over toes' safe standing technique when rising from garden chairs.",
+          "Demonstrate proper posture to prevent back strain when reaching for plants.",
+          "Educate on signs of fatigue to prevent over-exertion."
+        ],
+        positiveAchievements: [
+          "Celebrate standing for 5 continuous minutes at the raised bed.",
+          "Celebrate planting the first set of indoor seedlings.",
+          "Acknowledge walk to the end of the garden path and back without pain."
+        ],
+        recommendations: [
+          "Consult physical therapy to clear specific movements before starting outdoor gardening.",
+          "Purchase a lightweight watering wand to make hydration of plants easy."
+        ]
+      };
     }
     
     const cacheKey = this.generateCarePlanCacheKey(problem, insights);
@@ -261,9 +344,9 @@ export class GeminiService {
     return this._withRetries(async () => {
       const response = await fetch('/api/care-plan', {
         method: 'POST',
-        headers: {
+        headers: this.getAuthHeaders({
           'Content-Type': 'application/json'
-        },
+        }),
         body: JSON.stringify({
           problem,
           insights
@@ -271,10 +354,162 @@ export class GeminiService {
       });
 
       if (!response.ok) {
-        throw new Error(`Server returned ${response.status} ${response.statusText}`);
+        let errorMsg = `Server returned ${response.status} ${response.statusText}`;
+        try {
+          const errData = await response.json();
+          if (errData && errData.error) errorMsg = errData.error;
+        } catch {
+          // Ignore error parsing, fall back to default msg
+        }
+        throw new Error(errorMsg);
       }
 
       return response.json();
+    });
+  }
+
+  private generateCreativePlanCacheKey(problem: string, insights: SavedInsight[]): string {
+    const insightTexts = insights.map(i => i.text).sort().join('|');
+    return `${problem.trim()}||${insightTexts}`;
+  }
+
+  async generateCreativePlan(problem: string, insights: SavedInsight[]): Promise<CreativePlan> {
+    if (insights.length === 0) {
+      throw new Error("No insights provided to generate a creative plan.");
+    }
+    if (this.isDemoMode()) {
+      return {
+        conceptualGoal: "To establish a dual-purpose urban green space combining flood defense with local food production.",
+        criticalPath: [
+          "1. Map historical flood contours to identify low-lying agricultural zones.",
+          "2. Anchor vertical hydroponic farming walls along the primary concrete flood barriers.",
+          "3. Configure kinetic pathways to capture pedestrian traffic energy for irrigation pumps.",
+          "4. Launch community compost programs to nourish the vertical farm beds."
+        ],
+        riskAssessment: [
+          "1. Over-saturation: Extreme storms could flood the agricultural beds if drainage thresholds are exceeded.",
+          "2. Energy mismatch: Low pedestrian traffic during winter may require battery backup for lighting."
+        ],
+        requiredResources: [
+          "Kinetic paving materials",
+          "Hydroponic wall structures",
+          "Community compost digesters",
+          "Volunteer coordination platform"
+        ],
+        milestones: [
+          "Month 3: Flood defense wall structural reinforcement complete.",
+          "Month 6: First seasonal hydroponic harvest distributed to local community.",
+          "Month 12: Kinetic energy grid fully self-sustaining."
+        ],
+        nextSteps: [
+          "Consult local environmental engineers for contour analysis.",
+          "Host a community meeting to recruit initial farming volunteers."
+        ]
+      };
+    }
+    
+    const cacheKey = this.generateCreativePlanCacheKey(problem, insights);
+    if (this.creativePlanCache.has(cacheKey)) {
+        return this.creativePlanCache.get(cacheKey)!;
+    }
+
+    const promise = this._generateCreativePlan(problem, insights);
+    this.creativePlanCache.set(cacheKey, promise);
+    return promise;
+  }
+
+  private async _generateCreativePlan(problem: string, insights: SavedInsight[]): Promise<CreativePlan> {
+    return this._withRetries(async () => {
+      const response = await fetch('/api/creative-plan', {
+        method: 'POST',
+        headers: this.getAuthHeaders({
+          'Content-Type': 'application/json'
+        }),
+        body: JSON.stringify({
+          problem,
+          insights
+        })
+      });
+
+      if (!response.ok) {
+        let errorMsg = `Server returned ${response.status} ${response.statusText}`;
+        try {
+          const errData = await response.json();
+          if (errData && errData.error) errorMsg = errData.error;
+        } catch {
+          // Ignore error parsing, fall back to default msg
+        }
+        throw new Error(errorMsg);
+      }
+
+      return response.json();
+    });
+  }
+
+  private isDemoMode(): boolean {
+    return localStorage.getItem('user_gemini_api_key') === 'demo-key-active';
+  }
+
+  private getMockInsights(problem: string, strategies: CreativeStrategy[], mode: 'creative' | 'care'): InsightResult[] {
+    const textLower = problem.toLowerCase();
+    const isDefaultCreativeQuery = textLower.includes('municipal') || textLower.includes('flood') || textLower.includes('park');
+    const isDefaultCareQuery = textLower.includes('grandmother') || textLower.includes('fracture') || textLower.includes('garden');
+
+    return strategies.map(s => {
+      const sId = s.id;
+      const strategyName = mode === 'care' ? (s.careModeName || s.name) : s.name;
+      let insights: { text: string; influence?: string }[] = [];
+
+      if (mode === 'creative' && isDefaultCreativeQuery) {
+        if (sId === 'butterfly') {
+          insights = [
+            { text: "Plant high-absorption willow groves along the lowest contours. Their roots stabilize soil and absorb up to 250 gallons of water daily, turning a flood risk into a self-watering irrigation system." },
+            { text: "Install kinetic stepping stones on main walking paths. The pressure from daily joggers generates low-voltage energy, powering the park's evening safety lighting with zero grid reliance." }
+          ];
+        } else if (sId === 'combinatorial') {
+          insights = [
+            { text: "Merge a vertical hydroponic farm with the vertical structural faces of the concrete flood barrier walls, optimizing urban agricultural space while keeping the barrier functional." },
+            { text: "Combine community composting chutes directly with public waste bins, feeding organic waste into localized biogas digesters that fuel public cooking grills in the picnic zones." }
+          ];
+        } else if (sId === 'first-principles') {
+          insights = [
+            { text: "Identify the core resource needed: energy. Rather than importing solar panels, design the park’s geometry to direct wind flows into micro-turbine channels built directly into standard pedestrian archways." },
+            { text: "Deconstruct the idea of a 'park.' It is primarily a land asset. Maximize asset utility by scheduling dual-use hours: educational classrooms by day, flood overflow retention zones during storm events." }
+          ];
+        }
+      } else if (mode === 'care' && isDefaultCareQuery) {
+        if (sId === 'what-if') {
+          insights = [
+            { text: "Create a 'garden-on-wheels' rolling planter cart. This allows indoor seed preparation during bad weather, keeping them active regardless of external constraints.", influence: "Builds upper-body mobility and maintains consistent activity levels on rest days." },
+            { text: "Place a high-contrast guide marker along the garden pathway to visualize clear, short-distance milestones, building confidence with every physical step.", influence: "Minimizes gait anxiety and gives clear, low-risk progress visual markers." }
+          ];
+        } else if (sId === 'butterfly') {
+          insights = [
+            { text: "Install lightweight, automatic drip-irrigation timers. This removes the physical burden of carrying heavy watering cans, which is the primary driver of falls in gardens.", influence: "Eliminates unsafe weight-bearing lifting and reduces fatigue by 40%." },
+            { text: "Place a comfortable garden chair at 10-foot intervals along the path. Knowing a safe resting spot is nearby significantly reduces walking anxiety.", influence: "Provides immediate orthostatic recovery options and builds distance stamina." }
+          ];
+        } else if (sId === 'first-principles') {
+          insights = [
+            { text: "Focus on the core sensory need: touch and smell. Prioritize planting highly fragrant herbs like lavender and rosemary at waist height, maximizing emotional comfort with minimal strain.", influence: "Engages cognitive memory triggers and provides visual delight without requiring forward flexion." },
+            { text: "Redefine the physical stance. Allow all seed sorting and transplanting to take place at a standard table height with footrests, ensuring knee and hip angles remain safe.", influence: "Maintains optimal joint protection guidelines while preserving gardening participation." }
+          ];
+        }
+      }
+
+      // Fallback if they customized the prompt or strategies
+      if (insights.length === 0) {
+        insights = [
+          {
+            text: `[Demo Mode Preview for ${strategyName}] This is a high-quality placeholder. Connect your own Gemini API Key using the 🔑 button in the header to generate custom real-time insights for your prompts.`,
+            ...(mode === 'care' && { influence: 'Exposes how the strategy guides care recommendations and indicator mapping.' })
+          }
+        ];
+      }
+
+      return {
+        strategyName,
+        insights
+      };
     });
   }
 }

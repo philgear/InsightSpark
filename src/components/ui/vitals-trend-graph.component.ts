@@ -117,7 +117,7 @@ export class VitalsTrendGraphComponent implements AfterViewInit {
 
     this.svg.append('g')
       .attr('transform', `translate(0, ${height})`)
-      .call(d3.axisBottom(x).ticks(5).tickFormat(d3.timeFormat("%H:%M")));
+      .call(d3.axisBottom(x).ticks(5).tickFormat((d) => d3.timeFormat("%H:%M")(d instanceof Date ? d : new Date(+d))));
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const yScales: Record<VitalKey, any> = {} as Record<VitalKey, any>;

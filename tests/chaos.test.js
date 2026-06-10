@@ -11,6 +11,13 @@ describe('GeminiService Chaos Engineering & Retry Resilience', () => {
   let delayCalls = [];
 
   before(() => {
+    // Mock global localStorage
+    globalThis.localStorage = {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {}
+    };
+
     // Mock global fetch
     globalThis.fetch = async (url, options) => {
       if (url === '/api/structure') {
@@ -41,6 +48,7 @@ describe('GeminiService Chaos Engineering & Retry Resilience', () => {
     // Restore mocks
     globalThis.fetch = originalFetch;
     globalThis.setTimeout = originalSetTimeout;
+    delete globalThis.localStorage;
   });
 
   test('Normal Mode: Should succeed on first attempt without retrying', async () => {
@@ -137,4 +145,51 @@ describe('GeminiService Chaos Engineering & Retry Resilience', () => {
       ApiRetryError
     );
   });
+
+  describe('Demo Mode offline mocking', () => {
+    let originalGetItem;
+    
+    before(() => {
+      originalGetItem = globalThis.localStorage.getItem;
+      globalThis.localStorage.getItem = (key) => {
+        if (key === 'user_gemini_api_key') return 'demo-key-active';
+        return null;
+      };
+    });
+
+    after(() => {
+      globalThis.localStorage.getItem = originalGetItem;
+    });
+
+    test('Demo Mode: should return mock structured problem instantly without fetch', async () => {
+      service = new GeminiService();
+      // Even if set to fail, Demo Mode should bypass API calls and succeed instantly
+      service.simulatedFailureType = '500';
+      service.simulatedFailureBehavior = 'permanent';
+      
+      const result = await service.structureHealthGoal('Test Grandma Hip Fracture');
+      assert.strictEqual(result.condition, 'Post-hip fracture recovery');
+      assert.ok(result.barriers.length > 0);
+    });
+
+    test('Demo Mode: should return mock insights for creative mode and care mode', async () => {
+      service = new GeminiService();
+      
+      const creativeResult = await service.generateInsights(
+        'Municipal park flood risk',
+        [{ id: 'butterfly', name: 'Butterfly Effect' }],
+        'creative'
+      );
+      assert.ok(creativeResult.length > 0);
+      assert.strictEqual(creativeResult[0].strategyName, 'Butterfly Effect');
+      
+      const careResult = await service.generateInsights(
+        'Grandmother fracture garden',
+        [{ id: 'what-if', name: 'What-If', careModeName: 'What-If' }],
+        'care'
+      );
+      assert.ok(careResult.length > 0);
+    });
+  });
 });
+

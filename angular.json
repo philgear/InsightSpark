@@ -24,12 +24,20 @@
             ],
             "styles": ["styles.css"],
             "tsConfig": "tsconfig.json",
-            "allowedCommonJsDependencies": ["p-retry"]
+            "allowedCommonJsDependencies": ["p-retry"],
+            "serviceWorker": "ngsw-config.json"
           },
           "configurations": {
             "production": {
               "outputHashing": "all",
-              "optimization": true,
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              },
               "sourceMap": false,
               "extractLicenses": true,
               "namedChunks": false

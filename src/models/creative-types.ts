@@ -27,6 +27,15 @@ export interface CarePlan {
   recommendations: string[];
 }
 
+export interface CreativePlan {
+  conceptualGoal: string;
+  criticalPath: string[];
+  riskAssessment: string[];
+  requiredResources: string[];
+  milestones: string[];
+  nextSteps: string[];
+}
+
 export interface StructuredProblem {
   title: string;
   condition: string;
@@ -55,7 +64,15 @@ export interface SavedCarePlan {
   plan: CarePlan;
 }
 
-export type SavedItem = SavedInsight | SavedCarePlan;
+export interface SavedCreativePlan {
+  type: 'creative-plan';
+  id: string;
+  problem: string; // This will always be the original, full text input
+  timestamp: number;
+  plan: CreativePlan;
+}
+
+export type SavedItem = SavedInsight | SavedCarePlan | SavedCreativePlan;
 
 
 // Palette:
@@ -174,4 +191,40 @@ export const STRATEGIES: CreativeStrategy[] = [
     careModeName: 'Relatable Analogy',
     careModeDescription: "Pick a household object. How can it represent a part of the support plan to make it more relatable?"
   },
+  { 
+    id: 'first-principles', 
+    name: 'First Principles', 
+    description: 'Deconstruct the problem to its most fundamental truths, then build a solution up from scratch.', 
+    icon: 'brain', 
+    color: '#6C7A68',
+    careModeName: 'Core Needs',
+    careModeDescription: "Break the health goal down to the person's most fundamental physiological and emotional needs."
+  },
+  { 
+    id: 'root-cause', 
+    name: 'Root Cause (5 Whys)', 
+    description: 'Ask "why" five times to drill down to the fundamental cause of the problem.', 
+    icon: 'arrow-down', 
+    color: '#9D1F3B',
+    careModeName: 'Triggers & Causes',
+    careModeDescription: "Explore the root causes and underlying triggers of the support challenge."
+  },
+  { 
+    id: 'fmea', 
+    name: 'FMEA (Risk Analysis)', 
+    description: 'List potential failure points, their consequences, and how to mitigate them.', 
+    icon: 'shield', 
+    color: '#6C7A68',
+    careModeName: 'Safety Net',
+    careModeDescription: "Identify potential safety risks or plan failures and build early warning guardrails."
+  },
+  { 
+    id: 'critical-path', 
+    name: 'Critical Path Method', 
+    description: 'Map out the absolute sequence of dependent steps required to achieve the goal.', 
+    icon: 'git-branch', 
+    color: '#E8B9C8',
+    careModeName: 'Milestone Map',
+    careModeDescription: "Synthesize the exact step-by-step critical timeline of care dependencies."
+  }
 ];

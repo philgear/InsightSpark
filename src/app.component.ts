@@ -1,17 +1,20 @@
 import { Component, inject, signal, computed, OnDestroy, effect } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
+
+
 import { FormsModule } from '@angular/forms';
 import { SwUpdate, VersionReadyEvent, VersionEvent } from '@angular/service-worker';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { GeminiService } from './services/gemini.service';
 import { StorageService, Theme } from './services/storage.service';
-import { CreativeStrategy, InsightItem, InsightResult, SavedInsight, STRATEGIES, CarePlan, SavedCarePlan, StructuredProblem } from './models/creative-types';
+import { CreativeStrategy, InsightItem, InsightResult, SavedInsight, STRATEGIES, CarePlan, SavedCarePlan, StructuredProblem, CreativePlan, SavedCreativePlan } from './models/creative-types';
 import { IconComponent } from './components/ui/icon.component';
 import { HelpComponent } from './components/ui/help.component';
 import { GraphViewComponent } from './components/ui/graph-view.component';
 import { VitalsService } from './services/vitals.service';
 import { LojongCleansingComponent } from './components/ui/lojong-cleansing.component';
+import { VitalsTrendGraphComponent } from './components/ui/vitals-trend-graph.component';
 
 interface CareRole {
   name: string;
@@ -75,7 +78,7 @@ const CARE_ROLES: CareRole[] = [
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconComponent, HelpComponent, GraphViewComponent, LojongCleansingComponent],
+  imports: [CommonModule, FormsModule, IconComponent, HelpComponent, GraphViewComponent, LojongCleansingComponent, VitalsTrendGraphComponent],
   templateUrl: './app.component.html',
 })
 export class AppComponent implements OnDestroy {
@@ -93,6 +96,12 @@ export class AppComponent implements OnDestroy {
   isUpdateAvailable = signal(false);
   theme = signal<Theme>('dark');
   logoPath = computed(() => this.theme() === 'dark' ? 'assets/logo-dark.svg' : 'assets/logo-light.svg');
+
+  // API Key State
+  userApiKey = signal<string>(localStorage.getItem('user_gemini_api_key') || '');
+  showKeyOverlay = computed(() => !this.userApiKey());
+
+
 
   // Generator State
   problemInput = signal('');
@@ -143,6 +152,11 @@ export class AppComponent implements OnDestroy {
   careRoles = signal<CareRole[]>(CARE_ROLES);
   activeCareRoles = signal<Set<string>>(new Set());
 
+  // Creative Action Plan State
+  creativePlan = signal<CreativePlan | null>(null);
+  isGeneratingCreativePlan = signal(false);
+  isCreativePlanCopied = signal(false);
+
   // Saved Items State
   sortOrder = signal<'newest' | 'oldest'>('newest');
   searchQuery = signal('');
@@ -182,6 +196,7 @@ export class AppComponent implements OnDestroy {
     // Theme initialization
     this.theme.set(this.storageService.getTheme());
 
+
     // Effect to apply theme class to document
     effect(() => {
       const currentTheme = this.theme();
@@ -200,6 +215,36 @@ export class AppComponent implements OnDestroy {
       this.geminiService.simulatedFailureType = this.chaosType();
       this.geminiService.simulatedFailureBehavior = this.chaosBehavior();
     });
+
+
+  }
+
+
+
+  saveApiKey(key: string) {
+    if (key.trim()) {
+      localStorage.setItem('user_gemini_api_key', key.trim());
+      this.userApiKey.set(key.trim());
+    }
+  }
+
+  clearApiKey() {
+    localStorage.removeItem('user_gemini_api_key');
+    this.userApiKey.set('');
+  }
+
+  activateDemoMode() {
+    localStorage.setItem('user_gemini_api_key', 'demo-key-active');
+    this.userApiKey.set('demo-key-active');
+    
+    // Set presets based on current mode
+    if (this.appMode() === 'creative') {
+      this.problemInput.set('Designing a self-sustaining municipal park that doubles as a flood barrier and a local agricultural hub.');
+      this.selectedStrategyIds.set(new Set(['butterfly', 'combinatorial', 'first-principles']));
+    } else {
+      this.problemInput.set('Improve daily movement and emotional connection for a 75-year-old grandmother recovering from a hip fracture who loves gardening.');
+      this.selectedStrategyIds.set(new Set(['what-if', 'butterfly', 'first-principles']));
+    }
   }
 
   ngOnDestroy() {
@@ -293,6 +338,14 @@ export class AppComponent implements OnDestroy {
                item.plan.guidanceAndEducation.some(i => i.toLowerCase().includes(query)) ||
                item.plan.positiveAchievements.some(i => i.toLowerCase().includes(query)) ||
                item.plan.recommendations.some(i => i.toLowerCase().includes(query));
+      } else if (item.type === 'creative-plan') {
+        return item.problem.toLowerCase().includes(query) || 
+               item.plan.conceptualGoal.toLowerCase().includes(query) ||
+               item.plan.criticalPath.some(i => i.toLowerCase().includes(query)) ||
+               item.plan.riskAssessment.some(i => i.toLowerCase().includes(query)) ||
+               item.plan.requiredResources.some(i => i.toLowerCase().includes(query)) ||
+               item.plan.milestones.some(i => i.toLowerCase().includes(query)) ||
+               item.plan.nextSteps.some(i => i.toLowerCase().includes(query));
       }
       return false;
     });
@@ -318,6 +371,14 @@ export class AppComponent implements OnDestroy {
     return savedPlans.some(saved => JSON.stringify(saved.plan) === currentPlanString);
   });
 
+  isCreativePlanSaved = computed(() => {
+    const currentPlan = this.creativePlan();
+    if (!currentPlan) return false;
+    const savedPlans = this.storageService.savedItems().filter((i): i is SavedCreativePlan => i.type === 'creative-plan');
+    const currentPlanString = JSON.stringify(currentPlan);
+    return savedPlans.some(saved => JSON.stringify(saved.plan) === currentPlanString);
+  });
+
   getCarePlanSections(plan: CarePlan | null) {
     if (!plan) return [];
     
@@ -333,6 +394,23 @@ export class AppComponent implements OnDestroy {
     return sections
       .filter(section => section.items && section.items.length > 0 && !(section.items.length === 1 && !section.items[0]))
       .map(section => ({ ...section, id: 'care-plan-section-' + section.title.toLowerCase().replace(/\s+/g, '-') }));
+  }
+
+  getCreativePlanSections(plan: CreativePlan | null) {
+    if (!plan) return [];
+    
+    const sections = [
+      { title: "Conceptual Goal", items: [plan.conceptualGoal], icon: 'sparkles' },
+      { title: 'Critical Path', items: plan.criticalPath, icon: 'git-branch' },
+      { title: 'Risk Assessment & Bottlenecks', items: plan.riskAssessment, icon: 'shield' },
+      { title: 'Required Resources', items: plan.requiredResources, icon: 'collection' },
+      { title: 'Milestones', items: plan.milestones, icon: 'check' },
+      { title: 'Immediate Next Steps', items: plan.nextSteps, icon: 'arrow-up' },
+    ];
+
+    return sections
+      .filter(section => section.items && section.items.length > 0 && !(section.items.length === 1 && !section.items[0]))
+      .map(section => ({ ...section, id: 'creative-plan-section-' + section.title.toLowerCase().replace(/\s+/g, '-') }));
   }
 
   // --- UI Methods ---
@@ -395,6 +473,7 @@ export class AppComponent implements OnDestroy {
     this.error.set(null);
     this.insights.set(null);
     this.carePlan.set(null);
+    this.creativePlan.set(null);
     this.structuredProblem.set(null);
     this.resultsViewMode.set('list');
 
@@ -431,7 +510,8 @@ export class AppComponent implements OnDestroy {
       await Promise.allSettled(promises.slice(1));
       
     } catch (err) {
-      this.error.set('Failed to generate insights. Please try again later.');
+      const errMsg = (err as Error).message || 'Failed to generate insights. Please try again later.';
+      this.error.set(errMsg);
       console.error(err);
     } finally {
       this.isLoading.set(false);
@@ -445,6 +525,7 @@ export class AppComponent implements OnDestroy {
     this.gistInput.set('');
     this.clearSelection();
     this.carePlan.set(null);
+    this.creativePlan.set(null);
     this.error.set(null);
     this.activeCareRoles.set(new Set());
     this.healthSnapshot.set(null);
@@ -458,6 +539,7 @@ export class AppComponent implements OnDestroy {
     this.insights.set(null); 
     this.error.set(null); 
     this.carePlan.set(null); 
+    this.creativePlan.set(null);
     this.structuredProblem.set(null);
     this.resultsViewMode.set('list');
   }
@@ -509,7 +591,8 @@ export class AppComponent implements OnDestroy {
            formatSection("Monitoring Plan", plan.monitoringPlan) +
            formatSection("Guidance & Education", plan.guidanceAndEducation) +
            formatSection("Positive Achievements", plan.positiveAchievements) +
-           formatSection("Recommendations", plan.recommendations);
+           formatSection("Recommendations", plan.recommendations) +
+           `\n— Generated via Pivot & Pulse (designed by Phil Gear), powered by Google Gemini, inspired by Edward de Bono's Lateral Thinking (CC BY-SA 4.0)`;
   }
 
   copyCarePlan(plan?: CarePlan, problem?: string) {
@@ -530,7 +613,8 @@ export class AppComponent implements OnDestroy {
 
   // --- Generic Actions ---
   copyToClipboard(text: string, id: string) {
-    navigator.clipboard.writeText(text).then(() => {
+    const attributionText = `${text}\n\n— Generated via Pivot & Pulse (designed by Phil Gear), powered by Google Gemini, inspired by Edward de Bono's Lateral Thinking (CC BY-SA 4.0)`;
+    navigator.clipboard.writeText(attributionText).then(() => {
       this.copiedId.set(id);
       setTimeout(() => { if (this.copiedId() === id) this.copiedId.set(null); }, 2000);
     }).catch(err => console.error('Failed to copy text: ', err));
@@ -565,6 +649,68 @@ export class AppComponent implements OnDestroy {
       plan: plan,
       problem: this.problemInput(),
       ...(this.appMode() === 'care' && { structuredProblem: this.structuredProblem() ?? undefined }),
+      timestamp: Date.now()
+    };
+    this.storageService.saveItem(newPlan);
+  }
+
+  // --- Creative Action Plan Logic ---
+  async generateCreativePlan() {
+    const insights = this.savedInsightsForCurrentProblem();
+    if (insights.length === 0) return;
+
+    this.isGeneratingCreativePlan.set(true);
+    this.creativePlan.set(null);
+    this.error.set(null);
+
+    try {
+        const plan = await this.geminiService.generateCreativePlan(this.problemInput(), insights);
+        this.creativePlan.set(plan);
+    } catch (err) {
+        this.error.set('Failed to generate action plan.');
+        console.error(err);
+    } finally {
+        this.isGeneratingCreativePlan.set(false);
+    }
+  }
+
+  private formatCreativePlanForClipboard(plan: CreativePlan, problem: string): string {
+    const formatSection = (title: string, content: string | string[]) => 
+      `## ${title}\n${Array.isArray(content) && content.length ? content.map(item => `- ${item}`).join('\n') : content || 'N/A'}\n`;
+
+    return `Creative Action Plan\n==================\n\nGoal: ${problem}\n\n` +
+           formatSection("Conceptual Goal", plan.conceptualGoal) +
+           formatSection("Critical Path", plan.criticalPath) +
+           formatSection("Risk Assessment & Bottlenecks", plan.riskAssessment) +
+           formatSection("Required Resources", plan.requiredResources) +
+           formatSection("Milestones", plan.milestones) +
+           formatSection("Immediate Next Steps", plan.nextSteps) +
+           `\n— Generated via Pivot & Pulse (designed by Phil Gear), powered by Google Gemini, inspired by Edward de Bono's Lateral Thinking (CC BY-SA 4.0)`;
+  }
+
+  copyCreativePlan(plan?: CreativePlan, problem?: string) {
+    const p = plan || this.creativePlan();
+    const id = (plan && problem) ? `saved-creative-plan-${problem}` : 'current-creative-plan';
+    if (!p) return;
+    const text = this.formatCreativePlanForClipboard(p, problem || this.problemInput());
+    navigator.clipboard.writeText(text.trim()).then(() => {
+        this.isCreativePlanCopied.set(true);
+        this.copiedId.set(id);
+        setTimeout(() => {
+            this.isCreativePlanCopied.set(false);
+            if (this.copiedId() === id) this.copiedId.set(null);
+        }, 2000);
+    }).catch(err => console.error('Failed to copy creative plan: ', err));
+  }
+
+  saveCreativePlan() {
+    const plan = this.creativePlan();
+    if (!plan || this.isCreativePlanSaved()) return;
+    const newPlan: SavedCreativePlan = {
+      type: 'creative-plan', 
+      id: crypto.randomUUID(), 
+      plan: plan,
+      problem: this.problemInput(),
       timestamp: Date.now()
     };
     this.storageService.saveItem(newPlan);

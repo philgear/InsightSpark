@@ -19,13 +19,23 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://accounts.google.com/gsi/client"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://accounts.google.com/gsi/style"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:"],
-      connectSrc: ["'self'"],
+      connectSrc: ["'self'", "https://accounts.google.com/gsi/", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
+      frameSrc: ["'self'", "https://accounts.google.com/gsi/"],
+      frameAncestors: [
+        "'self'",
+        "https://pocketgull.app",
+        "https://*.pocketgull.app",
+        "https://spark.philgear.dev",
+        "https://*.philgear.dev",
+        "https://philgear.dev"
+      ],
     },
   },
+  frameguard: false,
 }));
 app.use(cors());
 app.use(express.json());
@@ -104,6 +114,42 @@ const SAFETY_SETTINGS = [
   }
 ];
 
+function getCleanErrorMessage(error) {
+  if (!error) return 'An unexpected error occurred';
+  let message = error.message || String(error);
+  
+  // Try to parse nested JSON if the error message is a JSON string
+  try {
+    const parsed = JSON.parse(message);
+    if (parsed.error && parsed.error.message) {
+      return parsed.error.message;
+    }
+  } catch (e) {}
+  
+  // Sometimes error has a nested error object
+  if (error.error && typeof error.error === 'object') {
+    if (error.error.message) {
+      try {
+        const parsedInner = JSON.parse(error.error.message);
+        if (parsedInner.error && parsedInner.error.message) {
+          return parsedInner.error.message;
+        }
+      } catch (e) {
+        return error.error.message;
+      }
+    }
+  }
+  
+  return message;
+}
+
+// Config endpoint to expose Client ID to frontend
+app.get('/api/config', (req, res) => {
+  res.json({
+    googleClientId: process.env.GOOGLE_CLIENT_ID || null
+  });
+});
+
 // API Endpoints
 app.post('/api/structure', [
   body('problem').isString().trim().escape().notEmpty(),
@@ -114,8 +160,10 @@ app.post('/api/structure', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    if (!ai) {
-      return res.status(500).json({ error: 'Gemini API is not configured. Missing GEMINI_API_KEY environment variable.' });
+    const customApiKey = req.headers['x-gemini-api-key'];
+    const genAI = customApiKey ? new GoogleGenAI({ apiKey: customApiKey }) : ai;
+    if (!genAI) {
+      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or contact the administrator.' });
     }
     const { problem } = req.body;
 
@@ -162,7 +210,7 @@ app.post('/api/structure', [
         - Ensure the output is clean, concise, and uses person-centered, accessible language.
     `;
 
-    const response = await ai.models.generateContent({
+    const response = await genAI.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: prompt,
         config: {
@@ -177,7 +225,7 @@ app.post('/api/structure', [
     res.json(JSON.parse(response.text));
   } catch (error) {
     console.error('Error in /api/structure:', error);
-    res.status(500).json({ error: 'Failed to structure problem' });
+    res.status(500).json({ error: getCleanErrorMessage(error) });
   }
 });
 
@@ -194,8 +242,10 @@ app.post('/api/insights', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    if (!ai) {
-      return res.status(500).json({ error: 'Gemini API is not configured. Missing GEMINI_API_KEY environment variable.' });
+    const customApiKey = req.headers['x-gemini-api-key'];
+    const genAI = customApiKey ? new GoogleGenAI({ apiKey: customApiKey }) : ai;
+    if (!genAI) {
+      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or contact the administrator.' });
     }
     const { problem, strategies, mode, gist, healthSnapshot } = req.body;
 
@@ -277,7 +327,7 @@ app.post('/api/insights', [
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    const responseStream = await ai.models.generateContentStream({
+    const responseStream = await genAI.models.generateContentStream({
         model: 'gemini-2.5-flash',
         contents: prompt,
         config: {
@@ -300,9 +350,9 @@ app.post('/api/insights', [
   } catch (error) {
     console.error('Error in /api/insights:', error);
     if (!res.headersSent) {
-      res.status(500).json({ error: 'Failed to generate insights' });
+      res.status(500).json({ error: getCleanErrorMessage(error) });
     } else {
-      res.write(`data: {"error": "Failed to generate insights"}\n\n`);
+      res.write(`data: ${JSON.stringify({ error: getCleanErrorMessage(error) })}\n\n`);
       res.end();
     }
   }
@@ -318,8 +368,10 @@ app.post('/api/care-plan', [
       return res.status(400).json({ errors: errors.array() });
     }
 
-    if (!ai) {
-      return res.status(500).json({ error: 'Gemini API is not configured. Missing GEMINI_API_KEY environment variable.' });
+    const customApiKey = req.headers['x-gemini-api-key'];
+    const genAI = customApiKey ? new GoogleGenAI({ apiKey: customApiKey }) : ai;
+    if (!genAI) {
+      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or contact the administrator.' });
     }
     const { problem, insights } = req.body;
 
@@ -363,7 +415,7 @@ app.post('/api/care-plan', [
         - All text must be easily understood by individuals and their families, avoiding clinical jargon.
       `;
 
-    const response = await ai.models.generateContent({
+    const response = await genAI.models.generateContent({
         model: 'gemini-2.5-flash',
         contents: prompt,
         config: {
@@ -378,12 +430,94 @@ app.post('/api/care-plan', [
     res.json(JSON.parse(response.text));
   } catch (error) {
     console.error('Error in /api/care-plan:', error);
-    res.status(500).json({ error: 'Failed to generate care plan' });
+    res.status(500).json({ error: getCleanErrorMessage(error) });
+  }
+});
+
+app.post('/api/creative-plan', [
+  body('problem').isString().trim().escape().notEmpty(),
+  body('insights').isArray().notEmpty(),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const customApiKey = req.headers['x-gemini-api-key'];
+    const genAI = customApiKey ? new GoogleGenAI({ apiKey: customApiKey }) : ai;
+    if (!genAI) {
+      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or contact the administrator.' });
+    }
+    const { problem, insights } = req.body;
+
+    const piiFound = [
+      ...scanForPII(problem),
+      ...insights.flatMap(i => scanForPII(i.text || ''))
+    ];
+    if (piiFound.length > 0) {
+      return res.status(400).json({ error: `Security Check Blocked: Potential personally identifying information (PII) detected (${[...new Set(piiFound)].join(', ')}). Please de-identify your inputs before generating an action plan.` });
+    }
+    
+    const creativePlanSchema = {
+      type: Type.OBJECT,
+      properties: {
+          conceptualGoal: { type: Type.STRING, description: "A concise summary of the primary conceptual goal of this action plan." },
+          criticalPath: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Sequential, numbered steps representing the critical implementation path." },
+          riskAssessment: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of key failure modes, bottlenecks, or constraints to look out for." },
+          requiredResources: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Essential tools, skills, team members, or other dependencies needed." },
+          milestones: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Key milestones or measurable checkpoints to track progress." },
+          nextSteps: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Immediate logical next steps or actions to execute right away." }
+      },
+      required: ["conceptualGoal", "criticalPath", "riskAssessment", "requiredResources", "milestones", "nextSteps"]
+    };
+
+    const insightText = insights.map(i => `- ${i.text}`).join('\n');
+
+    const prompt = `
+        Your task is to synthesize an actionable implementation plan based on a primary challenge/goal and a set of key brainstormed insights. Adhere strictly to vertical thinking principles: be logical, sequential, analytical, and structured.
+
+        **Primary Challenge/Goal:**
+        "${problem}"
+
+        **Brainstormed Key Insights to Incorporate:**
+        ${insightText}
+
+        **Instructions:**
+        Generate a JSON object that strictly follows the provided schema.
+        - The "criticalPath" must describe concrete, step-by-step sequential implementation items.
+        - The "riskAssessment" must identify critical failure modes, bottlenecks, or constraints.
+        - All elements should be direct, logical, and highly actionable.
+      `;
+
+    const response = await genAI.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: creativePlanSchema,
+          temperature: 0.5,
+          safetySettings: SAFETY_SETTINGS
+        }
+    });
+
+    res.json(JSON.parse(response.text));
+  } catch (error) {
+    console.error('Error in /api/creative-plan:', error);
+    res.status(500).json({ error: getCleanErrorMessage(error) });
   }
 });
 
 // Serve Angular static files
 app.use(express.static(path.join(__dirname, 'dist')));
+
+// Static legal page routing
+app.get(['/terms', '/terms.html'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'terms.html'));
+});
+app.get(['/privacy', '/privacy.html'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'privacy.html'));
+});
 
 // Route all other requests to index.html to support Angular routing
 app.get('*', (req, res) => {

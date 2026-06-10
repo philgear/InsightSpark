@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy | Pivot & Pulse</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #161513;
+      --card-bg: rgba(255, 255, 255, 0.03);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-color: #eae7e2;
+      --text-muted: #a39f98;
+      --accent-color: #d4af37;
+      --font-serif: 'DM Serif Display', serif;
+      --font-sans: 'Outfit', sans-serif;
+    }
+    
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: var(--font-sans);
+      margin: 0;
+      padding: 0;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+    }
+
+    /* Gradient Background Effect */
+    .glow {
+      position: fixed;
+      top: -10%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 800px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, rgba(0,0,0,0) 70%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .container {
+      max-w-3xl: 48rem;
+      width: 90%;
+      max-width: 800px;
+      margin: 80px auto;
+      z-index: 2;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .logo {
+      height: 60px;
+      width: 60px;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: 2.8rem;
+      margin: 0 0 10px 0;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--text-color) 0%, var(--accent-color) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .meta {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    h2 {
+      font-family: var(--font-serif);
+      font-size: 1.8rem;
+      color: var(--accent-color);
+      margin-top: 35px;
+      margin-bottom: 15px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 8px;
+    }
+
+    h2:first-of-type {
+      margin-top: 0;
+    }
+
+    p {
+      margin-bottom: 20px;
+      color: var(--text-color);
+      opacity: 0.9;
+    }
+
+    ul, ol {
+      margin-bottom: 25px;
+      padding-left: 20px;
+    }
+
+    li {
+      margin-bottom: 10px;
+      color: var(--text-color);
+      opacity: 0.9;
+    }
+
+    strong {
+      color: #fff;
+    }
+
+    a {
+      color: var(--accent-color);
+      text-decoration: none;
+      font-weight: 500;
+      transition: opacity 0.2s;
+    }
+
+    a:hover {
+      opacity: 0.8;
+      text-decoration: underline;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="container">
+    <div class="header">
+      <img src="/assets/logo-dark.svg" alt="Pivot & Pulse Logo" class="logo">
+      <h1>Privacy Policy</h1>
+      <div class="meta">Last Updated: June 10, 2026</div>
+    </div>
+    
+    <div class="card">
+      <h2>1. Privacy First Philosophy</h2>
+      <p>Pivot & Pulse is built with privacy as its primary design directive. We support client-side data sovereignty: your data belongs entirely to you, remains on your device, and is never compiled or traded.</p>
+
+      <h2>2. What We Collect and Store</h2>
+      <ul>
+        <li><strong>No User Profiles:</strong> There are no signup pages, no sign-ins, and no cookies linking you to an account. We compile zero metadata about your identity.</li>
+        <li><strong>Local Browser Storage:</strong> Your bookmarks, settings, custom prompts, and synthesized care plans are stored exclusively inside your browser's local memory (<code>localStorage</code>). They are never sent to a database.</li>
+        <li><strong>Gemini API Key:</strong> The key you insert is held locally in your browser storage. Our server routes your requests as a stateless mediator and does not record your key.</li>
+      </ul>
+
+      <h2>3. Third-Party Data Handlers (Google Gemini)</h2>
+      <p>Because the insights are computed by Google's generative models, your de-identified input queries are sent to Google via the Gemini API. Developer queries submitted through API key usage are generally not utilized by Google to train public models, but we advise verifying the latest information at <a href="https://ai.google.dev/support/privacy" target="_blank" rel="noopener noreferrer">Google's Developer Privacy Policy</a>.</p>
+
+      <h2>4. Clinical Privacy & HIPAA Compliance</h2>
+      <p>In Care Mode, you are strictly prohibited from entering health goal descriptions that contain personally identifying information. Our server runs an automated PII detector to intercept and block transmissions containing emails, phone numbers, IP addresses, or SSNs. Always construct inputs in an abstract, anonymous manner.</p>
+
+      <h2>5. Deleting Stored Information</h2>
+      <p>Since your key and data exist solely on your browser, you can completely erase them by clicking the key icon (🔑) in the header to clean the key, or clearing cookies/site settings for Pivot & Pulse in your browser.</p>
+    </div>
+
+    <div class="footer">
+      <p>&copy; 2026 Pivot & Pulse. <a href="/">Return to App</a></p>
+    </div>
+  </div>
+</body>
+</html>
