@@ -26,36 +26,57 @@ import { LojongCleansingComponent } from './lojong-cleansing.component';
           <div class="bg-[var(--card-bg)] p-6 rounded-2xl border border-[var(--border-color)]">
               <h3 class="text-[var(--text-accent)] flex items-center gap-2 mb-2">
                 <app-icon name="sparkles" [size]="20"></app-icon>
-                Crafting the Perfect Prompt
+                Crafting the Perfect Creative Prompt
               </h3>
+              <p class="text-sm text-[var(--text-color-muted)] mb-3">
+                A good prompt gives the AI constraints to build against while leaving room for unexpected lateral connections. Use this simple formula:
+              </p>
+              <div class="mb-4 p-3 bg-white/5 border border-[var(--border-color)]/30 rounded-xl text-xs font-mono text-[var(--text-highlight)]">
+                Formula: Challenge + Context/Target + Desired Outcome/Style
+              </div>
               <ul class="list-disc pl-6 space-y-2 text-[var(--text-color)] text-sm/relaxed">
-                <li><strong>Be Specific, But Not Too Specific:</strong> Provide enough detail to set the scene, but leave room for the AI to be creative. Instead of "a red car," try "a vintage sports car the color of wine."</li>
-                <li><strong>State the Goal:</strong> What are you trying to achieve? "I need a tagline for a new coffee brand" is better than just "coffee brand."</li>
-                <li><strong>Include Context and Constraints:</strong> Mention the target audience, desired tone, or any limitations. "The tagline should be playful and appeal to young adults."</li>
-              </ul>
-          </div>
-          
-          <div class="bg-[var(--card-bg)] p-6 rounded-2xl border border-[var(--border-color)]">
-              <h3 class="text-[var(--text-accent)] flex items-center gap-2 mb-2">
-                <app-icon name="activity" [size]="20" fallback="sparkles"></app-icon>
-                Movement & Posture for Insight
-              </h3>
-              <ul class="list-disc pl-6 space-y-2 text-[var(--text-color)] text-sm/relaxed">
-                <li><strong>The Nietzsche Walk:</strong> "All truly great thoughts are conceived while walking." Pacing or taking a walk increases divergent thinking by engaging the motor cortex.</li>
-                <li><strong>The Horizontal Incubation:</strong> Lying down can decrease locus coeruleus activity (associated with stress and hyper-focus), making your brain more receptive to "Aha!" insights.</li>
-                <li><strong>Environment Shifting:</strong> Changing your physical location resets context-dependent memory, breaking creative blocks.</li>
+                <li><strong>Provide Rich Context:</strong> Instead of "write a story about a key," try: <em>"A sci-fi short story about an ancient brass key found on a metallic asteroid (Context) that doesn't fit any mechanical lock but reacts to light frequencies (Challenge)."</em></li>
+                <li><strong>Introduce Creative Roles or Voices:</strong> Use the <strong>Perspective (Gist)</strong> field to guide the tone of the insights. Ask for unique angles: <em>"Explain this like a cynical 1940s noir detective"</em> or <em>"Filter through the lens of a landscape architect."</em></li>
+                <li><strong>Identify the Real Obstacles:</strong> Be clear about what is holding you back. If you are designing a product, list the core constraints (e.g., "no electricity available", "needs to fit in a pocket").</li>
               </ul>
           </div>
 
           <div class="bg-[var(--card-bg)] p-6 rounded-2xl border border-[var(--border-color)]">
               <h3 class="text-[var(--text-accent)] flex items-center gap-2 mb-2">
+                <app-icon name="book" [size]="20" fallback="sparkles"></app-icon>
+                Unlocking Creative Blocks with Lateral Thinking
+              </h3>
+              <p class="text-sm text-[var(--text-color)]/90 leading-relaxed mb-3">
+                Most brainstorming fails because we think in a straight line (<strong>Vertical Thinking</strong>: logical, sequential, building on existing assumptions). Pivot & Pulse forces you to think sideways (<strong>Lateral Thinking</strong>):
+              </p>
+              <ul class="list-disc pl-6 space-y-2 text-[var(--text-color)] text-sm/relaxed">
+                <li><strong>Pattern Disruption:</strong> Our brains are pattern-matching machines that default to the most obvious solution. Lateral thinking deliberately introduces constraints and contradictions to shatter these default patterns.</li>
+                <li><strong>Connecting the Unrelated:</strong> Smashing two completely different concepts together (e.g., "municipal park" + "sponge") is where true innovation starts.</li>
+                <li><strong>Creating Action Plans:</strong> Once you find insights that excite you, bookmark them. You can then synthesize your bookmarks into a structured <strong>Creative Action Plan</strong> detailing a sequential Critical Path, Risk Assessment, and next actions.</li>
+              </ul>
+          </div>
+          
+          <div class="bg-[var(--card-bg)] p-6 rounded-2xl border border-[var(--border-color)]">
+              <h3 class="text-[var(--text-accent)] flex items-center gap-2 mb-2">
                 <app-icon name="dice" [size]="20"></app-icon>
-                Using the Spark Plugs
+                Using the Thinking "Spark Plugs"
               </h3>
               <ul class="list-disc pl-6 space-y-2 text-[var(--text-color)] text-sm/relaxed">
-                <li><strong>The Butterfly Effect (Chaos Theory):</strong> Use this strategy to find tiny, leverage-point changes that lead to massive outcomes. Great for plot twists or viral marketing ideas.</li>
-                <li><strong>Combinatorial Evolution:</strong> Based on the idea that innovation is smashing two things together. Try this when you want to create something "novel" by merging existing concepts.</li>
-                <li><strong>Go Random:</strong> If you're not sure where to start, don't select any strategies. The app will pick a random trio for you, which can be a fun way to explore.</li>
+                <li><strong>The Butterfly Effect (Chaos Theory):</strong> Great for plot hooks, marketing, or design. It helps you search for tiny, low-cost micro-changes that trigger massive, cascading positive outcomes.</li>
+                <li><strong>Combinatorial Evolution:</strong> Merges your problem with a seemingly unrelated field (like biology or music) to force a brand-new hybrid concept.</li>
+                <li><strong>Go Random:</strong> If you're facing a severe block, don't select any strategies. The app will roll a random trio of strategies for you, sparking spontaneous associations.</li>
+              </ul>
+          </div>
+
+          <div class="bg-[var(--card-bg)] p-6 rounded-2xl border border-[var(--border-color)]">
+              <h3 class="text-[var(--text-accent)] flex items-center gap-2 mb-2">
+                <app-icon name="activity" [size]="20" fallback="sparkles"></app-icon>
+                Movement & Posture for Insight (Incubation)
+              </h3>
+              <ul class="list-disc pl-6 space-y-2 text-[var(--text-color)] text-sm/relaxed">
+                <li><strong>The Nietzsche Walk:</strong> <em>"All truly great thoughts are conceived while walking."</em> Light physical pacing engages the motor cortex, boosting divergent thinking and lowering rigid focus.</li>
+                <li><strong>Horizontal Incubation:</strong> Lying down reduces adrenaline levels associated with hyper-focused stress, allowing the brain to wander freely and connect distant memories (the "Aha!" moment).</li>
+                <li><strong>Environmental Reset:</strong> Changing your physical surroundings resets context-dependent memory blocks, freeing your mind from circular thinking patterns.</li>
               </ul>
           </div>
         </div>
@@ -122,80 +143,88 @@ import { LojongCleansingComponent } from './lojong-cleansing.component';
         </div>
       </div>
 
-      <!-- Chaos Simulation Mode -->
-      <div class="bg-[var(--card-bg)] p-6 rounded-2xl border border-[var(--border-color)]">
-        <h3 class="text-[var(--text-accent)] flex items-center gap-2 mb-2">
-          <app-icon name="activity" [size]="20"></app-icon>
-          Developer Settings (Chaos Mode)
-        </h3>
-        <p class="text-sm text-[var(--text-color-muted)] mb-4">
-          Simulate backend API failures (429, 500, or network drops) to test client-side resilience and retry patterns.
-        </p>
-        
-        <div class="space-y-4">
-          <div>
-            <span class="block text-xs font-semibold uppercase tracking-wider text-[var(--text-color-muted)] mb-2">Simulated Failure Type</span>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <button (click)="chaosType.set(null)"
-                      [class.bg-[var(--text-accent)]]="chaosType() === null"
-                      [class.text-[var(--primary-cta-text)]]="chaosType() === null"
-                      [class.bg-[var(--button-bg)]]="chaosType() !== null"
-                      [class.hover:bg-[var(--button-bg-hover)]]="chaosType() !== null"
-                      class="text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
-                None (Normal)
-              </button>
-              <button (click)="chaosType.set('429')"
-                      [class.bg-[var(--text-accent)]]="chaosType() === '429'"
-                      [class.text-[var(--primary-cta-text)]]="chaosType() === '429'"
-                      [class.bg-[var(--button-bg)]]="chaosType() !== '429'"
-                      [class.hover:bg-[var(--button-bg-hover)]]="chaosType() !== '429'"
-                      class="text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
-                429 Rate Limit
-              </button>
-              <button (click)="chaosType.set('500')"
-                      [class.bg-[var(--text-accent)]]="chaosType() === '500'"
-                      [class.text-[var(--primary-cta-text)]]="chaosType() === '500'"
-                      [class.bg-[var(--button-bg)]]="chaosType() !== '500'"
-                      [class.hover:bg-[var(--button-bg-hover)]]="chaosType() !== '500'"
-                      class="text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
-                500 Internal Error
-              </button>
-              <button (click)="chaosType.set('drop')"
-                      [class.bg-[var(--text-accent)]]="chaosType() === 'drop'"
-                      [class.text-[var(--primary-cta-text)]]="chaosType() === 'drop'"
-                      [class.bg-[var(--button-bg)]]="chaosType() !== 'drop'"
-                      [class.hover:bg-[var(--button-bg-hover)]]="chaosType() !== 'drop'"
-                      class="text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
-                Network Drop
-              </button>
-            </div>
+      <!-- Collapsible Developer Diagnostics (Chaos Mode) -->
+      <details class="bg-[var(--card-bg)] p-6 rounded-2xl border border-[var(--border-color)] group cursor-pointer">
+        <summary class="text-[var(--text-accent)] flex items-center justify-between font-semibold select-none list-none outline-none">
+          <div class="flex items-center gap-2">
+            <app-icon name="activity" [size]="20"></app-icon>
+            <span>Developer Diagnostics (Chaos Mode)</span>
           </div>
-
-          @if (chaosType() !== null) {
-            <div class="animate-in slide-in-from-top-2 duration-200">
-              <span class="block text-xs font-semibold uppercase tracking-wider text-[var(--text-color-muted)] mb-2">Failure Behavior</span>
-              <div class="flex gap-2">
-                <button (click)="chaosBehavior.set('transient')"
-                        [class.bg-[var(--text-accent)]]="chaosBehavior() === 'transient'"
-                        [class.text-[var(--primary-cta-text)]]="chaosBehavior() === 'transient'"
-                        [class.bg-[var(--button-bg)]]="chaosBehavior() !== 'transient'"
-                        [class.hover:bg-[var(--button-bg-hover)]]="chaosBehavior() !== 'transient'"
-                        class="flex-1 text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
-                  Transient (Recovers on 3rd attempt)
+          <span class="transition-transform duration-200 group-open:rotate-180">
+            <app-icon name="chevron-down" [size]="16" fallback="sparkles"></app-icon>
+          </span>
+        </summary>
+        
+        <div class="mt-4 pt-4 border-t border-[var(--border-color)]/40 cursor-default" (click)="$event.stopPropagation()">
+          <p class="text-sm text-[var(--text-color-muted)] mb-4">
+            Simulate backend API failures (429, 500, or network drops) to test client-side resilience and retry patterns.
+          </p>
+          
+          <div class="space-y-4">
+            <div>
+              <span class="block text-xs font-semibold uppercase tracking-wider text-[var(--text-color-muted)] mb-2">Simulated Failure Type</span>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button (click)="chaosType.set(null)"
+                        [class.bg-[var(--text-accent)]]="chaosType() === null"
+                        [class.text-[var(--primary-cta-text)]]="chaosType() === null"
+                        [class.bg-[var(--button-bg)]]="chaosType() !== null"
+                        [class.hover:bg-[var(--button-bg-hover)]]="chaosType() !== null"
+                        class="text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
+                  None (Normal)
                 </button>
-                <button (click)="chaosBehavior.set('permanent')"
-                        [class.bg-[var(--text-accent)]]="chaosBehavior() === 'permanent'"
-                        [class.text-[var(--primary-cta-text)]]="chaosBehavior() === 'permanent'"
-                        [class.bg-[var(--button-bg)]]="chaosBehavior() !== 'permanent'"
-                        [class.hover:bg-[var(--button-bg-hover)]]="chaosBehavior() !== 'permanent'"
-                        class="flex-1 text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
-                  Permanent (Always fails)
+                <button (click)="chaosType.set('429')"
+                        [class.bg-[var(--text-accent)]]="chaosType() === '429'"
+                        [class.text-[var(--primary-cta-text)]]="chaosType() === '429'"
+                        [class.bg-[var(--button-bg)]]="chaosType() !== '429'"
+                        [class.hover:bg-[var(--button-bg-hover)]]="chaosType() !== '429'"
+                        class="text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
+                  429 Rate Limit
+                </button>
+                <button (click)="chaosType.set('500')"
+                        [class.bg-[var(--text-accent)]]="chaosType() === '500'"
+                        [class.text-[var(--primary-cta-text)]]="chaosType() === '500'"
+                        [class.bg-[var(--button-bg)]]="chaosType() !== '500'"
+                        [class.hover:bg-[var(--button-bg-hover)]]="chaosType() !== '500'"
+                        class="text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
+                  500 Internal Error
+                </button>
+                <button (click)="chaosType.set('drop')"
+                        [class.bg-[var(--text-accent)]]="chaosType() === 'drop'"
+                        [class.text-[var(--primary-cta-text)]]="chaosType() === 'drop'"
+                        [class.bg-[var(--button-bg)]]="chaosType() !== 'drop'"
+                        [class.hover:bg-[var(--button-bg-hover)]]="chaosType() !== 'drop'"
+                        class="text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
+                  Network Drop
                 </button>
               </div>
             </div>
-          }
+
+            @if (chaosType() !== null) {
+              <div class="animate-in slide-in-from-top-2 duration-200">
+                <span class="block text-xs font-semibold uppercase tracking-wider text-[var(--text-color-muted)] mb-2">Failure Behavior</span>
+                <div class="flex gap-2">
+                  <button (click)="chaosBehavior.set('transient')"
+                          [class.bg-[var(--text-accent)]]="chaosBehavior() === 'transient'"
+                          [class.text-[var(--primary-cta-text)]]="chaosBehavior() === 'transient'"
+                          [class.bg-[var(--button-bg)]]="chaosBehavior() !== 'transient'"
+                          [class.hover:bg-[var(--button-bg-hover)]]="chaosBehavior() !== 'transient'"
+                          class="flex-1 text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
+                    Transient (Recovers on 3rd attempt)
+                  </button>
+                  <button (click)="chaosBehavior.set('permanent')"
+                          [class.bg-[var(--text-accent)]]="chaosBehavior() === 'permanent'"
+                          [class.text-[var(--primary-cta-text)]]="chaosBehavior() === 'permanent'"
+                          [class.bg-[var(--button-bg)]]="chaosBehavior() !== 'permanent'"
+                          [class.hover:bg-[var(--button-bg-hover)]]="chaosBehavior() !== 'permanent'"
+                          class="flex-1 text-xs font-medium py-2 px-3 rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-1 focus:ring-[var(--ring-color)]">
+                    Permanent (Always fails)
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
         </div>
-      </div>
+      </details>
       
       <!-- Gemini API Key Settings -->
       <div class="bg-[var(--card-bg)] p-6 rounded-2xl border border-[var(--border-color)]">

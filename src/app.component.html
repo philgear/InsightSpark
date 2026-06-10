@@ -13,9 +13,9 @@
       
       <!-- Left: Logo & Brand -->
       <div class="flex-1 flex justify-start">
-        <button (click)="setView('generator'); reset()" class="flex items-center gap-2 text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-color)] focus:ring-[var(--ring-color)] rounded-lg p-1 -ml-1 transition-transform active:scale-95" aria-label="Pivot & Pulse, return to generator">
+        <button (click)="setView('generator'); reset()" class="flex items-center gap-2 text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-color)] focus:ring-[var(--ring-color)] rounded-lg p-1 -ml-1 transition-transform active:scale-95">
           <div class="p-1 bg-white/10 backdrop-blur-md rounded-lg shadow-inner border border-[var(--border-accent)] overflow-hidden">
-             <img [src]="logoPath()" alt="Pivot & Pulse Logo" class="h-10 w-10 object-contain transition-opacity duration-300" width="40" height="40">
+             <img [src]="logoPath()" alt="" class="h-10 w-10 object-contain transition-opacity duration-300" width="40" height="40">
           </div>
           <div class="flex flex-col justify-center">
             <h1 class="font-serif leading-[0.9] tracking-[-0.05em] text-[var(--font-size-xl)] bg-clip-text text-transparent bg-linear-to-r from-[var(--text-color)] via-[var(--text-highlight)] to-[var(--text-accent)] py-1">Pivot & Pulse</h1>
@@ -159,7 +159,14 @@
             <!-- Loading State: Lojong breathing showcase -->
             <div role="status" aria-live="polite" aria-label="Generating insights, please wait"
                  class="flex flex-col items-center justify-center min-h-[60vh] w-full">
-              <app-lojong-cleansing class="w-full max-w-lg block"></app-lojong-cleansing>
+              @defer (on idle) {
+                <app-lojong-cleansing class="w-full max-w-lg block"></app-lojong-cleansing>
+              } @placeholder {
+                <div class="h-64 max-w-lg w-full bg-white/5 rounded-3xl animate-pulse flex flex-col items-center justify-center gap-4 border border-[var(--border-color)]">
+                  <div class="h-16 w-16 rounded-full bg-white/10 animate-bounce"></div>
+                  <p class="text-xs text-[var(--text-color-muted)] font-mono uppercase tracking-widest">Preparing Focus Stream...</p>
+                </div>
+              }
             </div>
           } @else if (insights(); as insightResults) {
             <!-- Results View -->
@@ -884,9 +891,9 @@
         </div>
 
         <div class="mt-6 text-xs text-[var(--text-color-muted)] flex flex-wrap justify-center gap-x-4 gap-y-1 opacity-80 border-t border-[var(--border-color)] pt-4 w-full">
-          <a href="/terms" target="_blank" class="hover:text-[var(--text-accent)] transition-colors">Terms & Conditions</a>
+          <a href="/terms" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--text-accent)] transition-colors">Terms & Conditions</a>
           <span class="text-[var(--border-color)]">•</span>
-          <a href="/privacy" target="_blank" class="hover:text-[var(--text-accent)] transition-colors">Privacy Policy</a>
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--text-accent)] transition-colors">Privacy Policy</a>
         </div>
       </div>
     </div>

@@ -8,6 +8,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, Type } from '@google/genai';
 import fs from 'fs';
+import compression from 'compression';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -37,6 +38,7 @@ try {
 }
 
 const app = express();
+app.use(compression());
 app.set('trust proxy', 1);
 const port = process.env.PORT || 8080;
 
@@ -586,8 +588,16 @@ app.post('/api/creative-plan', [
   }
 });
 
-// Serve Angular static files
-app.use(express.static(path.join(__dirname, 'dist')));
+// Serve Angular static files with caching headers
+app.use(express.static(path.join(__dirname, 'dist'), {
+  maxAge: '1y',
+  immutable: true,
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.html') || filePath.endsWith('manifest.webmanifest')) {
+      res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+    }
+  }
+}));
 
 // Static legal page routing
 app.get(['/terms', '/terms.html'], (req, res) => {

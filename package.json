@@ -23,6 +23,7 @@
     "@angular/platform-browser": "22.0.0",
     "@angular/service-worker": "22.0.0",
     "@google/genai": "1.35.0",
+    "compression": "^1.8.1",
     "cors": "2.8.5",
     "d3": "7.9.0",
     "express": "4.19.2",
