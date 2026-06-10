@@ -48,7 +48,7 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://accounts.google.com/gsi/style"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https://orcid.org", "https://*.orcid.org"],
-      connectSrc: ["'self'", "https://accounts.google.com/gsi/", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
+      connectSrc: ["'self'", "https://accounts.google.com/gsi/", "https://fonts.gstatic.com", "https://fonts.googleapis.com", "https://orcid.org", "https://*.orcid.org"],
       frameSrc: ["'self'", "https://accounts.google.com/gsi/"],
       frameAncestors: [
         "'self'",
@@ -187,8 +187,8 @@ app.post('/api/auth/orcid', [
     }
 
     const { code, redirectUri } = req.body;
-    const clientId = process.env.ORCID_CLIENT_ID;
-    const clientSecret = process.env.ORCID_CLIENT_SECRET;
+    const clientId = process.env.ORCID_CLIENT_ID?.trim();
+    const clientSecret = process.env.ORCID_CLIENT_SECRET?.trim();
 
     if (!clientId || !clientSecret) {
       return res.status(500).json({ error: 'ORCID client credentials are not configured on the server.' });
