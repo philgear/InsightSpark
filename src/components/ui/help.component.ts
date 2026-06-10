@@ -100,7 +100,7 @@ import { LojongCleansingComponent } from './lojong-cleansing.component';
           <li><strong>Preserve the License (Copyleft):</strong> If you adapt or share these ideas, you must release them under the same CC BY-SA 4.0 license.</li>
           <li><strong>Attribute the System & Creator:</strong> Standard credit should list the creators and core foundations: 
             <br><em class="block mt-1 pl-2 border-l-2 border-[var(--text-accent)]/30 text-[var(--text-highlight)] text-xs font-mono">
-              "Ideated via Pivot & Pulse (designed by Phil Gear), powered by Google Gemini, and inspired by Edward de Bono's Lateral Thinking."
+              "Ideated via Pivot & Pulse (a GearArts Project designed by Phil Gear), powered by Google Gemini, and inspired by Edward de Bono's Lateral Thinking."
             </em>
           </li>
         </ul>
@@ -108,6 +108,12 @@ import { LojongCleansingComponent } from './lojong-cleansing.component';
           <div class="flex items-center gap-1.5">
             <app-icon name="book" [size]="14"></app-icon>
             <span>Inspired by <strong>Edward de Bono's "Lateral Thinking"</strong></span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <a href="https://orcid.org/0009-0008-1372-5381" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--text-accent)] transition-colors inline-flex items-center gap-1 font-semibold">
+              <img src="https://orcid.org/assets/vectors/orcid.logo.icon.svg" alt="ORCID iD" class="h-3.5 w-3.5 inline select-none" width="14" height="14">
+              Researcher ID: 0009-0008-1372-5381 (Phil Gear)
+            </a>
           </div>
           <div class="flex items-center gap-1.5">
             <app-icon name="sparkles" [size]="14"></app-icon>

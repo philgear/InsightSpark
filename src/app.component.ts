@@ -101,6 +101,12 @@ export class AppComponent implements OnDestroy {
   userApiKey = signal<string>(localStorage.getItem('user_gemini_api_key') || '');
   showKeyOverlay = computed(() => !this.userApiKey());
 
+  // ORCID Researcher Credentials
+  orcidId = signal<string>(localStorage.getItem('user_orcid_id') || '');
+  orcidName = signal<string>(localStorage.getItem('user_orcid_name') || '');
+  orcidError = signal<string | null>(null);
+  isOrcidConnecting = signal<boolean>(false);
+
 
 
   // Generator State
@@ -169,6 +175,13 @@ export class AppComponent implements OnDestroy {
   private destroy$ = new Subject<void>();
 
   constructor() {
+    // Check for ORCID authentication redirect callback
+    const searchParams = new URLSearchParams(window.location.search);
+    const orcidCode = searchParams.get('code');
+    if (orcidCode) {
+      this.handleOrcidCallback(orcidCode);
+    }
+
     // Service worker updates
     // FIX: Use `this.swUpdate && this.swUpdate.isEnabled` for a more robust type guard.
     if (this.swUpdate && this.swUpdate.isEnabled) {
@@ -220,6 +233,63 @@ export class AppComponent implements OnDestroy {
   }
 
 
+
+  async loginWithOrcid() {
+    this.orcidError.set(null);
+    this.isOrcidConnecting.set(true);
+    try {
+      const response = await fetch('/api/config');
+      const config = await response.json();
+      if (!config.orcidClientId) {
+        throw new Error('ORCID Client ID is not configured on the server.');
+      }
+      const redirectUri = window.location.origin + '/';
+      const authUrl = `https://orcid.org/oauth/authorize?client_id=${config.orcidClientId}&response_type=code&scope=/authenticate&redirect_uri=${encodeURIComponent(redirectUri)}`;
+      window.location.href = authUrl;
+    } catch (err) {
+      console.error('Failed to initiate ORCID login:', err);
+      this.orcidError.set((err as Error).message || 'Failed to initialize ORCID connection.');
+      this.isOrcidConnecting.set(false);
+    }
+  }
+
+  logoutOrcid() {
+    localStorage.removeItem('user_orcid_id');
+    localStorage.removeItem('user_orcid_name');
+    this.orcidId.set('');
+    this.orcidName.set('');
+  }
+
+  async handleOrcidCallback(code: string) {
+    this.isOrcidConnecting.set(true);
+    this.orcidError.set(null);
+    const redirectUri = window.location.origin + '/';
+
+    try {
+      const response = await fetch('/api/auth/orcid', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, redirectUri })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to exchange ORCID authorization code.');
+      }
+      if (data.orcid) {
+        localStorage.setItem('user_orcid_id', data.orcid);
+        localStorage.setItem('user_orcid_name', data.name || 'Anonymous Researcher');
+        this.orcidId.set(data.orcid);
+        this.orcidName.set(data.name || 'Anonymous Researcher');
+      }
+    } catch (err) {
+      console.error('ORCID callback error:', err);
+      this.orcidError.set((err as Error).message || 'Failed to connect ORCID.');
+    } finally {
+      this.isOrcidConnecting.set(false);
+      const cleanUrl = window.location.pathname + window.location.hash;
+      window.history.replaceState({}, document.title, cleanUrl);
+    }
+  }
 
   saveApiKey(key: string) {
     if (key.trim()) {
@@ -420,6 +490,11 @@ export class AppComponent implements OnDestroy {
       this.location.go(`/${mode}`);
       this.appMode.set(mode);
       this.reset();
+      
+      // Auto-populate demo presets if we are in Demo Mode
+      if (this.userApiKey() === 'demo-key-active') {
+        this.activateDemoMode();
+      }
     }
   }
 
@@ -585,6 +660,8 @@ export class AppComponent implements OnDestroy {
     const formatSection = (title: string, content: string | string[]) => 
       `## ${title}\n${Array.isArray(content) && content.length ? content.map(item => `- ${item}`).join('\n') : content || 'N/A'}\n`;
 
+    const orcidCredit = this.orcidId() ? ` | Documented by Researcher: ${this.orcidName()} (ORCID: https://orcid.org/${this.orcidId()})` : '';
+
     return `Care Plan\n==================\n\nProblem: ${problem}\n\n` +
            formatSection("Person's Goal", plan.personGoal) +
            formatSection("Key Interventions", plan.keyInterventions) +
@@ -592,7 +669,7 @@ export class AppComponent implements OnDestroy {
            formatSection("Guidance & Education", plan.guidanceAndEducation) +
            formatSection("Positive Achievements", plan.positiveAchievements) +
            formatSection("Recommendations", plan.recommendations) +
-           `\n— Generated via Pivot & Pulse (designed by Phil Gear), powered by Google Gemini, inspired by Edward de Bono's Lateral Thinking (CC BY-SA 4.0)`;
+           `\n— Generated via Pivot & Pulse (designed by Phil Gear)${orcidCredit}, powered by Google Gemini, inspired by Edward de Bono's Lateral Thinking (CC BY-SA 4.0)`;
   }
 
   copyCarePlan(plan?: CarePlan, problem?: string) {
@@ -613,7 +690,8 @@ export class AppComponent implements OnDestroy {
 
   // --- Generic Actions ---
   copyToClipboard(text: string, id: string) {
-    const attributionText = `${text}\n\n— Generated via Pivot & Pulse (designed by Phil Gear), powered by Google Gemini, inspired by Edward de Bono's Lateral Thinking (CC BY-SA 4.0)`;
+    const orcidCredit = this.orcidId() ? ` | Documented by Researcher: ${this.orcidName()} (ORCID: https://orcid.org/${this.orcidId()})` : '';
+    const attributionText = `${text}\n\n— Generated via Pivot & Pulse (designed by Phil Gear)${orcidCredit}, powered by Google Gemini, inspired by Edward de Bono's Lateral Thinking (CC BY-SA 4.0)`;
     navigator.clipboard.writeText(attributionText).then(() => {
       this.copiedId.set(id);
       setTimeout(() => { if (this.copiedId() === id) this.copiedId.set(null); }, 2000);
@@ -678,6 +756,8 @@ export class AppComponent implements OnDestroy {
     const formatSection = (title: string, content: string | string[]) => 
       `## ${title}\n${Array.isArray(content) && content.length ? content.map(item => `- ${item}`).join('\n') : content || 'N/A'}\n`;
 
+    const orcidCredit = this.orcidId() ? ` | Documented by Researcher: ${this.orcidName()} (ORCID: https://orcid.org/${this.orcidId()})` : '';
+
     return `Creative Action Plan\n==================\n\nGoal: ${problem}\n\n` +
            formatSection("Conceptual Goal", plan.conceptualGoal) +
            formatSection("Critical Path", plan.criticalPath) +
@@ -685,7 +765,7 @@ export class AppComponent implements OnDestroy {
            formatSection("Required Resources", plan.requiredResources) +
            formatSection("Milestones", plan.milestones) +
            formatSection("Immediate Next Steps", plan.nextSteps) +
-           `\n— Generated via Pivot & Pulse (designed by Phil Gear), powered by Google Gemini, inspired by Edward de Bono's Lateral Thinking (CC BY-SA 4.0)`;
+           `\n— Generated via Pivot & Pulse (designed by Phil Gear)${orcidCredit}, powered by Google Gemini, inspired by Edward de Bono's Lateral Thinking (CC BY-SA 4.0)`;
   }
 
   copyCreativePlan(plan?: CreativePlan, problem?: string) {

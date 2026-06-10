@@ -24,3 +24,37 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Security & Credentials
+.env
+.env.local
+.env.*.local
+*.env
+*.pem
+*.key
+*.p12
+*.pfx
+*service-account*.json
+*gcp-key*.json
+*client_secret*.json
+credentials.json
+.gcloud/
+
+# Firebase & Hosting cache
+.firebase/
+*-debug.log
+firebase-debug.log*
+firestore-debug.log*
+pubsub-debug.log*
+ui-debug.log*
+
+# Playwright Test Outputs
+test-results/
+playwright-report/
+blob-report/
+playwright/.local-browsers/
+
+# Angular & Node caches
+.angular/cache/
+.eslintcache
+npm-debug.log*

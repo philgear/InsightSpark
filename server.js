@@ -7,9 +7,34 @@ import { body, validationResult } from 'express-validator';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, Type } from '@google/genai';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Load .env.local programmatically if it exists
+try {
+  const envPath = path.join(__dirname, '.env.local');
+  if (fs.existsSync(envPath)) {
+    const envFile = fs.readFileSync(envPath, 'utf8');
+    envFile.split(/\r?\n/).forEach(line => {
+      const parts = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (parts) {
+        const key = parts[1];
+        let val = parts[2] || '';
+        // Remove surrounding quotes if any
+        if (val.length > 0 && val.charAt(0) === '"' && val.charAt(val.length - 1) === '"') {
+          val = val.substring(1, val.length - 1);
+        } else if (val.length > 0 && val.charAt(0) === "'" && val.charAt(val.length - 1) === "'") {
+          val = val.substring(1, val.length - 1);
+        }
+        process.env[key] = val.trim();
+      }
+    });
+  }
+} catch (e) {
+  console.warn('Failed to parse .env.local file:', e.message);
+}
 
 const app = express();
 app.set('trust proxy', 1);
@@ -22,7 +47,7 @@ app.use(helmet({
       scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://accounts.google.com/gsi/client"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://accounts.google.com/gsi/style"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:"],
+      imgSrc: ["'self'", "data:", "https://orcid.org", "https://*.orcid.org"],
       connectSrc: ["'self'", "https://accounts.google.com/gsi/", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
       frameSrc: ["'self'", "https://accounts.google.com/gsi/"],
       frameAncestors: [
@@ -146,8 +171,61 @@ function getCleanErrorMessage(error) {
 // Config endpoint to expose Client ID to frontend
 app.get('/api/config', (req, res) => {
   res.json({
-    googleClientId: process.env.GOOGLE_CLIENT_ID || null
+    googleClientId: process.env.GOOGLE_CLIENT_ID || null,
+    orcidClientId: process.env.ORCID_CLIENT_ID || null
   });
+});
+
+app.post('/api/auth/orcid', [
+  body('code').isString().trim().notEmpty(),
+  body('redirectUri').isString().trim().notEmpty(),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { code, redirectUri } = req.body;
+    const clientId = process.env.ORCID_CLIENT_ID;
+    const clientSecret = process.env.ORCID_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      return res.status(500).json({ error: 'ORCID client credentials are not configured on the server.' });
+    }
+
+    const params = new URLSearchParams();
+    params.append('client_id', clientId);
+    params.append('client_secret', clientSecret);
+    params.append('grant_type', 'authorization_code');
+    params.append('code', code);
+    params.append('redirect_uri', redirectUri);
+
+    const tokenResponse = await fetch('https://orcid.org/oauth/token', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: params.toString()
+    });
+
+    const data = await tokenResponse.json();
+
+    if (!tokenResponse.ok) {
+      console.error('ORCID OAuth token exchange failed:', data);
+      return res.status(tokenResponse.status).json({ error: data.error_description || data.error || 'Failed to exchange ORCID authorization code.' });
+    }
+
+    res.json({
+      orcid: data.orcid,
+      name: data.name,
+      accessToken: data.access_token
+    });
+  } catch (error) {
+    console.error('Error in /api/auth/orcid:', error);
+    res.status(500).json({ error: getCleanErrorMessage(error) });
+  }
 });
 
 // API Endpoints
