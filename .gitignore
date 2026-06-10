@@ -54,6 +54,13 @@ playwright-report/
 blob-report/
 playwright/.local-browsers/
 
+# Developer scratch & temporary files
+scratch/
+test-partial.js
+deploy-setup.ps1
+cleanup-policy.json
+scripts/estimate-effort*.js
+
 # Angular & Node caches
 .angular/cache/
 .eslintcache
