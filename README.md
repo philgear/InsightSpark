@@ -1,5 +1,5 @@
 <div align="center">
-  <img width="1200" height="475" alt="Pivot & Pulse Banner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+  <img width="1200" height="475" alt="Pivot & Pulse Banner" src="docs/pivot-pulse-banner.png" />
 </div>
 
 <div align="center">
@@ -18,9 +18,9 @@ An interactive lateral thinking workbench and medical care planner. **Pivot & Pu
 
 </div>
 
----
-
-## 🌟 Key Features
+<div align="center">
+  <img width="800" alt="Key Features" src="docs/divider-key-features.png" />
+</div>
 
 ### 1. Dual-Mode Thinking Workspaces
 *   **🎨 Creative Mode:** Solve complex issues, break writer's block, or draft conceptual plans using classic lateral thinking techniques (Butterfly, Combinatorial, First Principles).
@@ -40,9 +40,9 @@ An interactive lateral thinking workbench and medical care planner. **Pivot & Pu
 ### 5. Developer Chaos Sandbox
 *   Test application resilience directly from the settings drawer. Simulate transient or permanent API errors (`429 Rate Limit`, `500 Server Error`, or `Network Drop`) to verify exponential backoff retries.
 
----
-
-## 🏗️ Architecture Overview
+<div align="center">
+  <img width="800" alt="Architecture Overview" src="docs/divider-architecture.png" />
+</div>
 
 ```mermaid
 graph TD
@@ -58,9 +58,9 @@ graph TD
 *   **Frontend ([src](file:///c:/Users/philg/InsightSpark/InsightSpark/src)):** Built on Angular with signals for state management, D3.js for rendering force-directed graphs, and Tailwind CSS for styling.
 *   **Backend ([server.js](file:///c:/Users/philg/InsightSpark/InsightSpark/server.js)):** A lightweight Express middleware proxy managing API validation, input sanitization, security headers (Helmet), and streaming Gemini SSE feeds.
 
----
-
-## 🚀 Quick Start
+<div align="center">
+  <img width="800" alt="Quick Start" src="docs/divider-quick-start.png" />
+</div>
 
 ### Prerequisites
 Make sure you have [Node.js](https://nodejs.org/) installed.
@@ -90,7 +90,9 @@ To spin up the developer server, run both backend proxy and frontend:
     npm run dev
     ```
 
-🔬 For Researchers & Clinicians
+<div align="center">
+  <img width="800" alt="For Researchers & Clinicians" src="docs/divider-researchers.png" />
+</div>
 
 ### 1. Methodological Transparency
 *   **Prompt Adaptation:** The system leverages custom system instructions to morph general-purpose LLM outputs into structured clinical/creative strategies.
@@ -113,9 +115,9 @@ If you use Pivot & Pulse (InsightSpark) in your research, please cite it as:
 Gear, P. (2026). Pivot & Pulse (InsightSpark): A Lateral Thinking Workbench and Clinical Care Strategist. GitHub Repository. https://github.com/philgear/InsightSpark
 ```
 
----
-
-## 🧪 Testing & Resilience
+<div align="center">
+  <img width="800" alt="Testing & Resilience" src="docs/divider-testing.png" />
+</div>
 
 ### Chaos Test Suite
 Pivot & Pulse features a robust chaos testing framework to ensure UI components handle connection issues gracefully. Run the tests using the native Node test runner:
@@ -123,9 +125,9 @@ Pivot & Pulse features a robust chaos testing framework to ensure UI components 
 npx tsx tests/chaos.test.js
 ```
 
----
-
-## 📄 License & Attribution
+<div align="center">
+  <img width="800" alt="License & Attribution" src="docs/divider-license.png" />
+</div>
 - Core system designed by **Phil Gear**.
 - AI services powered by **Google Gemini**.
 - Methodologies inspired by **Edward de Bono's Lateral Thinking** (CC BY-SA 4.0).
