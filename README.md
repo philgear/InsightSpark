@@ -121,7 +121,8 @@ Gear, P. (2026). Pivot & Pulse (InsightSpark): A Lateral Thinking Workbench and 
 
 - Core system designed by **Phil Gear**.
 - AI services powered by **Google Gemini**.
-- Methodologies inspired by **[Edward de Bono's](https://en.wikipedia.org/wiki/Edward_de_Bono) Lateral Thinking** (CC BY-SA 4.0). Legacy resources available at [debono.com](https://www.debono.com).
+- Methodologies inspired by **[Edward de Bono's](https://en.wikipedia.org/wiki/Edward_de_Bono) Lateral Thinking** (CC BY-SA 4.0).
+- Courses resources available at [debono.com](https://www.debono.com).
 
 ---
 
