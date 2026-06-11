@@ -50,8 +50,8 @@ graph TD
     Proxy["Express.js Proxy <br> (Helmet, Rate Limiter, Morgan)"]
     Gemini["Gemini API Service"]
 
-    Client -->|HTTP Requests (CORS, Rate Limited)| Proxy
-    Proxy -->|Streamed API Calls (SSL / SSE)| Gemini
+    Client -->|"HTTP Requests (CORS, Rate Limited)"| Proxy
+    Proxy -->|"Streamed API Calls (SSL / SSE)"| Gemini
 ```
 
 
