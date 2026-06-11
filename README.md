@@ -102,7 +102,7 @@ To spin up the developer server, run both backend proxy and frontend:
 If you are submitting an Institutional Review Board (IRB) proposal to use this tool in a clinical/academic pilot:
 *   **Zero-Data Retention Backend:** The server proxy in [server.js](./server.js) is stateless. No databases, logs of user queries, or API history are kept.
 *   **Client-Side Privacy Enforcement:** A PII scanner operates strictly inside the browser client before any payload is dispatched, preventing inadvertent PHI transmissions under HIPAA guidelines.
-*   **Local Sovereignty:** Generated plans are stored under the browser’s sandboxed `localStorage` profile, giving participants absolute ownership over their data.
+*   **Local Sovereignty:** Generated plans are stored under the browser's sandboxed `localStorage` profile, giving participants absolute ownership over their data.
 
 ### 3. Provenance & ORCID Integration
 To ensure academic provenance, this application integrates with the ORCID public API. Connecting your researcher record:
@@ -116,19 +116,23 @@ Gear, P. (2026). Pivot & Pulse (InsightSpark): A Lateral Thinking Workbench and 
 ```
 
 <div align="center">
-  <img width="800" alt="Testing & Resilience" src="docs/divider-testing.png" />
-</div>
-
-### Chaos Test Suite
-Pivot & Pulse features a robust chaos testing framework to ensure UI components handle connection issues gracefully. Run the tests using the native Node test runner:
-```bash
-npx tsx tests/chaos.test.js
-```
-
-<div align="center">
   <img width="800" alt="License & Attribution" src="docs/divider-license.png" />
 </div>
+
 - Core system designed by **Phil Gear**.
 - AI services powered by **Google Gemini**.
 - Methodologies inspired by **[Edward de Bono's](https://en.wikipedia.org/wiki/Edward_de_Bono) Lateral Thinking** (CC BY-SA 4.0). Legacy resources available at [debono.com](https://www.debono.com).
-  > *"I often go into thrift stores to read their books. I discovered this one on the shelf, bought it, and flipped through it. Still have it..still haven't read it fully."* — Phil Gear, on the project's origin.
+
+---
+
+<div align="center">
+
+*"I often go into thrift stores to read their books.*
+*I discovered this one on the shelf, bought it, and flipped through it.*
+*Still have it.. still haven't read it fully."*
+
+— **Phil Gear**, on finding Edward de Bono's book and the spark that became this project.
+
+💡
+
+</div>
