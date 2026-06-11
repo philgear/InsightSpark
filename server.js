@@ -588,6 +588,537 @@ app.post('/api/creative-plan', [
   }
 });
 
+// ─── Agentic API Layer ─────────────────────────────────────────────────────────
+// Multi-agent endpoints for strategy selection, debate, refinement, and standalone access.
+
+// Strategy definitions (server-side mirror for agent endpoints)
+const STRATEGY_MAP = {
+  'what-if': { name: 'What If?', persona: 'I challenge every assumption. If everyone agrees, I\'m suspicious. My power is in the question, not the answer.' },
+  'constraints': { name: 'Redefine Constraints', persona: 'I take things away to reveal what\'s essential. Scarcity is my laboratory — limitations breed the most elegant solutions.' },
+  'butterfly': { name: 'The Butterfly Effect', persona: 'I see cascades where others see trivia. The smallest lever moves the largest system — I find that lever.' },
+  'combinatorial': { name: 'Combinatorial Evolution', persona: 'I am a matchmaker of ideas. Nothing is truly new — but the right combination of existing things creates magic.' },
+  'opposite': { name: 'Opposite Day', persona: 'I flip the board. Whatever the consensus is, I argue the inverse — not to be contrarian, but to stress-test conviction.' },
+  'future': { name: 'Future Vision', persona: 'I live in the future. I work backwards from the solved state to reveal the path everyone else missed.' },
+  'child': { name: "Child's Play", persona: "I strip away all pretense. If you can't explain it simply, you don't understand it. I demand clarity above cleverness." },
+  'alien': { name: 'Alien Perspective', persona: 'I have no cultural baggage. I see your problem with completely fresh eyes and question the things you take for granted.' },
+  'nature': { name: "Nature's Wisdom", persona: 'I consult 3.8 billion years of R&D. Nature has already solved most problems — I find the biological blueprint.' },
+  'superpower': { name: 'Superpower', persona: 'I dream without constraints first, then reverse-engineer feasibility. The ideal solution reveals the direction, even if the distance changes.' },
+  'simplify': { name: 'Eliminate & Simplify', persona: 'I am a ruthless editor. Complexity is the enemy. I find the one thing that matters most and cut everything else.' },
+  'random': { name: 'Random Object', persona: 'I introduce chaos on purpose. Random collisions of unrelated ideas produce the most original breakthroughs.' },
+  'first-principles': { name: 'First Principles', persona: 'I strip away complexity until only fundamental truths remain. I rebuild from bedrock, ignoring convention entirely.' },
+  'root-cause': { name: 'Root Cause (5 Whys)', persona: 'I am relentless. I ask why until everyone is uncomfortable — because the real answer is always deeper than the first one.' },
+  'fmea': { name: 'FMEA (Risk Analysis)', persona: 'I see what can go wrong before it does. My job is to protect, not to pessimize — I build guardrails, not walls.' },
+  'critical-path': { name: 'Critical Path Method', persona: 'I see dependencies. I map the non-negotiable sequence — what must happen first, what blocks what, and where the bottleneck hides.' },
+};
+
+// Auth helper: supports both x-gemini-api-key header and Bearer token
+function getAgentGenAI(req) {
+  const bearerToken = req.headers.authorization?.replace('Bearer ', '');
+  const headerKey = req.headers['x-gemini-api-key'];
+  const customKey = bearerToken || headerKey;
+  if (customKey) return new GoogleGenAI({ apiKey: customKey });
+  return ai;
+}
+
+// GET /api/agents — List all available strategy agents
+app.get('/api/agents', (req, res) => {
+  const agents = Object.entries(STRATEGY_MAP).map(([id, s]) => ({
+    id,
+    name: s.name,
+    persona: s.persona,
+  }));
+  res.json(agents);
+});
+
+// POST /api/agent/select — Meta-agent auto-strategy selection
+app.post('/api/agent/select', [
+  body('problem').isString().trim().escape().notEmpty(),
+  body('mode').optional().isString().trim().escape(),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const genAI = getAgentGenAI(req);
+    if (!genAI) return res.status(500).json({ error: 'Gemini API is not configured.' });
+
+    const { problem, mode } = req.body;
+    const piiFound = scanForPII(problem);
+    if (piiFound.length > 0) return res.status(400).json({ error: `PII detected: ${piiFound.join(', ')}` });
+
+    const strategyList = Object.entries(STRATEGY_MAP)
+      .map(([id, s]) => `- ${id}: "${s.name}" — ${s.persona}`)
+      .join('\n');
+
+    const schema = {
+      type: Type.OBJECT,
+      properties: {
+        selectedIds: { type: Type.ARRAY, items: { type: Type.STRING }, description: 'Array of 3-5 strategy IDs that are most relevant to this problem.' },
+        reasoning: { type: Type.STRING, description: 'A 2-3 sentence explanation of why these strategies were chosen together.' },
+        problemCategory: { type: Type.STRING, description: 'A short category label for this problem type (e.g., "systems design", "interpersonal", "clinical", "creative").' },
+      },
+      required: ['selectedIds', 'reasoning', 'problemCategory'],
+    };
+
+    const prompt = `
+      You are a meta-cognitive strategist. Analyze the following problem and select the 3 to 5 lateral thinking strategies (from the list below) that will produce the most diverse, productive, and complementary insights.
+
+      **Problem:** "${problem}"
+      **Mode:** ${mode || 'creative'}
+
+      **Available Strategies:**
+      ${strategyList}
+
+      Select strategies that complement each other — avoid redundancy. Prefer a mix of divergent (creative) and convergent (analytical) approaches.
+    `;
+
+    const response = await genAI.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: schema,
+        temperature: 0.4,
+        safetySettings: SAFETY_SETTINGS,
+      },
+    });
+
+    const result = JSON.parse(response.text);
+    // Validate that returned IDs are real
+    result.selectedIds = result.selectedIds.filter(id => STRATEGY_MAP[id]);
+    res.json(result);
+  } catch (error) {
+    console.error('Error in /api/agent/select:', error);
+    res.status(500).json({ error: getCleanErrorMessage(error) });
+  }
+});
+
+// POST /api/agent/debate — Cross-strategy debate round
+app.post('/api/agent/debate', [
+  body('problem').isString().trim().escape().notEmpty(),
+  body('insights').isArray().notEmpty(),
+  body('strategies').isArray().notEmpty(),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const genAI = getAgentGenAI(req);
+    if (!genAI) return res.status(500).json({ error: 'Gemini API is not configured.' });
+
+    const { problem, insights, strategies } = req.body;
+
+    const insightText = insights.flatMap(r =>
+      (r.insights || []).map(i => `[${r.strategyName}]: ${i.text}`)
+    ).join('\n');
+
+    const agentList = strategies
+      .map(s => `- "${s.name}" (${STRATEGY_MAP[s.id]?.persona || s.description})`)
+      .join('\n');
+
+    const schema = {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          agentId: { type: Type.STRING, description: 'The strategy ID of the agent providing the critique.' },
+          agentName: { type: Type.STRING, description: 'The name of the critiquing agent.' },
+          targetInsight: { type: Type.STRING, description: 'The exact insight text being critiqued.' },
+          critique: { type: Type.STRING, description: 'The critique, question, or observation from this agent\'s perspective.' },
+          strengthens: { type: Type.BOOLEAN, description: 'True if this critique supports/strengthens the insight, false if it challenges it.' },
+          suggestedRefinement: { type: Type.STRING, description: 'An optional improved version of the insight incorporating this critique.' },
+        },
+        required: ['agentId', 'agentName', 'targetInsight', 'critique', 'strengthens'],
+      },
+    };
+
+    const prompt = `
+      You are moderating a debate between multiple lateral thinking strategy agents. Each agent has a distinct personality and analytical lens.
+
+      **Problem context:** "${problem}"
+
+      **Participating agents:**
+      ${agentList}
+
+      **Insights generated so far:**
+      ${insightText}
+
+      **Task:** Each agent should critically evaluate 1-2 insights from OTHER agents (not their own). For each critique:
+      1. Stay in character — use the agent's unique lens and persona.
+      2. Either strengthen the insight (identify hidden value) or challenge it (identify blind spots).
+      3. Optionally suggest a refined version that incorporates the critique.
+
+      Generate 4-8 total debate entries across the agents.
+    `;
+
+    const response = await genAI.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: schema,
+        temperature: 0.7,
+        safetySettings: SAFETY_SETTINGS,
+      },
+    });
+
+    res.json(JSON.parse(response.text));
+  } catch (error) {
+    console.error('Error in /api/agent/debate:', error);
+    res.status(500).json({ error: getCleanErrorMessage(error) });
+  }
+});
+
+// POST /api/agent/refine — Refinement and consensus synthesis
+app.post('/api/agent/refine', [
+  body('problem').isString().trim().escape().notEmpty(),
+  body('insights').isArray().notEmpty(),
+  body('debates').isArray().notEmpty(),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const genAI = getAgentGenAI(req);
+    if (!genAI) return res.status(500).json({ error: 'Gemini API is not configured.' });
+
+    const { problem, insights, debates } = req.body;
+
+    const insightText = insights.flatMap(r =>
+      (r.insights || []).map(i => `- [${r.strategyName}]: ${i.text}`)
+    ).join('\n');
+
+    const debateText = debates.map(d =>
+      `- [${d.agentName}] ${d.strengthens ? 'SUPPORTS' : 'CHALLENGES'} "${d.targetInsight.substring(0, 80)}...": ${d.critique}`
+    ).join('\n');
+
+    const schema = {
+      type: Type.OBJECT,
+      properties: {
+        refinedInsights: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              original: { type: Type.STRING, description: 'The original insight text.' },
+              refined: { type: Type.STRING, description: 'The improved insight incorporating debate feedback.' },
+              debateInfluences: { type: Type.ARRAY, items: { type: Type.STRING }, description: 'Which critiques influenced this refinement.' },
+              confidence: { type: Type.NUMBER, description: 'Confidence score 0.0-1.0 based on agent agreement.' },
+            },
+            required: ['original', 'refined', 'debateInfluences', 'confidence'],
+          },
+        },
+        consensus: { type: Type.STRING, description: 'A 2-4 sentence synthesis statement capturing the strongest path forward, acknowledging remaining tensions.' },
+      },
+      required: ['refinedInsights', 'consensus'],
+    };
+
+    const prompt = `
+      You are a synthesis agent. Given the original insights and the cross-strategy debate that followed, produce improved versions of the most impactful insights.
+
+      **Problem:** "${problem}"
+
+      **Original Insights:**
+      ${insightText}
+
+      **Debate Critiques:**
+      ${debateText}
+
+      **Instructions:**
+      1. Select the 3-5 most impactful insights (not all need refinement — skip any that are weak).
+      2. For each, produce a refined version that incorporates valid critiques while preserving original strengths.
+      3. Rate confidence (0.0-1.0): 1.0 = all agents agree, 0.5 = mixed, 0.0 = strongly contested.
+      4. Write a consensus statement that captures the strongest path forward and any remaining open tensions.
+    `;
+
+    const response = await genAI.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: schema,
+        temperature: 0.5,
+        safetySettings: SAFETY_SETTINGS,
+      },
+    });
+
+    res.json(JSON.parse(response.text));
+  } catch (error) {
+    console.error('Error in /api/agent/refine:', error);
+    res.status(500).json({ error: getCleanErrorMessage(error) });
+  }
+});
+
+// POST /api/agent/pipeline — Full agentic pipeline (SSE-streamed phases)
+app.post('/api/agent/pipeline', [
+  body('problem').isString().trim().escape().notEmpty(),
+  body('mode').optional().isString().trim().escape(),
+  body('gist').optional().isString().trim().escape(),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const genAI = getAgentGenAI(req);
+    if (!genAI) return res.status(500).json({ error: 'Gemini API is not configured.' });
+
+    const { problem, mode, gist } = req.body;
+    const piiFound = scanForPII(problem);
+    if (piiFound.length > 0) return res.status(400).json({ error: `PII detected: ${piiFound.join(', ')}` });
+
+    // SSE headers
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    const sendPhase = (phase, data) => {
+      res.write(`data: ${JSON.stringify({ phase, ...data })}\n\n`);
+    };
+
+    // Phase 1: Select strategies
+    sendPhase('selecting', { message: 'Analyzing problem and selecting strategies...' });
+
+    const strategyList = Object.entries(STRATEGY_MAP)
+      .map(([id, s]) => `- ${id}: "${s.name}"`)
+      .join('\n');
+
+    const selectResponse = await genAI.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: `Analyze this problem and select 3-5 optimal strategies:\n"${problem}"\n\nAvailable:\n${strategyList}`,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            selectedIds: { type: Type.ARRAY, items: { type: Type.STRING } },
+            reasoning: { type: Type.STRING },
+            problemCategory: { type: Type.STRING },
+          },
+          required: ['selectedIds', 'reasoning', 'problemCategory'],
+        },
+        temperature: 0.4,
+        safetySettings: SAFETY_SETTINGS,
+      },
+    });
+
+    const selection = JSON.parse(selectResponse.text);
+    selection.selectedIds = selection.selectedIds.filter(id => STRATEGY_MAP[id]);
+    sendPhase('selecting', { result: selection });
+
+    // Phase 2: Generate insights with selected strategies
+    sendPhase('generating', { message: 'Generating insights with selected strategies...' });
+
+    const selectedStrategies = selection.selectedIds.map(id => ({
+      id,
+      name: STRATEGY_MAP[id].name,
+      persona: STRATEGY_MAP[id].persona,
+    }));
+
+    const strategyText = selectedStrategies.map(s =>
+      `- Strategy Name: "${s.name}"\n  Persona: ${s.persona}`
+    ).join('\n\n');
+
+    const insightsSchema = {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          strategyName: { type: Type.STRING },
+          insights: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: { text: { type: Type.STRING } },
+              required: ['text'],
+            },
+          },
+        },
+        required: ['strategyName', 'insights'],
+      },
+    };
+
+    const insightsResponse = await genAI.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: `${gist ? `Guiding principle: "${gist}"\n\n` : ''}Problem: "${problem}"\n\nApply each strategy:\n${strategyText}\n\nFor each, provide 2-3 distinct, actionable insights.`,
+      config: {
+        systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : undefined,
+        responseMimeType: 'application/json',
+        responseSchema: insightsSchema,
+        temperature: 0.8,
+        safetySettings: SAFETY_SETTINGS,
+      },
+    });
+
+    const initialInsights = JSON.parse(insightsResponse.text);
+    sendPhase('generating', { result: initialInsights });
+
+    // Phase 3: Debate
+    sendPhase('debating', { message: 'Strategy agents are debating insights...' });
+
+    const insightTextForDebate = initialInsights.flatMap(r =>
+      (r.insights || []).map(i => `[${r.strategyName}]: ${i.text}`)
+    ).join('\n');
+
+    const debateResponse = await genAI.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: `Problem: "${problem}"\n\nAgents:\n${selectedStrategies.map(s => `- "${s.name}": ${s.persona}`).join('\n')}\n\nInsights:\n${insightTextForDebate}\n\nEach agent critiques 1-2 insights from OTHER agents. Generate 4-8 debate entries.`,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              agentId: { type: Type.STRING },
+              agentName: { type: Type.STRING },
+              targetInsight: { type: Type.STRING },
+              critique: { type: Type.STRING },
+              strengthens: { type: Type.BOOLEAN },
+              suggestedRefinement: { type: Type.STRING },
+            },
+            required: ['agentId', 'agentName', 'targetInsight', 'critique', 'strengthens'],
+          },
+        },
+        temperature: 0.7,
+        safetySettings: SAFETY_SETTINGS,
+      },
+    });
+
+    const debates = JSON.parse(debateResponse.text);
+    sendPhase('debating', { result: debates });
+
+    // Phase 4: Refine
+    sendPhase('refining', { message: 'Synthesizing refined insights...' });
+
+    const debateTextForRefine = debates.map(d =>
+      `[${d.agentName}] ${d.strengthens ? 'SUPPORTS' : 'CHALLENGES'}: ${d.critique}`
+    ).join('\n');
+
+    const refineResponse = await genAI.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: `Problem: "${problem}"\n\nOriginal Insights:\n${insightTextForDebate}\n\nDebate:\n${debateTextForRefine}\n\nProduce 3-5 refined insights with confidence scores and a consensus statement.`,
+      config: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            refinedInsights: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  original: { type: Type.STRING },
+                  refined: { type: Type.STRING },
+                  debateInfluences: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  confidence: { type: Type.NUMBER },
+                },
+                required: ['original', 'refined', 'debateInfluences', 'confidence'],
+              },
+            },
+            consensus: { type: Type.STRING },
+          },
+          required: ['refinedInsights', 'consensus'],
+        },
+        temperature: 0.5,
+        safetySettings: SAFETY_SETTINGS,
+      },
+    });
+
+    const refinement = JSON.parse(refineResponse.text);
+    sendPhase('refining', { result: refinement });
+
+    // Phase 5: Complete
+    sendPhase('complete', {
+      result: {
+        selection,
+        initialInsights,
+        debate: debates,
+        refinedInsights: refinement.refinedInsights,
+        consensus: refinement.consensus,
+      },
+    });
+
+    res.write('data: [DONE]\n\n');
+    res.end();
+  } catch (error) {
+    console.error('Error in /api/agent/pipeline:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: getCleanErrorMessage(error) });
+    } else {
+      res.write(`data: ${JSON.stringify({ error: getCleanErrorMessage(error) })}\n\n`);
+      res.end();
+    }
+  }
+});
+
+// POST /api/agent/:strategyId — Standalone single-agent endpoint
+app.post('/api/agent/:strategyId', [
+  body('problem').isString().trim().escape().notEmpty(),
+  body('mode').optional().isString().trim().escape(),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+    const { strategyId } = req.params;
+    const strategy = STRATEGY_MAP[strategyId];
+    if (!strategy) return res.status(404).json({ error: `Unknown strategy: ${strategyId}` });
+
+    const genAI = getAgentGenAI(req);
+    if (!genAI) return res.status(500).json({ error: 'Gemini API is not configured.' });
+
+    const { problem, mode } = req.body;
+    const piiFound = scanForPII(problem);
+    if (piiFound.length > 0) return res.status(400).json({ error: `PII detected: ${piiFound.join(', ')}` });
+
+    const schema = {
+      type: Type.OBJECT,
+      properties: {
+        strategyName: { type: Type.STRING },
+        agentPersona: { type: Type.STRING },
+        insights: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              text: { type: Type.STRING, description: 'A distinct, actionable insight.' },
+            },
+            required: ['text'],
+          },
+        },
+      },
+      required: ['strategyName', 'agentPersona', 'insights'],
+    };
+
+    const prompt = `
+      You are the "${strategy.name}" strategy agent.
+      Your persona: "${strategy.persona}"
+
+      Apply your unique analytical lens to this problem:
+      "${problem}"
+
+      Provide 2-3 distinct, specific, and actionable insights. Stay fully in character.
+    `;
+
+    const response = await genAI.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+      config: {
+        systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : undefined,
+        responseMimeType: 'application/json',
+        responseSchema: schema,
+        temperature: 0.8,
+        safetySettings: SAFETY_SETTINGS,
+      },
+    });
+
+    res.json(JSON.parse(response.text));
+  } catch (error) {
+    console.error(`Error in /api/agent/${req.params.strategyId}:`, error);
+    res.status(500).json({ error: getCleanErrorMessage(error) });
+  }
+});
+
 // Serve Angular static files with caching headers
 app.use(express.static(path.join(__dirname, 'dist'), {
   maxAge: '1y',

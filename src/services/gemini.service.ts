@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { CreativeStrategy, InsightResult, SavedInsight, CarePlan, StructuredProblem, CreativePlan } from '../models/creative-types';
+import { StrategySelection, DebateEntry, RefinedInsight, AgenticResult, AgenticPhase } from '../models/agent-types';
 import { parse } from 'partial-json';
 
 export class ApiRetryError extends Error {
@@ -444,6 +445,138 @@ export class GeminiService {
 
       return response.json();
     });
+  }
+
+  // ─── Agentic Pipeline Methods ─────────────────────────────────────────
+
+  async selectStrategies(problem: string, mode: string): Promise<StrategySelection> {
+    return this._withRetries(async () => {
+      const response = await fetch('/api/agent/select', {
+        method: 'POST',
+        headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ problem, mode }),
+      });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => null);
+        throw new Error(errData?.error || `Server returned ${response.status}`);
+      }
+      return response.json();
+    });
+  }
+
+  async runDebate(problem: string, insights: InsightResult[], strategies: CreativeStrategy[]): Promise<DebateEntry[]> {
+    return this._withRetries(async () => {
+      const response = await fetch('/api/agent/debate', {
+        method: 'POST',
+        headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ problem, insights, strategies }),
+      });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => null);
+        throw new Error(errData?.error || `Server returned ${response.status}`);
+      }
+      return response.json();
+    });
+  }
+
+  async refineInsights(
+    problem: string,
+    insights: InsightResult[],
+    debates: DebateEntry[]
+  ): Promise<{ refinedInsights: RefinedInsight[]; consensus: string }> {
+    return this._withRetries(async () => {
+      const response = await fetch('/api/agent/refine', {
+        method: 'POST',
+        headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ problem, insights, debates }),
+      });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => null);
+        throw new Error(errData?.error || `Server returned ${response.status}`);
+      }
+      return response.json();
+    });
+  }
+
+  async runAgenticPipeline(
+    problem: string,
+    mode: 'creative' | 'care',
+    onPhaseChange: (phase: AgenticPhase) => void,
+    onUpdate: (partial: Partial<AgenticResult>) => void,
+    gist?: string
+  ): Promise<AgenticResult> {
+    return this._withRetries(async () => {
+      const response = await fetch('/api/agent/pipeline', {
+        method: 'POST',
+        headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ problem, mode, gist }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => null);
+        throw new Error(errData?.error || `Server returned ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('Response body is not readable');
+
+      const decoder = new TextDecoder();
+      let result: Partial<AgenticResult> = {};
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const dataStr = line.slice(6).trim();
+            if (dataStr === '[DONE]') break;
+            if (dataStr) {
+              try {
+                const data = JSON.parse(dataStr);
+                if (data.error) throw new Error(data.error);
+
+                if (data.phase) {
+                  onPhaseChange(data.phase as AgenticPhase);
+
+                  if (data.result) {
+                    switch (data.phase) {
+                      case 'selecting':
+                        result.selection = data.result;
+                        break;
+                      case 'generating':
+                        result.initialInsights = data.result;
+                        break;
+                      case 'debating':
+                        result.debate = data.result;
+                        break;
+                      case 'refining':
+                        result.refinedInsights = data.result.refinedInsights;
+                        result.consensus = data.result.consensus;
+                        break;
+                      case 'complete':
+                        result = data.result;
+                        break;
+                    }
+                    onUpdate({ ...result });
+                  }
+                }
+              } catch (e) {
+                if ((e as Error).message?.includes('PII') || (e as Error).message?.includes('API')) {
+                  throw e;
+                }
+                // Ignore partial parse errors
+              }
+            }
+          }
+        }
+      }
+
+      return result as AgenticResult;
+    }, 1); // Only 1 retry for the pipeline (it's expensive)
   }
 
   private isDemoMode(): boolean {

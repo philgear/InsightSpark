@@ -6,6 +6,7 @@ export interface CreativeStrategy {
   color: string; // Storing the Hex code now
   careModeName?: string;
   careModeDescription?: string;
+  agentPersona?: string; // Personality voice used in debate rounds
 }
 
 export interface InsightItem {
@@ -90,7 +91,8 @@ export const STRATEGIES: CreativeStrategy[] = [
     icon: 'question', 
     color: '#9D1F3B',
     careModeName: 'Outcome Visualization',
-    careModeDescription: "Let's explore 'What If' scenarios to imagine all possible positive outcomes for the person."
+    careModeDescription: "Let's explore 'What If' scenarios to imagine all possible positive outcomes for the person.",
+    agentPersona: 'I challenge every assumption. If everyone agrees, I\'m suspicious. My power is in the question, not the answer.'
   },
   { 
     id: 'constraints', 
@@ -99,7 +101,8 @@ export const STRATEGIES: CreativeStrategy[] = [
     icon: 'lock', 
     color: '#6C7A68',
     careModeName: 'Adaptive Support',
-    careModeDescription: "Let's consider how we can support the person with fewer resources or in a non-traditional setting."
+    careModeDescription: "Let's consider how we can support the person with fewer resources or in a non-traditional setting.",
+    agentPersona: 'I take things away to reveal what\'s essential. Scarcity is my laboratory — limitations breed the most elegant solutions.'
   },
   { 
     id: 'butterfly', 
@@ -108,7 +111,8 @@ export const STRATEGIES: CreativeStrategy[] = [
     icon: 'activity', 
     color: '#FDD87A',
     careModeName: 'Key Actions',
-    careModeDescription: "Identify the smallest possible micro-intervention that could have the largest cascading positive effect on well-being."
+    careModeDescription: "Identify the smallest possible micro-intervention that could have the largest cascading positive effect on well-being.",
+    agentPersona: 'I see cascades where others see trivia. The smallest lever moves the largest system — I find that lever.'
   },
   { 
     id: 'combinatorial', 
@@ -117,7 +121,8 @@ export const STRATEGIES: CreativeStrategy[] = [
     icon: 'collection', 
     color: '#E8B9C8',
     careModeName: 'Integrative Methods',
-    careModeDescription: "How can we combine two distinct approaches or disciplines to create a result greater than the sum of its parts?"
+    careModeDescription: "How can we combine two distinct approaches or disciplines to create a result greater than the sum of its parts?",
+    agentPersona: 'I am a matchmaker of ideas. Nothing is truly new — but the right combination of existing things creates magic.'
   },
   { 
     id: 'opposite', 
@@ -126,7 +131,8 @@ export const STRATEGIES: CreativeStrategy[] = [
     icon: 'refresh', 
     color: '#FDD87A',
     careModeName: 'Reverse Brainstorming',
-    careModeDescription: "What if we focused on what *not* to do, to highlight the most effective actions to support them?"
+    careModeDescription: "What if we focused on what *not* to do, to highlight the most effective actions to support them?",
+    agentPersona: 'I flip the board. Whatever the consensus is, I argue the inverse — not to be contrarian, but to stress-test conviction.'
   },
   { 
     id: 'future', 
@@ -135,7 +141,8 @@ export const STRATEGIES: CreativeStrategy[] = [
     icon: 'eye', 
     color: '#E8B9C8',
     careModeName: 'Goal-Oriented Vision',
-    careModeDescription: "It's one year from now, and the person is thriving. What does that look like and how did we get there?"
+    careModeDescription: "It's one year from now, and the person is thriving. What does that look like and how did we get there?",
+    agentPersona: 'I live in the future. I work backwards from the solved state to reveal the path everyone else missed.'
   },
   { 
     id: 'child', 
@@ -144,7 +151,8 @@ export const STRATEGIES: CreativeStrategy[] = [
     icon: 'smile', 
     color: '#FDD87A',
     careModeName: 'Core Message',
-    careModeDescription: "How would we explain the core goal to a child to ensure it's clear and easy to follow?"
+    careModeDescription: "How would we explain the core goal to a child to ensure it's clear and easy to follow?",
+    agentPersona: 'I strip away all pretense. If you can\'t explain it simply, you don\'t understand it. I demand clarity above cleverness.'
   },
   { 
     id: 'alien', 
@@ -153,7 +161,8 @@ export const STRATEGIES: CreativeStrategy[] = [
     icon: 'globe', 
     color: '#9D1F3B',
     careModeName: "Fresh Perspective",
-    careModeDescription: "If someone unfamiliar with the situation looked at this plan, what would they see as the most important element?"
+    careModeDescription: "If someone unfamiliar with the situation looked at this plan, what would they see as the most important element?",
+    agentPersona: 'I have no cultural baggage. I see your problem with completely fresh eyes and question the things you take for granted.'
   },
   { 
     id: 'nature', 
@@ -162,7 +171,8 @@ export const STRATEGIES: CreativeStrategy[] = [
     icon: 'leaf', 
     color: '#6C7A68',
     careModeName: 'Holistic Cycles',
-    careModeDescription: "How can we align the support plan with the body's natural healing processes or daily cycles?"
+    careModeDescription: "How can we align the support plan with the body's natural healing processes or daily cycles?",
+    agentPersona: 'I consult 3.8 billion years of R&D. Nature has already solved most problems — I find the biological blueprint.'
   },
   { 
     id: 'superpower', 
@@ -171,7 +181,8 @@ export const STRATEGIES: CreativeStrategy[] = [
     icon: 'zap', 
     color: '#9D1F3B',
     careModeName: 'Ideal Scenario',
-    careModeDescription: "If there were absolutely no barriers to care, what would the perfect support look like?"
+    careModeDescription: "If there were absolutely no barriers to care, what would the perfect support look like?",
+    agentPersona: 'I dream without constraints first, then reverse-engineer feasibility. The ideal solution reveals the direction, even if the distance changes.'
   },
   { 
     id: 'simplify', 
@@ -180,7 +191,8 @@ export const STRATEGIES: CreativeStrategy[] = [
     icon: 'minus', 
     color: '#E8B9C8',
     careModeName: 'Focal Point',
-    careModeDescription: "If we could only ask the person to do one thing, what would have the most positive impact?"
+    careModeDescription: "If we could only ask the person to do one thing, what would have the most positive impact?",
+    agentPersona: 'I am a ruthless editor. Complexity is the enemy. I find the one thing that matters most and cut everything else.'
   },
   { 
     id: 'random', 
@@ -189,7 +201,8 @@ export const STRATEGIES: CreativeStrategy[] = [
     icon: 'dice', 
     color: '#FDD87A',
     careModeName: 'Relatable Analogy',
-    careModeDescription: "Pick a household object. How can it represent a part of the support plan to make it more relatable?"
+    careModeDescription: "Pick a household object. How can it represent a part of the support plan to make it more relatable?",
+    agentPersona: 'I introduce chaos on purpose. Random collisions of unrelated ideas produce the most original breakthroughs.'
   },
   { 
     id: 'first-principles', 
@@ -198,7 +211,8 @@ export const STRATEGIES: CreativeStrategy[] = [
     icon: 'brain', 
     color: '#6C7A68',
     careModeName: 'Core Needs',
-    careModeDescription: "Break the health goal down to the person's most fundamental physiological and emotional needs."
+    careModeDescription: "Break the health goal down to the person's most fundamental physiological and emotional needs.",
+    agentPersona: 'I strip away complexity until only fundamental truths remain. I rebuild from bedrock, ignoring convention entirely.'
   },
   { 
     id: 'root-cause', 
@@ -207,7 +221,8 @@ export const STRATEGIES: CreativeStrategy[] = [
     icon: 'arrow-down', 
     color: '#9D1F3B',
     careModeName: 'Triggers & Causes',
-    careModeDescription: "Explore the root causes and underlying triggers of the support challenge."
+    careModeDescription: "Explore the root causes and underlying triggers of the support challenge.",
+    agentPersona: 'I am relentless. I ask why until everyone is uncomfortable — because the real answer is always deeper than the first one.'
   },
   { 
     id: 'fmea', 
@@ -216,7 +231,8 @@ export const STRATEGIES: CreativeStrategy[] = [
     icon: 'shield', 
     color: '#6C7A68',
     careModeName: 'Safety Net',
-    careModeDescription: "Identify potential safety risks or plan failures and build early warning guardrails."
+    careModeDescription: "Identify potential safety risks or plan failures and build early warning guardrails.",
+    agentPersona: 'I see what can go wrong before it does. My job is to protect, not to pessimize — I build guardrails, not walls.'
   },
   { 
     id: 'critical-path', 
@@ -225,6 +241,7 @@ export const STRATEGIES: CreativeStrategy[] = [
     icon: 'git-branch', 
     color: '#E8B9C8',
     careModeName: 'Milestone Map',
-    careModeDescription: "Synthesize the exact step-by-step critical timeline of care dependencies."
+    careModeDescription: "Synthesize the exact step-by-step critical timeline of care dependencies.",
+    agentPersona: 'I see dependencies. I map the non-negotiable sequence — what must happen first, what blocks what, and where the bottleneck hides.'
   }
 ];

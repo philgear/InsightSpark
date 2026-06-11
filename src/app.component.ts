@@ -9,6 +9,7 @@ import { filter, takeUntil } from 'rxjs/operators';
 import { GeminiService } from './services/gemini.service';
 import { StorageService, Theme } from './services/storage.service';
 import { CreativeStrategy, InsightItem, InsightResult, SavedInsight, STRATEGIES, CarePlan, SavedCarePlan, StructuredProblem, CreativePlan, SavedCreativePlan } from './models/creative-types';
+import { AgenticResult, AgenticPhase, AGENTIC_PHASES } from './models/agent-types';
 import { IconComponent } from './components/ui/icon.component';
 import { HelpComponent } from './components/ui/help.component';
 import { GraphViewComponent } from './components/ui/graph-view.component';
@@ -162,6 +163,13 @@ export class AppComponent implements OnDestroy {
   creativePlan = signal<CreativePlan | null>(null);
   isGeneratingCreativePlan = signal(false);
   isCreativePlanCopied = signal(false);
+
+  // Agentic Deep Analysis State
+  isDeepAnalysis = signal(false);
+  agenticPhase = signal<AgenticPhase | null>(null);
+  agenticResult = signal<AgenticResult | null>(null);
+  agenticPhases = AGENTIC_PHASES;
+  isDebateCollapsed = signal(true);
 
   // Saved Items State
   sortOrder = signal<'newest' | 'oldest'>('newest');
@@ -594,6 +602,77 @@ export class AppComponent implements OnDestroy {
     }
   }
 
+  // --- Deep Analysis (Agentic Pipeline) ---
+  async generateDeepInsights() {
+    if (!this.problemInput().trim()) return;
+
+    this.isLoading.set(true);
+    this.startSuggestionCycle();
+    this.error.set(null);
+    this.insights.set(null);
+    this.carePlan.set(null);
+    this.creativePlan.set(null);
+    this.structuredProblem.set(null);
+    this.agenticResult.set(null);
+    this.agenticPhase.set('selecting');
+    this.isDebateCollapsed.set(true);
+    this.resultsViewMode.set('list');
+
+    try {
+      const problem = this.problemInput();
+      const mode = this.appMode();
+
+      // Run structure in parallel (care mode only)
+      if (mode === 'care') {
+        this.geminiService.structureHealthGoal(problem)
+          .then(struct => this.structuredProblem.set(struct))
+          .catch(() => { /* non-critical */ });
+      }
+
+      const result = await this.geminiService.runAgenticPipeline(
+        problem,
+        mode,
+        (phase) => this.agenticPhase.set(phase),
+        (partial) => {
+          this.agenticResult.set(partial as AgenticResult);
+          // Also update the standard insights view for compatibility
+          if (partial.initialInsights) {
+            this.insights.set(partial.initialInsights);
+          }
+        },
+        this.gistInput() || undefined
+      );
+
+      this.agenticResult.set(result);
+      this.insights.set(result.initialInsights);
+      this.agenticPhase.set('complete');
+    } catch (err) {
+      const errMsg = (err as Error).message || 'Deep analysis failed. Please try again.';
+      this.error.set(errMsg);
+      this.agenticPhase.set(null);
+      console.error(err);
+    } finally {
+      this.isLoading.set(false);
+      this.stopSuggestionCycle();
+    }
+  }
+
+  toggleDeepAnalysis() {
+    this.isDeepAnalysis.update(v => !v);
+  }
+
+  getConfidenceLabel(confidence: number): string {
+    if (confidence >= 0.8) return 'High';
+    if (confidence >= 0.5) return 'Medium';
+    return 'Low';
+  }
+
+  getConfidenceClass(confidence: number): string {
+    if (confidence >= 0.8) return 'confidence-high';
+    if (confidence >= 0.5) return 'confidence-medium';
+    return 'confidence-low';
+  }
+
   reset = () => {
     this.insights.set(null);
     this.problemInput.set('');
@@ -606,6 +685,10 @@ export class AppComponent implements OnDestroy {
     this.healthSnapshot.set(null);
     this.structuredProblem.set(null);
     this.resultsViewMode.set('list');
+    this.agenticResult.set(null);
+    this.agenticPhase.set(null);
+    this.isDeepAnalysis.set(false);
+    this.isDebateCollapsed.set(true);
     this.geminiService.clearCache();
     this.vitalsService.clearHistory();
   }
