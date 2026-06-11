@@ -12,7 +12,7 @@
 [![D3.js](https://img.shields.io/badge/D3.js-v7.9.0-F9A03F?logo=d3.js&logoColor=white)](https://d3js.org/)
 [![Gemini](https://img.shields.io/badge/Google_Gemini-v1.35.0-8E75C2?logo=google-gemini&logoColor=white)](https://deepmind.google/technologies/gemini/)
 
-An interactive lateral thinking workbench and medical care planner. **Pivot & Pulse** pairs Edward de Bono's lateral thinking strategies with advanced Google Gemini streaming, real-time D3 force-directed visualizations, and compliance-first clinical assistants.
+An interactive lateral thinking workbench and medical care planner. **Pivot & Pulse** pairs [Edward de Bono's](https://en.wikipedia.org/wiki/Edward_de_Bono) lateral thinking strategies with advanced Google Gemini streaming, real-time D3 force-directed visualizations, and compliance-first clinical assistants. Learn more about his legacy at [debono.com](https://www.debono.com).
 
 [View App in Google AI Studio](https://ai.studio/apps/3eeb2b40-7093-4e40-b5a5-e1d2fbb75de7)
 
@@ -55,8 +55,8 @@ graph TD
 ```
 
 
-*   **Frontend ([src](file:///c:/Users/philg/InsightSpark/InsightSpark/src)):** Built on Angular with signals for state management, D3.js for rendering force-directed graphs, and Tailwind CSS for styling.
-*   **Backend ([server.js](file:///c:/Users/philg/InsightSpark/InsightSpark/server.js)):** A lightweight Express middleware proxy managing API validation, input sanitization, security headers (Helmet), and streaming Gemini SSE feeds.
+*   **Frontend ([src](./src)):** Built on Angular with signals for state management, D3.js for rendering force-directed graphs, and Tailwind CSS for styling.
+*   **Backend ([server.js](./server.js)):** A lightweight Express middleware proxy managing API validation, input sanitization, security headers (Helmet), and streaming Gemini SSE feeds.
 
 <div align="center">
   <img width="800" alt="Quick Start" src="docs/divider-quick-start.png" />
@@ -96,11 +96,11 @@ To spin up the developer server, run both backend proxy and frontend:
 
 ### 1. Methodological Transparency
 *   **Prompt Adaptation:** The system leverages custom system instructions to morph general-purpose LLM outputs into structured clinical/creative strategies.
-*   **Strategies Mapping:** You can find the exact definitions and mapping of de Bono's creative strategies and clinical care mode strategies in [creative-types.ts](file:///c:/Users/philg/InsightSpark/InsightSpark/src/models/creative-types.ts#L85-L230).
+*   **Strategies Mapping:** You can find the exact definitions and mapping of de Bono's creative strategies and clinical care mode strategies in [creative-types.ts](./src/models/creative-types.ts).
 
 ### 2. IRB & Data Privacy Checklist
 If you are submitting an Institutional Review Board (IRB) proposal to use this tool in a clinical/academic pilot:
-*   **Zero-Data Retention Backend:** The server proxy in [server.js](file:///c:/Users/philg/InsightSpark/InsightSpark/server.js) is stateless. No databases, logs of user queries, or API history are kept.
+*   **Zero-Data Retention Backend:** The server proxy in [server.js](./server.js) is stateless. No databases, logs of user queries, or API history are kept.
 *   **Client-Side Privacy Enforcement:** A PII scanner operates strictly inside the browser client before any payload is dispatched, preventing inadvertent PHI transmissions under HIPAA guidelines.
 *   **Local Sovereignty:** Generated plans are stored under the browser’s sandboxed `localStorage` profile, giving participants absolute ownership over their data.
 
@@ -130,4 +130,5 @@ npx tsx tests/chaos.test.js
 </div>
 - Core system designed by **Phil Gear**.
 - AI services powered by **Google Gemini**.
-- Methodologies inspired by **Edward de Bono's Lateral Thinking** (CC BY-SA 4.0).
+- Methodologies inspired by **[Edward de Bono's](https://en.wikipedia.org/wiki/Edward_de_Bono) Lateral Thinking** (CC BY-SA 4.0). Legacy resources available at [debono.com](https://www.debono.com).
+  > *"I often go into thrift stores to read their books. I discovered this one on the shelf, bought it, and flipped through it. Still have it..still haven't read it fully."* — Phil Gear, on the project's origin.
