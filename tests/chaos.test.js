@@ -152,7 +152,7 @@ describe('GeminiService Chaos Engineering & Retry Resilience', () => {
     before(() => {
       originalGetItem = globalThis.localStorage.getItem;
       globalThis.localStorage.getItem = (key) => {
-        if (key === 'user_gemini_api_key') return 'demo-key-active';
+        if (key === 'user_gemini_api_key' || key === 'spark_cfg_val') return 'demo-key-active';
         return null;
       };
     });

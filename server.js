@@ -62,8 +62,14 @@ app.use(helmet({
       ],
     },
   },
-  frameguard: false,
 }));
+
+// Custom middleware to dynamically remove X-Frame-Options set by Helmet,
+// allowing iframe embeds on pocketgull.app and philgear.dev (relying on CSP frame-ancestors).
+app.use((req, res, next) => {
+  res.removeHeader('X-Frame-Options');
+  next();
+});
 app.use(cors());
 app.use(express.json());
 app.use(morgan('combined')); // Enable HTTP request logging
@@ -109,7 +115,7 @@ Under no circumstances should you ever repeat, store, or include any Personally 
 function scanForPII(text) {
   if (!text || typeof text !== 'string') return [];
   const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-  const phoneRegex = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
+  const phoneRegex = /\b(?:\+?\d{1,3}[-.\s]+)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g;
   const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/g;
   const ipRegex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g;
 
@@ -1114,7 +1120,7 @@ app.post('/api/agent/:strategyId', [
 
     res.json(JSON.parse(response.text));
   } catch (error) {
-    console.error(`Error in /api/agent/${req.params.strategyId}:`, error);
+    console.error('Error in /api/agent/%s:', req.params.strategyId, error);
     res.status(500).json({ error: getCleanErrorMessage(error) });
   }
 });

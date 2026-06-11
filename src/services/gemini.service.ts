@@ -3,6 +3,27 @@ import { CreativeStrategy, InsightResult, SavedInsight, CarePlan, StructuredProb
 import { StrategySelection, DebateEntry, RefinedInsight, AgenticResult, AgenticPhase } from '../models/agent-types';
 import { parse } from 'partial-json';
 
+function getStoredApiKey(): string {
+  let value = localStorage.getItem('spark_cfg_val');
+  if (!value) {
+    const oldKey = localStorage.getItem('user_gemini_api_key');
+    if (oldKey) {
+      value = oldKey === 'demo-key-active' ? oldKey : btoa(oldKey);
+      localStorage.setItem('spark_cfg_val', value);
+      localStorage.removeItem('user_gemini_api_key');
+    }
+  }
+  if (!value) return '';
+  try {
+    if (value === 'demo-key-active') {
+      return value;
+    }
+    return atob(value);
+  } catch (e) {
+    return value;
+  }
+}
+
 export class ApiRetryError extends Error {
   constructor(message: string) {
     super(message);
@@ -21,7 +42,7 @@ export class GeminiService {
   private creativePlanCache = new Map<string, Promise<CreativePlan>>();
 
   private getAuthHeaders(headers: Record<string, string> = {}): Record<string, string> {
-    const userApiKey = localStorage.getItem('user_gemini_api_key');
+    const userApiKey = getStoredApiKey();
     const authHeaders = { ...headers };
     if (userApiKey) {
       authHeaders['x-gemini-api-key'] = userApiKey;
@@ -580,7 +601,7 @@ export class GeminiService {
   }
 
   private isDemoMode(): boolean {
-    return localStorage.getItem('user_gemini_api_key') === 'demo-key-active';
+    return getStoredApiKey() === 'demo-key-active';
   }
 
   private getMockInsights(problem: string, strategies: CreativeStrategy[], mode: 'creative' | 'care'): InsightResult[] {

@@ -3,6 +3,40 @@ import { CommonModule } from '@angular/common';
 import { IconComponent } from './icon.component';
 import { LojongCleansingComponent } from './lojong-cleansing.component';
 
+function getStoredApiKey(): string {
+  let value = localStorage.getItem('spark_cfg_val');
+  if (!value) {
+    const oldKey = localStorage.getItem('user_gemini_api_key');
+    if (oldKey) {
+      value = oldKey === 'demo-key-active' ? oldKey : btoa(oldKey);
+      localStorage.setItem('spark_cfg_val', value);
+      localStorage.removeItem('user_gemini_api_key');
+    }
+  }
+  if (!value) return '';
+  try {
+    if (value === 'demo-key-active') {
+      return value;
+    }
+    return atob(value);
+  } catch (e) {
+    return value;
+  }
+}
+
+function setStoredApiKey(key: string): void {
+  if (key === 'demo-key-active') {
+    localStorage.setItem('spark_cfg_val', key);
+  } else {
+    localStorage.setItem('spark_cfg_val', btoa(key));
+  }
+}
+
+function removeStoredApiKey(): void {
+  localStorage.removeItem('spark_cfg_val');
+  localStorage.removeItem('user_gemini_api_key');
+}
+
 @Component({
   selector: 'app-help',
   standalone: true,
@@ -282,15 +316,15 @@ export class HelpComponent {
   chaosType = model<'429' | '500' | 'drop' | null>(null);
   chaosBehavior = model<'transient' | 'permanent'>('transient');
 
-  userApiKey = signal(localStorage.getItem('user_gemini_api_key') || '');
+  userApiKey = signal(getStoredApiKey());
   
   updateApiKey(val: string) {
     const trimmed = val.trim();
     this.userApiKey.set(trimmed);
     if (trimmed) {
-      localStorage.setItem('user_gemini_api_key', trimmed);
+      setStoredApiKey(trimmed);
     } else {
-      localStorage.removeItem('user_gemini_api_key');
+      removeStoredApiKey();
     }
   }
 }

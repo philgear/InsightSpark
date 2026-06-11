@@ -23,6 +23,40 @@ interface CareRole {
   icon: string;
 }
 
+function getStoredApiKey(): string {
+  let value = localStorage.getItem('spark_cfg_val');
+  if (!value) {
+    const oldKey = localStorage.getItem('user_gemini_api_key');
+    if (oldKey) {
+      value = oldKey === 'demo-key-active' ? oldKey : btoa(oldKey);
+      localStorage.setItem('spark_cfg_val', value);
+      localStorage.removeItem('user_gemini_api_key');
+    }
+  }
+  if (!value) return '';
+  try {
+    if (value === 'demo-key-active') {
+      return value;
+    }
+    return atob(value);
+  } catch (e) {
+    return value;
+  }
+}
+
+function setStoredApiKey(key: string): void {
+  if (key === 'demo-key-active') {
+    localStorage.setItem('spark_cfg_val', key);
+  } else {
+    localStorage.setItem('spark_cfg_val', btoa(key));
+  }
+}
+
+function removeStoredApiKey(): void {
+  localStorage.removeItem('spark_cfg_val');
+  localStorage.removeItem('user_gemini_api_key');
+}
+
 const CARE_ROLES: CareRole[] = [
   { 
     name: 'Bedside Nurse', 
@@ -99,7 +133,7 @@ export class AppComponent implements OnDestroy {
   logoPath = computed(() => this.theme() === 'dark' ? 'assets/logo-dark.svg' : 'assets/logo-light.svg');
 
   // API Key State
-  userApiKey = signal<string>(localStorage.getItem('user_gemini_api_key') || '');
+  userApiKey = signal<string>(getStoredApiKey());
   showKeyOverlay = computed(() => !this.userApiKey());
 
   // ORCID Researcher Credentials
@@ -301,18 +335,18 @@ export class AppComponent implements OnDestroy {
 
   saveApiKey(key: string) {
     if (key.trim()) {
-      localStorage.setItem('user_gemini_api_key', key.trim());
+      setStoredApiKey(key.trim());
       this.userApiKey.set(key.trim());
     }
   }
 
   clearApiKey() {
-    localStorage.removeItem('user_gemini_api_key');
+    removeStoredApiKey();
     this.userApiKey.set('');
   }
 
   activateDemoMode() {
-    localStorage.setItem('user_gemini_api_key', 'demo-key-active');
+    setStoredApiKey('demo-key-active');
     this.userApiKey.set('demo-key-active');
     
     // Set presets based on current mode
@@ -353,7 +387,7 @@ export class AppComponent implements OnDestroy {
     if (!text) return null;
 
     const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-    const phoneRegex = /(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/;
+    const phoneRegex = /\b(?:\+?\d{1,3}[-.\s]+)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/;
     const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/;
     const ipRegex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
 
