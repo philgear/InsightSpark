@@ -20,46 +20,57 @@ html {
   --font-size-3xl: 1.5rem;    /* 24px */
   --font-size-4xl: 1.875rem;  /* 30px */
 
-  /* Dried Thistle Palette - Dark Theme */
-  --bg-color: #24211c;
-  --text-color: #FDF5E6;
-  --text-color-muted: #A89F91;
-  --text-color-subtle: #867d71;
-  --text-accent: #9370DB;
-  --text-highlight: #8B5A2B;
+  /* GearArts Brand Palette - Dark Theme */
+  --primary-color: #3ebc9e; /* Teal */
+  --secondary-color: #ef6658; /* Coral */
+  --tertiary-color: #faa63c; /* Amber */
+  --background-color: #000000; /* Black background */
+  --card-background-color: #000000; /* Pure Black card background */
+  --text-color: #ffffff; /* White text */
+  --secondary-text-color: #ffffff;
+  --shadow-color: transparent;
+  --header-color: #ffffff;
+  --grid-color: transparent;
   
-  --header-bg: rgba(36, 33, 28, 0.7);
-  --card-bg: rgba(48, 43, 36, 0.8);
-  --card-bg-subtle: rgba(253, 245, 230, 0.05);
+  /* Legacy mapping support */
+  --bg-color: var(--background-color);
+  --text-color-muted: #e2e8f0;
+  --text-color-subtle: #cbd5e0;
+  --text-accent: var(--primary-color);
+  --text-highlight: var(--secondary-color);
   
-  --border-color: rgba(147, 112, 219, 0.2);
-  --border-color-strong: rgba(147, 112, 219, 0.4);
-  --border-accent: rgba(139, 90, 43, 0.2);
+  --header-bg: #faa63c;
+  --card-bg: var(--card-background-color);
+  --card-bg-subtle: #121212;
   
-  --button-bg: rgba(253, 245, 230, 0.05);
-  --button-bg-hover: rgba(253, 245, 230, 0.1);
+  --border-color: var(--primary-color);
+  --border-color-strong: var(--primary-color);
+  --border-accent: var(--secondary-color);
   
-  --primary-cta-bg: linear-gradient(105deg, #9370DB, #8B5A2B);
-  --primary-cta-text: #FDF5E6;
+  --button-bg: var(--card-background-color);
+  --button-bg-hover: var(--secondary-color);
+  
+  --primary-cta-bg: var(--primary-color);
+  --primary-cta-text: #ffffff;
   
   --ring-color: var(--text-accent);
 
   /* Semantic status tokens (theme-aware) */
-  --color-danger:  #e05c6b;
-  --color-warning: #d4a44c;
-  --color-success: #7aab62;
+  --color-danger:  #ef6658;
+  --color-warning: #faa63c;
+  --color-success: #3ebc9e;
 
   /* Vibrant Strategy Colors - Dark Theme */
-  --strategy-purple: #9d7dfa;
-  --strategy-green: #9ae6b4;
-  --strategy-chocolate: #f6ad55;
-  --strategy-thistle: #cbd5e0;
+  --strategy-purple: #ef6658;
+  --strategy-green: #3ebc9e;
+  --strategy-chocolate: #faa63c;
+  --strategy-thistle: #faa63c;
   
   /* Icon Colors (Vibrant & Distinct) */
-  --icon-purple: #c084fc;
-  --icon-green: #4ade80;
-  --icon-chocolate: #fb923c;
-  --icon-thistle: #e2e8f0;
+  --icon-purple: #ef6658;
+  --icon-green: #3ebc9e;
+  --icon-chocolate: #faa63c;
+  --icon-thistle: #faa63c;
   
   /* Strategy Colors Assignments */
   --strategy-what-if: var(--strategy-purple);
@@ -89,51 +100,116 @@ html {
   --strategy-icon-simplify: var(--icon-chocolate);
   --strategy-icon-random: var(--icon-thistle);
 
-  --logo-url: url('/assets/logo-dark.svg');
+  --logo-url: url('/assets/logo-dark.png');
   accent-color: var(--text-accent);
 }
 
 .light-theme {
-  /* Dried Thistle Palette - Light Theme */
-  --bg-color: #FDF5E6;
-  --text-color: #3B4720;
-  --text-color-muted: #8B5A2B;
-  --text-color-subtle: #A89F91;
-  --text-accent: #8B5A2B;
-  --text-highlight: #9370DB;
+  /* GearArts Brand Palette - Light Theme */
+  --primary-color: #3ebc9e; /* Teal */
+  --secondary-color: #ef6658; /* Coral */
+  --tertiary-color: #faa63c; /* Amber */
+  --background-color: #ffffff; /* White background */
+  --card-background-color: #ffffff; /* Pure White card background */
+  --text-color: #000000; /* Black text */
+  --secondary-text-color: #000000;
+  --shadow-color: transparent;
+  --header-color: #000000;
+  --grid-color: transparent;
 
-  --header-bg: rgba(253, 245, 230, 0.7);
-  --card-bg: rgba(255, 255, 255, 0.7);
-  --card-bg-subtle: rgba(139, 90, 43, 0.05);
+  /* Legacy mapping support */
+  --bg-color: var(--background-color);
+  --text-color-muted: #4a5568;
+  --text-color-subtle: #718096;
+  --text-accent: var(--primary-color);
+  --text-highlight: var(--secondary-color);
 
-  --border-color: rgba(139, 90, 43, 0.15);
-  --border-color-strong: rgba(139, 90, 43, 0.25);
-  --border-accent: rgba(147, 112, 219, 0.2);
+  --header-bg: #faa63c;
+  --card-bg: var(--card-background-color);
+  --card-bg-subtle: #f7fafc;
 
-  --button-bg: rgba(139, 90, 43, 0.05);
-  --button-bg-hover: rgba(139, 90, 43, 0.1);
+  --border-color: var(--primary-color);
+  --border-color-strong: var(--primary-color);
+  --border-accent: var(--secondary-color);
 
-  --primary-cta-bg: linear-gradient(105deg, #9370DB, #8B5A2B);
-  --primary-cta-text: #FDF5E6;
+  --button-bg: var(--card-background-color);
+  --button-bg-hover: var(--secondary-color);
+
+  --primary-cta-bg: var(--primary-color);
+  --primary-cta-text: #000000;
 
   /* Semantic status tokens (light theme) */
-  --color-danger:  #c0392b;
-  --color-warning: #b7770d;
-  --color-success: #3d7a37;
+  --color-danger:  #ef6658;
+  --color-warning: #faa63c;
+  --color-success: #3ebc9e;
   
   /* Adaptive Strategy Colors for Light Theme */
-  --strategy-purple: #6b46c1;
-  --strategy-green: #2f855a;
-  --strategy-chocolate: #9c4221;
-  --strategy-thistle: #4a5568;
+  --strategy-purple: #ef6658;
+  --strategy-green: #3ebc9e;
+  --strategy-chocolate: #faa63c;
+  --strategy-thistle: #ef6658;
 
   /* Icon Colors (Light Theme - Richer Shades) */
-  --icon-purple: #553c9a;
-  --icon-green: #276749;
-  --icon-chocolate: #7b341e;
-  --icon-thistle: #2d3748;
+  --icon-purple: #ef6658;
+  --icon-green: #3ebc9e;
+  --icon-chocolate: #faa63c;
+  --icon-thistle: #ef6658;
 
-  --logo-url: url('/assets/logo-light.svg');
+  --logo-url: url('/assets/logo-light.png');
+}
+
+.brand-theme {
+  /* GearArts Brand Theme - faa63c background and white text/card areas */
+  --primary-color: #3ebc9e; /* Teal */
+  --secondary-color: #ef6658; /* Coral */
+  --tertiary-color: #faa63c; /* Amber */
+  --background-color: #faa63c; /* Amber background */
+  --card-background-color: #ffffff; /* White card background */
+  --text-color: #000000; /* Black text */
+  --secondary-text-color: #000000;
+  --shadow-color: transparent;
+  --header-color: #000000;
+  --grid-color: transparent;
+
+  /* Legacy mapping support */
+  --bg-color: var(--background-color);
+  --text-color-muted: #4a5568;
+  --text-color-subtle: #718096;
+  --text-accent: var(--primary-color);
+  --text-highlight: var(--secondary-color);
+
+  --header-bg: #faa63c;
+  --card-bg: var(--card-background-color);
+  --card-bg-subtle: #f7fafc;
+
+  --border-color: var(--primary-color);
+  --border-color-strong: var(--primary-color);
+  --border-accent: var(--secondary-color);
+
+  --button-bg: var(--card-background-color);
+  --button-bg-hover: var(--secondary-color);
+
+  --primary-cta-bg: var(--primary-color);
+  --primary-cta-text: #000000;
+
+  /* Semantic status tokens */
+  --color-danger:  #ef6658;
+  --color-warning: #faa63c;
+  --color-success: #3ebc9e;
+  
+  /* Adaptive Strategy Colors */
+  --strategy-purple: #ef6658;
+  --strategy-green: #3ebc9e;
+  --strategy-chocolate: #faa63c;
+  --strategy-thistle: #ef6658;
+
+  /* Icon Colors */
+  --icon-purple: #ef6658;
+  --icon-green: #3ebc9e;
+  --icon-chocolate: #faa63c;
+  --icon-thistle: #ef6658;
+
+  --logo-url: url('/assets/logo-light.png');
 }
 
 body {
@@ -493,69 +569,52 @@ body {
   gap: 0.5rem;
   padding: 0.5rem 1rem;
   min-height: 40px;
-  border-radius: 1rem;
+  border-radius: 0px !important;
   font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-color-muted);
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  border: 1px solid transparent;
-  background: transparent;
+  font-family: 'Kanit', sans-serif;
+  font-weight: 800;
+  color: #ffffff !important;
+  background-color: var(--secondary-color) !important;
+  border: 2px solid var(--secondary-color) !important;
+  transition: transform 0.15s steps(2), background-color 0.15s steps(2);
 }
 
 .header-chip:hover {
-  background: var(--button-bg-hover);
-  border-color: var(--border-color-strong);
-  transform: translateY(-2px);
-  color: var(--text-color);
-  box-shadow: 0 4px 15px -2px rgba(0,0,0,0.1), 0 0 10px -2px var(--text-highlight);
+  background-color: #d94f44 !important;
+  border-color: #d94f44 !important;
+  transform: translate(-2px, -2px);
+  box-shadow: 2px 2px 0px #000000;
 }
 
 .header-chip.active {
-  background: var(--primary-cta-bg);
-  color: var(--primary-cta-text);
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.2);
-}
-
-.header-chip.active .app-icon {
-  color: white;
-  filter: drop-shadow(0 0 4px rgba(255,255,255,0.5));
+  background-color: #bf3e34 !important;
+  border-color: #bf3e34 !important;
+  transform: translate(2px, 2px);
+  box-shadow: none !important;
 }
 
 .organic-button {
   position: relative;
   overflow: hidden;
-  transition: all 500ms cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 1rem 0.75rem 1.25rem 0.5rem;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  transition: transform 0.15s steps(2), background-color 0.15s steps(2), border-color 0.15s steps(2);
+  border-radius: 0px !important;
   background: var(--button-bg);
-  border: 1px solid var(--border-color);
+  border: 2px solid var(--border-color);
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .organic-button:hover, .organic-button:focus {
   background: var(--button-bg-hover);
   border-color: var(--border-color-strong);
-  box-shadow: 0 4px 15px -2px rgba(0,0,0,0.1), 0 0 10px -2px var(--text-highlight);
-  transform: translateY(-1px);
+  transform: translate(-2px, -2px);
+  box-shadow: 2px 2px 0px #000000;
+  color: #ffffff;
 }
 
-.organic-button::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-  opacity: 0;
-  transition: opacity 0.5s, transform 0.5s;
-  pointer-events: none;
-}
-
-.organic-button:hover::after {
-  opacity: 1;
-  transform: translate(10%, 10%);
+.organic-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: none !important;
 }
 
 /* ── Inherited Components from index.html ───────────────────────── */
@@ -635,36 +694,44 @@ body {
 
 /* Premium Generate Button */
 .generate-button {
-  color: var(--primary-cta-text);
-  background: linear-gradient(135deg, #9370DB 0%, #8B5A2B 50%, #9370DB 100%);
-  background-size: 200% auto;
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: scale(1);
-  box-shadow: 0 4px 15px -3px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 9999px;
+  color: #ffffff !important;
+  background-color: var(--secondary-color) !important;
+  border: 2px solid var(--secondary-color) !important;
+  border-radius: 0px !important;
   padding: 0.75rem 2rem;
-  font-weight: 600;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 4px 4px 0px #000000;
+  transition: transform 0.15s steps(2), box-shadow 0.15s steps(2);
 }
 .generate-button:not(:disabled):hover {
-  background-position: right center;
-  transform: translateY(-2px) scale(1.01);
-  box-shadow: 0 12px 30px -8px rgba(0,0,0,0.5), 0 0 15px -2px var(--text-highlight);
+  background-color: #d94f44 !important;
+  border-color: #d94f44 !important;
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #000000;
 }
 .generate-button:not(:disabled):active {
-  transform: scale(0.98);
+  background-color: #bf3e34 !important;
+  border-color: #bf3e34 !important;
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px #000000;
+}
+.generate-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: 0px 0px 0px transparent !important;
+  transform: none !important;
 }
 
 /* Premium Strategy Chip */
 .strategy-button {
   background-color: var(--card-bg-subtle);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border: 2px solid var(--border-color);
+  border-radius: 0px !important;
   padding: 1rem;
   text-align: left;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.15s steps(2), border-color 0.15s steps(2), background-color 0.15s steps(2);
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -672,52 +739,31 @@ body {
   min-height: 80px;
   position: relative;
   overflow: hidden;
-}
-.strategy-button::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow: 0 8px 20px -6px rgba(0,0,0,0.3);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-  z-index: -1;
-}
-.strategy-button:hover::before {
-  opacity: 1;
+  box-shadow: 4px 4px 0px var(--border-color);
 }
 .strategy-button:hover {
   background-color: var(--button-bg-hover);
-  transform: translateY(-2px);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--border-accent);
+  border-color: var(--border-accent);
 }
-.strategy-button::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border: 1px solid var(--border-color-strong);
-  border-radius: inherit;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-.strategy-button:hover::after {
-  opacity: 1;
+.strategy-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--border-accent);
 }
 .strategy-button.selected {
   background-color: var(--card-bg);
   border-color: var(--text-highlight);
-  box-shadow: 0 0 20px -5px var(--text-highlight), inset 0 0 0 1px var(--text-highlight);
+  box-shadow: 4px 4px 0px var(--text-highlight);
 }
 .strategy-button.selected h4 {
   color: var(--text-color);
 }
 .strategy-button .strategy-icon {
   color: var(--strategy-icon-color, var(--text-color-muted));
-  transition: all 0.3s ease;
+  transition: all 0.15s ease;
 }
 .strategy-button.selected .strategy-icon {
-  filter: drop-shadow(0 0 8px var(--strategy-icon-color));
   transform: scale(1.1);
 }
 
@@ -740,3 +786,100 @@ body {
 }
 .graph-node.problem-node text { font-size: 14px; font-weight: bold; fill: var(--text-color); font-family: var(--font-serif); }
 .graph-node.strategy-node text { font-size: 12px; font-weight: bold; }
+
+/* ── Waterfall Animations ───────────────────────────────────────── */
+.waterfall-enabled .waterfall-item {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.waterfall-enabled .waterfall-item.waterfall-active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.delay-75  { transition-delay: 75ms; }
+.delay-100 { transition-delay: 100ms; }
+.delay-150 { transition-delay: 150ms; }
+.delay-200 { transition-delay: 200ms; }
+.delay-300 { transition-delay: 300ms; }
+.delay-400 { transition-delay: 400ms; }
+.delay-500 { transition-delay: 500ms; }
+
+/* ── Custom Neo-Brutalist Scrollbars ────────────────────────────── */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--card-bg);
+  border-left: 2px solid var(--border-color);
+  border-radius: 0px !important;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border: 2px solid var(--card-bg);
+  border-radius: 0px !important;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-color);
+}
+
+/* Firefox Support */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) var(--card-bg);
+}
+
+/* ── Neo-Brutalist Layout Utilities ─────────────────────────────── */
+.neo-offset-box {
+  position: relative;
+}
+.neo-offset-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--border-accent);
+  border: 2px solid var(--border-accent);
+  transform: translate(6px, 6px);
+  z-index: -1;
+  pointer-events: none;
+}
+.neo-offset-box-teal {
+  position: relative;
+}
+.neo-offset-box-teal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--primary-color);
+  border: 2px solid var(--primary-color);
+  transform: translate(6px, 6px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.neo-pressable {
+  transition: transform 0.1s steps(2);
+}
+.neo-pressable:hover {
+  transform: translate(-2px, -2px);
+}
+.neo-pressable:active {
+  transform: translate(2px, 2px);
+}
+
+#problem-input {
+  border-radius: 0px !important;
+  box-shadow: 4px 4px 0px var(--border-color-strong);
+  border-width: 2px;
+  transition: transform 0.15s steps(2), box-shadow 0.15s steps(2);
+}
+#problem-input:focus {
+  box-shadow: 4px 4px 0px var(--border-accent);
+  border-color: var(--border-accent);
+}
+

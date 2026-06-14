@@ -1,17 +1,15 @@
-import { Component, input, ElementRef, AfterViewInit, OnChanges, SimpleChanges, ViewChild, effect, untracked, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { InsightResult, CreativeStrategy } from '../../models/creative-types';
+import { Component, input, output, ElementRef, AfterViewInit, OnChanges, SimpleChanges, ViewChild, effect, untracked } from '@angular/core';
 import { IconComponent } from './icon.component';
-import { KleePaletteService } from '../../services/klee-palette.service';
+import { CommonModule } from '@angular/common';
+import { Project, Lesson } from '../../models/portfolio-data';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import * as d3 from 'd3';
 
 interface GraphNode extends d3.SimulationNodeDatum {
   id: string;
   text: string;
   fullText?: string;
-  type: 'problem' | 'strategy' | 'insight';
+  type: 'project' | 'discipline' | 'technology' | 'lesson';
   color: string;
   radius: number;
 }
@@ -24,26 +22,30 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
 @Component({
   selector: 'app-graph-view',
   standalone: true,
-  imports: [CommonModule, IconComponent],
+  imports: [IconComponent, CommonModule,],
   template: `
-    <div class="relative w-full h-[600px] organic-shape overflow-hidden bg-[var(--card-bg-subtle)] border border-[var(--border-color)]">
-      <div #graphContainer class="w-full h-full non-printable"></div>
+    <div class="relative w-full h-full min-h-[300px]">
+      <!-- SVG Canvas Container -->
+      <div #graphContainer class="w-full h-full min-h-[300px] overflow-hidden bg-white select-none border border-black" style="border-radius: 0px !important;"></div>
       
-      <!-- Tooltip -->
-      <div #tooltip class="absolute hidden pointer-events-none z-30 max-w-xs p-4 bg-[var(--header-bg)] backdrop-blur-md border border-[var(--border-color-strong)] rounded-xl shadow-2xl text-sm animate-pop">
-        <p class="font-medium text-[var(--text-accent)] mb-1 uppercase tracking-wider text-[10px]" id="tooltip-type"></p>
-        <p class="text-[var(--text-color)] leading-relaxed" id="tooltip-text"></p>
+      <!-- Inset White Shadow Overlay & Non-Teal Border -->
+      <div class="absolute inset-0 pointer-events-none border border-black" style="box-shadow: inset 0 0 30px #ffffff; border-radius: 0px !important;"></div>
+      
+      <!-- Tooltip Element -->
+      <div #tooltip class="hidden absolute pointer-events-none bg-black border border-black text-white p-3 z-30 font-sans max-w-xs transition-opacity duration-200" style="border-radius: 0px !important;">
+        <div id="tooltip-type" class="text-[8px] font-black uppercase tracking-widest text-[var(--text-accent)] mb-1"></div>
+        <div id="tooltip-text" class="text-[10px] leading-relaxed whitespace-pre-wrap"></div>
       </div>
-
-      <!-- Graph Controls -->
+      
+      <!-- Graph Zoom Controls -->
       <div class="absolute bottom-4 right-4 flex flex-col gap-2 z-20">
-        <button (click)="zoomIn()" class="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] shadow-lg hover:bg-[var(--button-bg-hover)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" aria-label="Zoom In">
-          <app-icon name="plus" [size]="18"></app-icon>
+        <button (click)="zoomIn()" class="flex items-center justify-center w-9 h-9 bg-white border border-black hover:bg-neutral-100 text-black transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400" aria-label="Zoom In" style="border-radius: 0px !important;">
+          <app-icon name="plus" [size]="16"></app-icon>
         </button>
-        <button (click)="zoomOut()" class="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] shadow-lg hover:bg-[var(--button-bg-hover)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" aria-label="Zoom Out">
+        <button (click)="zoomOut()" class="flex items-center justify-center w-9 h-9 bg-white border border-black hover:bg-neutral-100 text-black transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400" aria-label="Zoom Out" style="border-radius: 0px !important;">
           <app-icon name="minus" [size]="18"></app-icon>
         </button>
-        <button (click)="resetZoom()" class="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] shadow-lg hover:bg-[var(--button-bg-hover)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" aria-label="Reset Zoom">
+        <button (click)="resetZoom()" class="flex items-center justify-center w-9 h-9 bg-white border border-black hover:bg-neutral-100 text-black transition-colors focus:outline-none focus:ring-2 focus:ring-neutral-400" aria-label="Reset Zoom" style="border-radius: 0px !important;">
           <app-icon name="maximize" [size]="18"></app-icon>
         </button>
       </div>
@@ -51,13 +53,13 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
   `,
   styles: [`
     :host ::ng-deep .graph-link {
-      stroke: var(--border-color);
-      stroke-opacity: 0.3;
+      stroke: #cccccc;
+      stroke-opacity: 0.6;
       stroke-width: 1.5px;
       transition: stroke 0.3s, stroke-opacity 0.3s, stroke-width 0.3s;
     }
     :host ::ng-deep .graph-link.highlighted {
-      stroke: var(--text-accent);
+      stroke: var(--tertiary-color);
       stroke-opacity: 1;
       stroke-width: 3px;
     }
@@ -66,39 +68,59 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
       transition: opacity 0.3s, transform 0.3s;
     }
     :host ::ng-deep .graph-node circle {
+      stroke: #000000;
+      stroke-width: 1.5px;
       transition: stroke 0.3s, stroke-width 0.3s, r 0.3s;
     }
     :host ::ng-deep .graph-node.highlighted circle {
-      stroke: var(--text-highlight);
+      stroke: var(--secondary-color) !important;
       stroke-width: 3px;
     }
     :host ::ng-deep .graph-node.dimmed {
       opacity: 0.2;
     }
     :host ::ng-deep .graph-node text {
-      font-size: 10px;
-      font-weight: 500;
-      fill: var(--text-color-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 9px;
+      font-weight: bold;
+      fill: #000000;
       pointer-events: none;
-      transition: fill 0.3s, font-size 0.3s;
+      text-anchor: middle;
+      transition: fill 0.3s, font-size 0.3s, opacity 0.3s;
+      paint-order: stroke;
+      stroke: #ffffff;
+      stroke-width: 3px;
+      stroke-linecap: butt;
+      stroke-linejoin: miter;
     }
     :host ::ng-deep .graph-node.highlighted text {
-      fill: var(--text-color);
+      fill: var(--secondary-color);
       font-size: 12px;
       font-weight: 700;
     }
-  `]
-})
+    :host ::ng-deep .graph-node.project-node text,
+    :host ::ng-deep .graph-node.lesson-node text {
+      font-family: var(--font-serif);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: normal;
+    }
+    :host ::ng-deep .graph-node.discipline-node text,
+    :host ::ng-deep .graph-node.technology-node text {
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  `],})
 export class GraphViewComponent implements AfterViewInit, OnChanges {
   @ViewChild('graphContainer') private graphContainer!: ElementRef;
   @ViewChild('tooltip') private tooltipElement!: ElementRef;
   
-  results = input.required<InsightResult[]>();
-  problem = input.required<string>();
-  strategies = input.required<CreativeStrategy[]>();
+  projects = input.required<Project[]>();
+  activeDisciplines = input<Set<string>>(new Set());
+  activeTechnologies = input<Set<string>>(new Set());
+  activeLesson = input<Lesson | null>(null);
+  nodeSelected = output<{ id: string; type: string; rawId: string }>();
 
-  private kleePalette = inject(KleePaletteService);
-  
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private svg: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -111,9 +133,9 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
   constructor() {
     effect(() => {
       // Re-render graph when inputs change
-      const results = this.results();
-      const problem = this.problem();
-      if (this.isInitialized && results && problem) {
+      const projects = this.projects();
+      this.activeLesson();
+      if (this.isInitialized && projects) {
         untracked(() => this.renderGraph());
       }
     });
@@ -125,96 +147,121 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (this.isInitialized && (changes['results'] || changes['problem'])) {
-        this.renderGraph();
+    if (this.isInitialized && (
+      changes['projects'] || 
+      changes['activeLesson'] || 
+      changes['activeDisciplines'] || 
+      changes['activeTechnologies']
+    )) {
+      this.renderGraph();
     }
   }
 
-  private getStrategyColor(strategyName: string): string {
-    const strategyId = strategyName.toLowerCase().replace('’', '').replace(/\s+/g, '-');
-    const style = getComputedStyle(document.documentElement);
-    return style.getPropertyValue(`--strategy-${strategyId}`).trim() || 'gray';
+  private getDisciplineColor(name: string): string {
+    return 'var(--secondary-color)';
   }
 
-  /**
-   * Returns a hex color for a strategy, blended toward --bg-color at the given ratio.
-   * Uses KleePaletteService.blend() — the natural consumer of that unused method.
-   */
-  private getBlendedStrategyColor(strategyName: string, blendRatio = 0): string {
-    const strategyColor = this.getStrategyColor(strategyName);
-    if (blendRatio === 0) return strategyColor;
-    try {
-      const bgColor = getComputedStyle(document.documentElement)
-        .getPropertyValue('--bg-color').trim();
-      // Only blend if both values look like valid hex colors
-      if (/^#[0-9a-f]{3,6}$/i.test(strategyColor) && /^#[0-9a-f]{3,6}$/i.test(bgColor)) {
-        return this.kleePalette.blend(bgColor, strategyColor, blendRatio);
-      }
-    } catch {
-      // Fall back silently — CSS variable may be rgba()
-    }
-    return strategyColor;
+  private getTechnologyColor(name: string): string {
+    return 'var(--tertiary-color)';
   }
 
   private createGraphData(): { nodes: GraphNode[], links: GraphLink[] } {
     const nodes: GraphNode[] = [];
     const links: GraphLink[] = [];
-    const problemText = this.problem();
-    const resultsData = this.results();
+    const projects = this.projects();
+    const lesson = this.activeLesson();
 
-    // 1. Problem Node
-    const problemId = 'problem-root';
-    nodes.push({
-      id: problemId,
-      text: problemText.length > 50 ? problemText.substring(0, 47) + '...' : problemText,
-      fullText: problemText,
-      type: 'problem',
-      color: 'var(--text-accent)',
-      radius: 30,
-    });
+    const addedNodes = new Set<string>();
 
-    // 2. Strategy and Insight Nodes
-    resultsData.forEach((result, i) => {
-      const strategyId = `strategy-${i}`;
-      const strategyName = result.strategyName;
-      
-      // Strategy Node
-      nodes.push({
-        id: strategyId,
-        text: strategyName,
-        fullText: strategyName,
-        type: 'strategy',
-        // Strategy nodes: fully saturated strategy color for visual anchoring
-        color: this.getStrategyColor(strategyName),
-        radius: 20,
+    const addNode = (n: GraphNode) => {
+      if (!addedNodes.has(n.id)) {
+        nodes.push(n);
+        addedNodes.add(n.id);
+      }
+    };
+
+    // 1. Add Active Lesson Node if present
+    if (lesson) {
+      const lessonNodeId = `lesson-${lesson.id}`;
+      addNode({
+        id: lessonNodeId,
+        text: lesson.title,
+        fullText: `Lesson: ${lesson.title}\n\nDiscipline: ${lesson.discipline}\n\n${lesson.description}`,
+        type: 'lesson',
+        color: '#ffffff', // Clean contrast white for lesson node focus
+        radius: 22
+      });
+    }
+
+    // 2. Add Projects, their Disciplines and Technologies
+    projects.forEach(project => {
+      const projNodeId = `project-${project.id}`;
+      addNode({
+        id: projNodeId,
+        text: project.title,
+        fullText: `Project: ${project.title}\nDiscipline: ${project.discipline}\nTechs: ${project.technologies.join(', ')}\n\n${project.description}`,
+        type: 'project',
+        color: 'var(--primary-color)',
+        radius: 18
       });
 
-      // Link from Problem to Strategy
+      // Add associated Discipline Node
+      const discNodeId = `discipline-${project.discipline.toLowerCase().replace(/\s+/g, '-')}`;
+      addNode({
+        id: discNodeId,
+        text: project.discipline,
+        fullText: `Discipline: ${project.discipline}`,
+        type: 'discipline',
+        color: this.getDisciplineColor(project.discipline),
+        radius: 24
+      });
+
+      // Link Project -> Discipline
       links.push({
-        source: problemId,
-        target: strategyId,
+        source: projNodeId,
+        target: discNodeId
       });
 
-      // Insight Nodes
-      result.insights.forEach((insight, j) => {
-        const insightId = `insight-${i}-${j}`;
-        nodes.push({
-          id: insightId,
-          text: insight.text.length > 30 ? insight.text.substring(0, 27) + '...' : insight.text,
-          fullText: insight.text,
-          type: 'insight',
-          // Insight nodes: blended 60% toward bg-color for subtle leaf fill
-          color: this.getBlendedStrategyColor(strategyName, 0.6),
-          radius: 10,
+      // Add associated Technology Nodes
+      project.technologies.forEach(tech => {
+        const techNodeId = `technology-${tech.toLowerCase().replace(/\s+/g, '-')}`;
+        addNode({
+          id: techNodeId,
+          text: tech,
+          fullText: `Technology: ${tech}`,
+          type: 'technology',
+          color: this.getTechnologyColor(tech),
+          radius: 14
         });
 
-        // Link from Strategy to Insight
+        // Link Project -> Technology
         links.push({
-          source: strategyId,
-          target: insightId,
+          source: projNodeId,
+          target: techNodeId
         });
       });
+
+      // If active lesson is related to this project, link them
+      if (lesson && lesson.relatedProjectIds.includes(project.id)) {
+        links.push({
+          source: `lesson-${lesson.id}`,
+          target: projNodeId
+        });
+      }
     });
+
+    // If active lesson is present, add edges from lesson to its direct technologies as well
+    if (lesson) {
+      lesson.technologies.forEach(tech => {
+        const techNodeId = `technology-${tech.toLowerCase().replace(/\s+/g, '-')}`;
+        if (addedNodes.has(techNodeId)) {
+          links.push({
+            source: `lesson-${lesson.id}`,
+            target: techNodeId
+          });
+        }
+      });
+    }
 
     return { nodes, links };
   }
@@ -233,16 +280,22 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
 
     this.simulation = d3.forceSimulation(nodes)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .force("link", d3.forceLink(links).id((d: any) => d.id).distance((d:any) => d.source.type === 'problem' ? 220 : 110))
-        .force("charge", d3.forceManyBody().strength(-800))
+        .force("link", d3.forceLink(links).id((d: any) => d.id).distance((d: any) => {
+          if (d.source.type === 'lesson' || d.target.type === 'lesson') return 160;
+          if (d.source.type === 'discipline' || d.target.type === 'discipline') return 140;
+          return 90;
+        }))
+        .force("charge", d3.forceManyBody().strength(-350))
         .force("center", d3.forceCenter(width / 2, height / 2))
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .force("collide", d3.forceCollide().radius((d: any) => d.radius + 18));
+        .force("collide", d3.forceCollide().radius((d: any) => d.radius + 15));
 
     this.svg = d3.select(container).append("svg")
         .attr("width", "100%")
         .attr("height", "100%")
-        .attr("viewBox", [0, 0, width, height]);
+        .attr("viewBox", [0, 0, width, height])
+        .attr("role", "img")
+        .attr("aria-label", "Relational Node Map of Projects, Disciplines, Technologies, and Lessons");
     
     this.zoomBehavior = d3.zoom()
         .scaleExtent([0.1, 4])
@@ -269,13 +322,17 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
         .join("g")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .attr("class", (d: any) => `graph-node ${d.type}-node`)
+        .attr("tabindex", "0")
+        .attr("role", "button")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .attr("aria-label", (d: any) => `${d.type}: ${d.text}`)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .on("click", (event: any, d: any) => this.handleNodeClick(event, d, node, link))
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .on("mouseover", (event: any, d: any) => this.showTooltip(event, d))
         .on("mouseout", () => this.hideTooltip())
         .call(this.drag(this.simulation));
-        
+
     node.append("circle")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .attr("r", (d: any) => d.radius)
@@ -344,7 +401,7 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
     } else {
       this.selectedNodeId = d.id;
     }
-
+ 
     if (!this.selectedNodeId) {
       nodeSelection.classed('highlighted', false).classed('dimmed', false);
       linkSelection.classed('highlighted', false);
@@ -367,6 +424,15 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
     nodeSelection.classed('highlighted', (n: any) => n.id === d.id);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     nodeSelection.classed('dimmed', (n: any) => !connectedNodeIds.has(n.id));
+
+    // Emit event for linking graph to context
+    let rawId = d.id;
+    if (d.id.startsWith('project-')) rawId = d.id.substring(8);
+    else if (d.id.startsWith('lesson-')) rawId = d.id.substring(7);
+    else if (d.id.startsWith('discipline-')) rawId = d.id.substring(11);
+    else if (d.id.startsWith('technology-')) rawId = d.id.substring(11);
+
+    this.nodeSelected.emit({ id: d.id, type: d.type, rawId });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -383,8 +449,26 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
     tooltip.classList.remove('hidden');
     
     const containerRect = this.graphContainer.nativeElement.getBoundingClientRect();
-    const x = event.clientX - containerRect.left + 10;
-    const y = event.clientY - containerRect.top + 10;
+    
+    let clientX = event.clientX;
+    let clientY = event.clientY;
+    
+    if (clientX === undefined || clientY === undefined) {
+      const targetEl = event.currentTarget || event.target;
+      if (targetEl && typeof targetEl.getBoundingClientRect === 'function') {
+        const rect = targetEl.getBoundingClientRect();
+        clientX = rect.left + rect.width / 2;
+        clientY = rect.bottom;
+      } else {
+        const scaleX = containerRect.width / 800;
+        const scaleY = containerRect.height / 600;
+        clientX = containerRect.left + (d.x ?? 0) * scaleX;
+        clientY = containerRect.top + (d.y ?? 0) * scaleY;
+      }
+    }
+    
+    const x = clientX - containerRect.left + 10;
+    const y = clientY - containerRect.top + 10;
     
     tooltip.style.left = `${x}px`;
     tooltip.style.top = `${y}px`;

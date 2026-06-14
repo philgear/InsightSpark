@@ -1,7 +1,8 @@
 import { Injectable, signal } from '@angular/core';
 import { SavedItem } from '../models/creative-types';
 
-export type Theme = 'light' | 'dark';
+export type Theme = 'light' | 'dark' | 'brand';
+export type BgTheme = 'none' | 'breathe' | 'flow' | 'move';
 
 @Injectable({
   providedIn: 'root'
@@ -9,6 +10,7 @@ export type Theme = 'light' | 'dark';
 export class StorageService {
   private readonly ITEMS_STORAGE_KEY = 'spark_deck_saved';
   private readonly THEME_STORAGE_KEY = 'spark_deck_theme';
+  private readonly BG_THEME_STORAGE_KEY = 'spark_deck_bg_theme';
   
   // The service holds the state in a private writable signal
   private _savedItems = signal<SavedItem[]>(this.loadFromStorage());
@@ -60,20 +62,33 @@ export class StorageService {
   // --- Theme Management ---
   getTheme(): Theme {
     const storedTheme = localStorage.getItem(this.THEME_STORAGE_KEY);
-    if (storedTheme === 'light' || storedTheme === 'dark') {
+    if (storedTheme === 'light' || storedTheme === 'dark' || storedTheme === 'brand') {
       return storedTheme;
     }
 
     // If no theme is stored, respect the user's system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-      return 'light';
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
     }
 
-    // Default to dark theme if nothing is set or value is invalid
-    return 'dark';
+    // Default to light theme if nothing is set or value is invalid
+    return 'light';
   }
 
   saveTheme(theme: Theme): void {
     localStorage.setItem(this.THEME_STORAGE_KEY, theme);
+  }
+
+  // --- BgTheme Management ---
+  getBgTheme(): BgTheme {
+    const stored = localStorage.getItem(this.BG_THEME_STORAGE_KEY);
+    if (stored === 'none' || stored === 'breathe' || stored === 'flow' || stored === 'move') {
+      return stored;
+    }
+    return 'none';
+  }
+
+  saveBgTheme(bgTheme: BgTheme): void {
+    localStorage.setItem(this.BG_THEME_STORAGE_KEY, bgTheme);
   }
 }

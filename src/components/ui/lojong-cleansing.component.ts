@@ -10,8 +10,8 @@ import { CommonModule } from '@angular/common';
     .river-wrap {
       position: relative;
       overflow: hidden;
-      border-radius: 1.75rem;
-      border: 1px solid var(--border-accent);
+      border-radius: 0px !important; /* Enforce zero-radius borders as per design instructions */
+      border: 2px solid var(--border-color, #000);
       background: var(--card-bg);
       padding: 2.5rem 2rem;
       min-height: 260px;

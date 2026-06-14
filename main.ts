@@ -3,13 +3,12 @@ import { provideZonelessChangeDetection, importProvidersFrom, isDevMode } from '
 import { provideServiceWorker } from '@angular/service-worker';
 import { FormsModule } from '@angular/forms';
 import { AppComponent } from './src/app.component';
-import { LocationStrategy, HashLocationStrategy } from '@angular/common';
+
 
 const isIframe = window.self !== window.top;
 const providers = [
   provideZonelessChangeDetection(),
-  importProvidersFrom(FormsModule),
-  { provide: LocationStrategy, useClass: HashLocationStrategy }
+  importProvidersFrom(FormsModule)
 ];
 
 if (!isIframe) {

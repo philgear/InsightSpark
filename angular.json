@@ -22,7 +22,9 @@
               "src/assets",
               { "glob": "**/*", "input": "public/", "output": "/" }
             ],
-            "styles": ["styles.css"],
+            "styles": [
+              "styles.css"
+            ],
             "tsConfig": "tsconfig.json",
             "allowedCommonJsDependencies": ["p-retry"]
           },
@@ -32,7 +34,9 @@
               "optimization": true,
               "sourceMap": false,
               "extractLicenses": true,
-              "namedChunks": false
+              "namedChunks": false,
+              "serviceWorker": "ngsw-config.json",
+              "subresourceIntegrity": true
             },
             "development": {
               "optimization": false,
@@ -45,7 +49,8 @@
         "serve": {
           "builder": "@angular/build:dev-server",
           "options": {
-            "port": 3000
+            "port": 3000,
+            "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
             "production": {

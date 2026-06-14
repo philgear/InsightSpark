@@ -1,11 +1,11 @@
 {
-  "name": "InsightSpark",
-  "short_name": "InsightSpark",
-  "description": "AI-powered creative insight generator",
+  "name": "GearArts",
+  "short_name": "GearArts",
+  "description": "Creating a sustainable future through art and technology",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#24211c",
-  "theme_color": "#24211c",
+  "background_color": "#121E1C",
+  "theme_color": "#121E1C",
   "icons": [
     {
       "src": "/favicon.svg",

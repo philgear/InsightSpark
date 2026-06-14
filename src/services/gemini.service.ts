@@ -18,8 +18,6 @@ export class GeminiService {
   private structureCache = new Map<string, Promise<StructuredProblem>>();
   private carePlanCache = new Map<string, Promise<CarePlan>>();
 
-  constructor() {}
-
   /**
    * Clears all caches. Called when starting a new session.
    */
@@ -27,6 +25,24 @@ export class GeminiService {
     this.insightCache.clear();
     this.structureCache.clear();
     this.carePlanCache.clear();
+  }
+
+  async reframeGoal(problem: string): Promise<{ habitualPath: string; alternativePath: string; explanation: string }> {
+    return this._withRetries(async () => {
+      const response = await fetch('/api/reframe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ problem })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status} ${response.statusText}`);
+      }
+
+      return response.json();
+    });
   }
 
   /**
@@ -161,7 +177,7 @@ export class GeminiService {
                         const partial = parse(buffer);
                         
                         // Normalize strategy names on the client
-                        const normalizedResults = partial.map((result: any) => {
+                        const normalizedResults = (partial as InsightResult[]).map((result: InsightResult) => {
                           const originalStrategy = strategies.find(s => {
                             const sName = mode === 'care' ? s.careModeName || s.name : s.name;
                             return sName.toLowerCase() === (result.strategyName || '').toLowerCase();
@@ -174,14 +190,14 @@ export class GeminiService {
                         
                         finalResults = normalizedResults;
                         onUpdate(normalizedResults);
-                      } catch (e) {
+                      } catch {
                          // Ignore partial parse errors, just wait for next chunk
                       }
                     }
                   } else if (data.error) {
                     throw new Error(data.error);
                   }
-                } catch(e) {
+                } catch {
                   // ignore JSON parse error for SSE message wrapper
                 }
               }
@@ -192,7 +208,7 @@ export class GeminiService {
         // Final parsing attempt to ensure we get everything if onUpdate wasn't called on the last chunk
         try {
            const finalParsed = parse(buffer);
-           const normalizedResults = finalParsed.map((result: any) => {
+           const normalizedResults = (finalParsed as InsightResult[]).map((result: InsightResult) => {
               const originalStrategy = strategies.find(s => {
                 const sName = mode === 'care' ? s.careModeName || s.name : s.name;
                 return sName.toLowerCase() === (result.strategyName || '').toLowerCase();
@@ -203,7 +219,7 @@ export class GeminiService {
               return result;
            });
            finalResults = normalizedResults;
-        } catch(e) {
+        } catch (e) {
            console.error("Final parse failed", e);
         }
 

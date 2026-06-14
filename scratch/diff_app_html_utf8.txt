@@ -1,0 +1,1184 @@
+diff --git a/src/app.component.html b/src/app.component.html
+index a282c42..e293570 100644
+--- a/src/app.component.html
++++ b/src/app.component.html
+@@ -109,170 +109,602 @@
+             </div>
+           }          @else if (insights(); as insightResults) {
+             <!-- Results View -->
+-            <section role="region" aria-labelledby="results-heading" class="animate-pop space-y-8">
+-              <!-- Results Header -->
+-              <header class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+-                <div>
+-                  <p class="text-sm font-medium text-[var(--text-accent)] uppercase tracking-wider">A new perspective for:</p>
+-                  <h2 id="results-heading" class="mt-2 text-[var(--text-color)]">
+-                    {{ problemInput() }}
+-                  </h2>
+-                </div>
+-                <div class="flex items-center gap-2 flex-wrap">
+-                   <button (click)="editQuery()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+-                    <app-icon name="edit" [size]="18"></app-icon>
+-                    <span>Edit Query</span>
+-                  </button>
+-                   <div class="bg-[var(--button-bg)] border border-[var(--border-color)] rounded-full p-1 flex items-center text-sm font-medium">
+-                    <button (click)="resultsViewMode.set('list')" [class.bg-[var(--card-bg)]]="resultsViewMode() === 'list'" class="flex items-center justify-center min-w-[48px] min-h-[48px] organic-button transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-pressed]="resultsViewMode() === 'list'" aria-label="Switch to list view">
+-                      <app-icon name="list" [size]="20"></app-icon>
+-                    </button>
+-                    <button (click)="resultsViewMode.set('graph')" [class.bg-[var(--card-bg)]]="resultsViewMode() === 'graph'" class="flex items-center justify-center min-w-[48px] min-h-[48px] organic-button transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-pressed]="resultsViewMode() === 'graph'" aria-label="Switch to graph view">
+-                      <app-icon name="git-branch" [size]="20"></app-icon>
+-                    </button>
+-                  </div>
+-                </div>
+-              </header>
+-              
+-              @if (structuredProblem(); as problem) {
+-                <div class="bg-[var(--card-bg-subtle)] p-6 organic-shape">
+-                  <h3 class="text-[var(--text-accent)]">{{problem.title}}</h3>
+-                  <p><strong class="font-semibold text-[var(--text-color-muted)]">Condition:</strong> {{problem.condition}}</p>
+-                  <p><strong class="font-semibold text-[var(--text-color-muted)]">Goal:</strong> {{problem.goal}}</p>
++            @if (appMode() === 'creative') {
++              <section role="region" aria-labelledby="results-heading" class="animate-pop space-y-8">
++                <!-- Results Header -->
++                <header class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                   <div>
+-                    <strong class="font-semibold text-[var(--text-color-muted)]">Barriers:</strong>
+-                    <ul class="list-disc pl-5 mt-1">
+-                      @for(barrier of problem.barriers; track barrier) {
+-                        <li>{{barrier}}</li>
+-                      }
+-                    </ul>
++                    <p class="text-sm font-medium text-[var(--text-accent)] uppercase tracking-wider">Showcase Catalog for:</p>
++                    <h2 id="results-heading" class="mt-2 text-[var(--text-color)]">
++                      {{ problemInput() || 'All Projects' }}
++                    </h2>
+                   </div>
+-                </div>
+-              }
++                  <div class="flex items-center gap-2 flex-wrap">
++                    <button (click)="editQuery()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
++                      <app-icon name="edit" [size]="18"></app-icon>
++                      <span>Edit Filter Query</span>
++                    </button>
++                  </div>
++                </header>
+ 
+-              @if (resultsViewMode() === 'list') {
+-              <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+-                @for (result of insightResults; track result.strategyName) {
+-                  <div class="p-5 organic-shape flex flex-col" [style.--strategy-color]="'var(--strategy-' + getStrategyId(result.strategyName) + ')'">
+-                    <header class="flex items-center gap-3 mb-4">
+-                      <div class="w-10 h-10 rounded-lg bg-[var(--strategy-color)]/20 flex items-center justify-center text-[var(--strategy-color)]">
+-                        <app-icon [name]="getStrategyIcon(result.strategyName)" [size]="24"></app-icon>
+-                      </div>
+-                      <h3 class="text-[var(--strategy-color)]">{{ result.strategyName }}</h3>
+-                    </header>
+-                    <div class="space-y-4 flex-1">
+-                      @for (insight of result.insights; track insight.text; let i = $index) {
+-                        @let id = 'insight-' + result.strategyName + '-' + i;
+-                        <div class="insight-card-magical group relative">
+-                          <p class="text-base/relaxed">{{ insight.text }}</p>
+-                          @if (insight.influence) {
+-                             <p class="text-sm text-[var(--text-color-muted)] mt-2 italic border-l-2 border-[var(--border-color)] pl-3">
+-                              {{insight.influence}}
+-                            </p>
+-                          }
+-                          <div class="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
+-                            <button (click)="copyToClipboard(insight.text, id)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-label]="formatAriaLabel('Copy insight', insight.text)">
+-                              @if (copiedId() === id) {
+-                                <app-icon name="check" [size]="20" class="text-green-500"></app-icon>
+-                              } @else {
+-                                <app-icon name="copy" [size]="20"></app-icon>
+-                              }
+-                            </button>
+-                            <button (click)="toggleInsightSave(insight, result.strategyName)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-label]="formatAriaLabel(isInsightSaved(insight.text) ? 'Unsave insight' : 'Save insight', insight.text)">
+-                               <app-icon name="bookmark" [size]="20" [class]="isInsightSaved(insight.text) ? 'fill-current text-[var(--text-highlight)]' : ''"></app-icon>
+-                            </button>
++                @if (selectedProjectId(); as activeId) {
++                  <!-- Split Layout Grid (5/12 Left, 7/12 Right) -->
++                  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
++                    <!-- Left Column (5/12) - Master List -->
++                    <div class="lg:col-span-5 space-y-4 max-h-[80vh] overflow-y-auto pr-2">
++                      @for (proj of interleavedProjects(); track proj.id) {
++                        <div (click)="selectedProjectId.set(proj.id)"
++                             [class.border-[var(--text-accent)]]="proj.id === activeId"
++                             [class.border-[var(--border-color)]]="proj.id !== activeId"
++                             class="p-4 bg-[var(--card-bg)] border-2 hover:border-[var(--text-accent)] transition-all cursor-pointer flex flex-col justify-between"
++                             style="border-radius: 0px !important;">
++                          <div>
++                            <div class="flex justify-between items-start gap-2">
++                              <span class="px-2 py-0.5 text-[8px] font-black uppercase tracking-widest bg-[var(--card-bg-subtle)] text-[var(--text-accent)] border border-[var(--text-accent)]" style="border-radius: 0px !important;">
++                                {{ proj.discipline }}
++                              </span>
++                              <span class="text-[9px] text-[var(--text-color-muted)] font-black uppercase tracking-widest">
++                                {{ proj.id }}
++                              </span>
++                            </div>
++                            <h3 class="font-serif text-lg text-[var(--text-color)] mt-2 leading-tight">{{ proj.title }}</h3>
++                            <p class="text-xs text-[var(--text-color-muted)] mt-1 line-clamp-2">{{ proj.description }}</p>
++                          </div>
++                          
++                          <div class="flex flex-wrap gap-1 mt-3">
++                            @for (tech of proj.technologies; track tech) {
++                              <span class="px-1.5 py-0.5 text-[9px] font-bold border border-[var(--border-color)] text-[var(--text-color-subtle)]" style="border-radius: 0px !important;">
++                                {{ tech }}
++                              </span>
++                            }
+                           </div>
+                         </div>
+                       }
+                     </div>
+-                  </div>
+-                }
+-              </div>
+-              } @else {
+-                @defer (on viewport; prefetch on idle) {
+-                  <app-graph-view [results]="insightResults" [problem]="problemInput()" [strategies]="availableStrategies()"></app-graph-view>
+-                } @placeholder {
+-                  <div class="h-[600px] organic-shape bg-black/5 animate-pulse flex items-center justify-center">
+-                    <p class="text-[var(--text-color-muted)] italic">Rendering strategy graph...</p>
+-                  </div>
+-                }
+-              }
+ 
+-              @if (appMode() === 'care' && savedInsightsForCurrentProblem().length > 0) {
+-                <div class="text-center py-8">
+-                  <h3 class="mb-2">Synthesize a Care Plan</h3>
+-                  <p class="text-[var(--text-color-muted)] mb-4">You've saved {{ savedInsightsForCurrentProblem().length }} insight(s) for this goal. Ready to build a plan?</p>
+-                  <button (click)="generateCarePlan()" [disabled]="isGeneratingCarePlan()" class="font-bold py-3 px-6 min-h-[48px] min-w-[120px] organic-button swirling-surface shadow-lg transition-all flex items-center justify-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--primary-cta-bg)] text-[var(--primary-cta-text)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+-                    @if(isGeneratingCarePlan()) {
+-                      <app-icon name="loader" [size]="20" class="animate-spin"></app-icon>
+-                      <span>Generating...</span>
+-                    } @else {
+-                      <app-icon name="sparkles" [size]="20"></app-icon>
+-                      <span>Generate Care Plan</span>
+-                    }
+-                  </button>
+-                </div>
+-              }
+-              
+-              @if (carePlan(); as plan) {
+-                <section class="mt-12 printable-section" id="care-plan-section" aria-labelledby="care-plan-heading">
+-                    <div class="p-6 md:p-8 organic-shape">
+-                        <header class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6 border-b border-[var(--border-color)] pb-6">
+-                            <div>
+-                                <h3 id="care-plan-heading" class="text-[var(--text-accent)]">Synthesized Care Plan</h3>
+-                                <p class="text-[var(--text-color-muted)] mt-1">Based on your saved insights for: {{ problemInput() }}</p>
++                    <!-- Right Column (7/12) - Details Panel -->
++                    @if (getActiveProject(interleavedProjects(), activeId); as project) {
++                      <div class="lg:col-span-7 bg-[var(--card-bg)] border-2 border-[var(--text-accent)] p-6 md:p-8 space-y-6 relative" style="border-radius: 0px !important;">
++                        
++                        <!-- Close button -->
++                        <button (click)="selectedProjectId.set(null)"
++                                class="absolute top-4 right-4 flex items-center justify-center min-w-[44px] min-h-[44px] hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] border border-[var(--border-color)]"
++                                style="border-radius: 0px !important;"
++                                aria-label="Close details">
++                          <app-icon name="x" [size]="18"></app-icon>
++                        </button>
++
++                        <!-- Details Header -->
++                        <header class="border-b border-[var(--border-color)]/30 pb-4 pr-10">
++                          <span class="px-2.5 py-1 text-[9px] font-black uppercase tracking-widest bg-[var(--card-bg)] text-[var(--text-accent)] border-2 border-[var(--text-accent)]" style="border-radius: 0px !important;">
++                            {{ project.discipline }}
++                          </span>
++                          <h2 class="font-serif text-3xl text-[var(--text-color)] mt-3 leading-tight">{{ project.title }}</h2>
++                          <p class="text-sm text-[var(--text-color-muted)] mt-2 leading-relaxed">{{ project.description }}</p>
++                        </header>
++
++                        <!-- Features -->
++                        <div class="space-y-2">
++                          <h4 class="text-[10px] font-black uppercase tracking-widest text-[var(--text-color-subtle)]">Key Capabilities:</h4>
++                          <ul class="list-disc pl-5 text-xs text-[var(--text-color-muted)] space-y-1">
++                            @for (feat of project.features; track feat) {
++                              <li>{{ feat }}</li>
++                            }
++                          </ul>
++                        </div>
++
++                        <!-- Interactive Code Chunks -->
++                        @if (project.chunks && project.chunks.length > 0) {
++                          <div class="space-y-4">
++                            <h4 class="text-[10px] font-black uppercase tracking-widest text-[var(--text-color-subtle)]">Interactive Code Architecture:</h4>
++                            <div class="space-y-3">
++                              @for (chunk of project.chunks; track chunk.title; let idx = $index) {
++                                <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-2" style="border-radius: 0px !important;">
++                                  <h5 class="text-xs font-bold text-[var(--primary-color)] flex items-center gap-1.5 m-0 font-sans">
++                                    <span class="w-4 h-4 bg-[var(--primary-color)] text-black text-[10px] flex items-center justify-center font-black" style="border-radius: 0px !important;">{{ idx + 1 }}</span>
++                                    {{ chunk.title }}
++                                  </h5>
++                                  <p class="text-xs text-[var(--text-color-muted)] m-0 leading-relaxed font-sans">{{ chunk.description }}</p>
++                                  
++                                  <div class="bg-black p-4 border-2 border-black font-mono text-xs text-[var(--primary-color)] overflow-x-auto relative" style="border-radius: 0px !important;">
++                                    @switch (project.id) {
++                                      @case ('lojong-breathing') {
++                                        @if (idx === 0) {
++                                          <div>const cycle = &#123; 
++                                            inhale: <input type="number" [ngModel]="inhaleTime()" (ngModelChange)="inhaleTime.set($event)" class="bg-zinc-900 text-amber-400 border border-zinc-700 px-1 w-16 text-center font-mono focus:outline-none focus:border-amber-400">, 
++                                            hold: <input type="number" [ngModel]="holdTime()" (ngModelChange)="holdTime.set($event)" class="bg-zinc-900 text-amber-400 border border-zinc-700 px-1 w-16 text-center font-mono focus:outline-none focus:border-amber-400">, 
++                                            exhale: <input type="number" [ngModel]="exhaleTime()" (ngModelChange)="exhaleTime.set($event)" class="bg-zinc-900 text-amber-400 border border-zinc-700 px-1 w-16 text-center font-mono focus:outline-none focus:border-amber-400"> 
++                                          &#125;;</div>
++                                          <div>const elapsed = time % (cycle.inhale + cycle.hold + cycle.exhale);</div>
++                                        } @else {
++                                          <pre class="m-0 text-[var(--primary-color)] font-mono"><code>{{ chunk.codeSnippet }}</code></pre>
++                                        }
++                                      }
++                                      @case ('clockwork-gears') {
++                                        @if (idx === 1) {
++                                          <div>const childSpeed = parentSpeed * (parentTeeth / <input type="number" [ngModel]="gearTeeth()" (ngModelChange)="gearTeeth.set($event)" class="bg-zinc-900 text-amber-400 border border-zinc-700 px-1 w-12 text-center font-mono focus:outline-none focus:border-amber-400">);</div>
++                                          <div>const rotation = childSpeed * directionSign;</div>
++                                        } @else {
++                                          <pre class="m-0 text-[var(--primary-color)] font-mono"><code>{{ chunk.codeSnippet }}</code></pre>
++                                        }
++                                      }
++                                      @case ('fluid-dynamics') {
++                                        @if (idx === 1) {
++                                          <div>d[x + y*w] = dPrev[xPrev + yPrev*w] * <input type="number" step="0.01" min="0.8" max="0.99" [ngModel]="fluidFriction()" (ngModelChange)="fluidFriction.set($event)" class="bg-zinc-900 text-amber-400 border border-zinc-700 px-1 w-16 text-center font-mono focus:outline-none focus:border-amber-400">;</div>
++                                        } @else {
++                                          <pre class="m-0 text-[var(--primary-color)] font-mono"><code>{{ chunk.codeSnippet }}</code></pre>
++                                        }
++                                      }
++                                      @case ('ambient-synth') {
++                                        @if (idx === 2) {
++                                          <div>const frequencies = [220.00, 246.94, 261.63, 293.66, 329.63];</div>
++                                          <div>oscillator.frequency.value = frequencies[Math.floor(Math.random() * 5)] * (<input type="number" [ngModel]="synthFrequency() / 440" (ngModelChange)="synthFrequency.set($event * 440)" class="bg-zinc-900 text-amber-400 border border-zinc-700 px-1 w-12 text-center font-mono focus:outline-none focus:border-amber-400">);</div>
++                                        } @else {
++                                          <pre class="m-0 text-[var(--primary-color)] font-mono"><code>{{ chunk.codeSnippet }}</code></pre>
++                                        }
++                                      }
++                                      @default {
++                                        <pre class="m-0 text-[var(--primary-color)] font-mono"><code>{{ chunk.codeSnippet }}</code></pre>
++                                      }
++                                    }
++                                  </div>
++                                </div>
++                              }
++                            </div>
++                          </div>
++                        }
++
++                        <!-- Hill Climbing Optimizer Widget -->
++                        @if (project.id === 'lojong-breathing' || project.id === 'clockwork-gears' || project.id === 'fluid-dynamics' || project.id === 'ambient-synth') {
++                          <div class="p-5 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-4 font-sans" style="border-radius: 0px !important;">
++                            <h4 class="text-xs font-black uppercase tracking-widest text-[var(--tertiary-color)] flex items-center gap-1.5 m-0 font-sans">
++                              <app-icon name="activity" [size]="14"></app-icon>
++                              Hill-Climbing Parameter Optimizer
++                            </h4>
++                            <p class="text-[11px] text-[var(--text-color-muted)] m-0 leading-relaxed font-sans">
++                              Tweak target value and launch local search. The optimizer mutates parameters step-by-step to converge on the target.
++                            </p>
++                            
++                            <div class="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between text-xs font-sans">
++                              <div class="flex items-center gap-2">
++                                <span>Target Metric:</span>
++                                @switch (project.id) {
++                                  @case ('lojong-breathing') {
++                                    <input type="range" min="40" max="200" [ngModel]="optimizationTarget()" (ngModelChange)="optimizationTarget.set($event)" class="w-32 accent-[var(--text-accent)] cursor-pointer">
++                                    <span class="font-bold">{{ optimizationTarget() * 100 }}ms cycle</span>
++                                  }
++                                  @case ('clockwork-gears') {
++                                    <input type="range" min="10" max="40" [ngModel]="optimizationTarget()" (ngModelChange)="optimizationTarget.set($event)" class="w-32 accent-[var(--text-accent)] cursor-pointer">
++                                    <span class="font-bold">Ratio {{ (optimizationTarget() / 20).toFixed(2) }}x</span>
++                                  }
++                                  @case ('fluid-dynamics') {
++                                    <input type="range" min="80" max="99" [ngModel]="optimizationTarget()" (ngModelChange)="optimizationTarget.set($event)" class="w-32 accent-[var(--text-accent)] cursor-pointer">
++                                    <span class="font-bold">Friction {{ optimizationTarget() / 100 }}</span>
++                                  }
++                                  @case ('ambient-synth') {
++                                    <input type="range" min="20" max="110" [ngModel]="optimizationTarget()" (ngModelChange)="optimizationTarget.set($event)" class="w-32 accent-[var(--text-accent)] cursor-pointer">
++                                    <span class="font-bold">{{ optimizationTarget() * 8 }}Hz</span>
++                                  }
++                                }
++                              </div>
++
++                              <div>
++                                @if (isOptimizing()) {
++                                  <button (click)="stopHillClimbing()" class="bg-red-600 hover:bg-red-700 text-white font-bold px-3 py-1.5 uppercase text-[10px] tracking-wider" style="border-radius: 0px !important; min-height: 36px;">
++                                    Stop Optimizer
++                                  </button>
++                                } @else {
++                                  <button (click)="runHillClimbing(project.id)" class="bg-[var(--text-accent)] hover:bg-[var(--secondary-color)] text-white font-bold px-3 py-1.5 uppercase text-[10px] tracking-wider" style="border-radius: 0px !important; min-height: 36px;">
++                                    Optimize parameters
++                                  </button>
++                                }
++                              </div>
+                             </div>
+-                            <div class="flex items-center gap-2 flex-wrap non-printable">
+-                                <button (click)="saveCarePlan()" [disabled]="isCarePlanSaved()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+-                                    @if (isCarePlanSaved()) {
+-                                        <app-icon name="check" [size]="18"></app-icon>
+-                                        <span>Saved</span>
++
++                            <div class="space-y-2 text-xs font-sans">
++                              <div class="flex justify-between items-center text-[10px] font-bold text-[var(--text-color-muted)]">
++                                <span>Optimization Convergence</span>
++                                <span>{{ optimizationScore() }}%</span>
++                              </div>
++                              <div class="w-full bg-[var(--border-color)]/20 h-2 border border-[var(--border-color)]" style="border-radius: 0px !important;">
++                                <div class="bg-[var(--text-accent)] h-full transition-all duration-150" [style.width.%]="optimizationScore()"></div>
++                              </div>
++                              <div class="bg-black p-3 border-2 border-black font-mono text-[9px] text-green-400 max-h-[100px] overflow-y-auto space-y-1" style="border-radius: 0px !important;">
++                                @for (log of optimizationLogs(); track log) {
++                                  <div>{{ log }}</div>
++                                }
++                              </div>
++                            </div>
++                          </div>
++                        }
++
++                        <!-- Live Simulator Sandbox Panel -->
++                        <div class="pt-4 border-t border-[var(--border-color)]/30 space-y-4">
++                          <h4 class="text-xs font-black uppercase tracking-widest text-[var(--text-color-subtle)]">Live Simulated Sandbox:</h4>
++                          
++                          @switch (project.id) {
++                            @case ('lojong-breathing') {
++                              <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
++                                <app-lojong-cleansing [inhale]="inhaleTime()" [hold]="holdTime()" [exhale]="exhaleTime()"></app-lojong-cleansing>
++                              </div>
++                            }
++                            @case ('clockwork-gears') {
++                              <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-4 text-center" style="border-radius: 0px !important;">
++                                <div class="flex justify-center py-4">
++                                  <svg width="100" height="100" viewBox="0 0 100 100" class="overflow-visible">
++                                    <g [style.transform]="'rotate(' + getGearRotationAngle() + 'deg)'" style="transform-origin: 50px 50px;">
++                                      <circle cx="50" cy="50" [attr.r]="gearTeeth() * 1.5" fill="none" stroke="var(--primary-color)" stroke-width="4" stroke-dasharray="10 5"></circle>
++                                      <circle cx="50" cy="50" r="16" fill="var(--primary-color)"></circle>
++                                      <line x1="50" y1="10" x2="50" y2="90" stroke="black" stroke-width="3"></line>
++                                      <line x1="10" y1="50" x2="90" y2="50" stroke="black" stroke-width="3"></line>
++                                    </g>
++                                  </svg>
++                                </div>
++                                <div class="flex flex-col gap-2 text-xs text-left font-sans">
++                                  <div class="flex justify-between items-center">
++                                    <span>Teeth Count: {{ gearTeeth() }}</span>
++                                    <input type="range" min="12" max="48" step="2" [ngModel]="gearTeeth()" (ngModelChange)="gearTeeth.set($event)" class="w-32 accent-[var(--primary-color)] h-1 cursor-pointer">
++                                  </div>
++                                  <div class="flex justify-between items-center">
++                                    <span>Speed: {{ gearSpeed() }}x</span>
++                                    <input type="range" min="1" max="5" [ngModel]="gearSpeed()" (ngModelChange)="gearSpeed.set($event)" class="w-32 accent-[var(--primary-color)] h-1 cursor-pointer">
++                                  </div>
++                                  <button (click)="gearIsRunning.set(!gearIsRunning())" class="w-full bg-[var(--button-bg)] hover:bg-[var(--primary-color)] hover:text-black py-2 border border-black font-bold transition-all text-xs uppercase tracking-wider" style="border-radius:0px !important; min-height: 36px;">
++                                    {{ gearIsRunning() ? 'Pause Simulator' : 'Resume Simulator' }}
++                                  </button>
++                                </div>
++                              </div>
++                            }
++                            @case ('fluid-dynamics') {
++                              <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3 text-center" style="border-radius: 0px !important;">
++                                <p class="text-[11px] text-[var(--text-color-muted)] text-left m-0 font-sans leading-relaxed">Convection turbulence and Dye diffusion simulation. Visualizing fluid convection grid.</p>
++                                <div class="bg-black border border-[var(--border-color)] relative" style="height: 150px; border-radius: 0px !important;">
++                                  <div class="absolute inset-0 flex items-center justify-center font-mono text-xs text-[var(--primary-color)] hover:bg-neutral-900 cursor-crosshair select-none">
++                                    <span>Fluid Friction: {{ fluidFriction() }} (Eulerian Grid Active)</span>
++                                  </div>
++                                </div>
++                              </div>
++                            }
++                            @case ('ambient-synth') {
++                              <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
++                                <div class="relative overflow-hidden bg-black border border-[var(--border-color)]" style="height: 120px; border-radius: 0px !important;">
++                                  <!-- SVG Oscilloscope Overlay -->
++                                  <svg class="absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 300 100" preserveAspectRatio="none">
++                                    <path [attr.d]="synthWaveformPath()" fill="none" stroke="var(--primary-color)" stroke-width="2"></path>
++                                  </svg>
++
++                                  <div class="absolute inset-0 flex flex-col justify-center items-center cursor-crosshair select-none transition-all hover:bg-neutral-950 z-20"
++                                       (mousemove)="synthUpdateFreq($event)"
++                                       (mousedown)="synthStart()"
++                                       (mouseup)="synthStop()"
++                                       (mouseleave)="synthStop()">
++                                    @if (!synthIsPlaying()) {
++                                      <span class="text-[10px] text-[var(--text-color-muted)] font-black uppercase tracking-wider font-sans">Press &amp; Drag inside Synth pad to play</span>
+                                     } @else {
+-                                        <app-icon name="bookmark" [size]="18"></app-icon>
+-                                        <span>Save Plan</span>
++                                      <span class="text-xs font-mono text-[var(--primary-color)] font-bold bg-black/75 px-2.5 py-1" style="border-radius: 0px !important;">{{ synthFrequency() }} Hz Frequency</span>
+                                     }
+-                                </button>
+-                                <button (click)="copyCarePlan()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+-                                    @if (isCarePlanCopied()) {
+-                                        <app-icon name="check" [size]="18" class="text-green-500"></app-icon>
+-                                        <span>Copied!</span>
+-                                    } @else {
+-                                        <app-icon name="copy" [size]="18"></app-icon>
+-                                        <span>Copy</span>
++                                  </div>
++                                </div>
++                                <div class="flex justify-between items-center text-xs font-bold font-sans">
++                                  <span>Waveform Type:</span>
++                                  <div class="flex gap-1">
++                                    @for (type of ['sine', 'square', 'sawtooth', 'triangle']; track type) {
++                                      <button (click)="synthUpdateOscType(type)"
++                                              [class.bg-[var(--primary-color)]]="synthOscType() === type"
++                                              [class.text-black]="synthOscType() === type"
++                                              class="px-2 py-1.5 border border-[var(--border-color)] uppercase text-[9px]" style="border-radius:0px !important; min-height: 32px;">
++                                        {{ type }}
++                                      </button>
+                                     }
+-                                </button>
+-                                <button (click)="printPlan()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+-                                    <app-icon name="printer" [size]="18"></app-icon>
+-                                    <span>Print</span>
+-                                </button>
+-                            </div>
+-                        </header>
+-                        <div class="space-y-6">
+-                            @for (section of getCarePlanSections(plan); track section.id) {
+-                                <div>
+-                                    <h4 class="flex items-center gap-3 mb-2">
+-                                        <app-icon [name]="section.icon" [size]="20" class="text-[var(--text-accent)]"></app-icon>
+-                                        {{ section.title }}
+-                                    </h4>
+-                                    <ul class="list-disc pl-10 space-y-1 text-[var(--text-color-muted)]">
+-                                        @for (item of section.items; track item) {
+-                                            <li>{{ item }}</li>
+-                                        }
+-                                    </ul>
++                                  </div>
++                                </div>
++                              </div>
++                            }
++                            @case ('a11y-assistant') {
++                              <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
++                                <div class="flex flex-col gap-2 text-xs font-sans">
++                                  <div class="bg-[var(--card-bg)] p-3 border border-[var(--border-color)] font-mono text-[10px] min-h-[44px]" style="border-radius: 0px !important;">
++                                    <strong>Screen Reader Speech:</strong> {{ simulatedSpeechText() || 'No active focus node.' }}
++                                  </div>
++                                  <div class="grid grid-cols-2 gap-2 pt-1">
++                                    <button (click)="speakA11yText('Auditing project details node: strict WAI-ARIA validation passed.')" class="bg-[var(--button-bg)] hover:bg-[var(--primary-color)] hover:text-black py-2 border border-black font-bold uppercase text-[10px]" style="border-radius: 0px !important; min-height: 36px;">
++                                      Audit Node
++                                    </button>
++                                    <button (click)="speakA11yText('Live message: Showcase portfolio items filter criteria active.')" class="bg-[var(--button-bg)] hover:bg-[var(--primary-color)] hover:text-black py-2 border border-black font-bold uppercase text-[10px]" style="border-radius: 0px !important; min-height: 36px;">
++                                      Announce Focus
++                                    </button>
++                                  </div>
++                                </div>
++                              </div>
++                            }
++                            @case ('genai-weaver') {
++                              <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
++                                <div class="flex flex-col gap-2 text-xs">
++                                  <input type="text" [value]="weaverPrompt()" (input)="weaverPrompt.set($any($event.target).value)" class="p-2 bg-black border border-[var(--border-color)] text-xs font-mono text-white" style="border-radius: 0px !important;">
++                                  <button (click)="runWeaverMockStream()" [disabled]="weaverIsStreaming()" class="bg-[var(--secondary-color)] text-white hover:bg-[#d94f44] py-2 border border-transparent font-black uppercase text-[10px]" style="border-radius: 0px !important; min-height: 36px;">
++                                    {{ weaverIsStreaming() ? 'Streaming SSE Chunks...' : 'Weave Creative Prompt' }}
++                                  </button>
++                                  @if (weaverStreamingText()) {
++                                    <pre class="bg-black p-3 border border-[var(--border-color)]/30 text-[10px] font-mono text-[var(--text-color-subtle)] overflow-x-auto whitespace-pre-wrap max-h-[100px]" style="border-radius: 0px !important;"><code>{{ weaverStreamingText() }}</code></pre>
++                                  }
+                                 </div>
++                              </div>
+                             }
++                          }
+                         </div>
++
++                        <!-- Specs/Docs Section -->
++                        @if (project.documentation) {
++                          <div class="pt-2 border-t border-[var(--border-color)]/25">
++                            <button (click)="toggleDoc(project.id)"
++                                    class="w-full text-left flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-[var(--secondary-color)] hover:text-[var(--primary-color)] focus:outline-none font-sans"
++                                    style="cursor: pointer; min-height: 44px;">
++                              <span class="flex items-center gap-1.5">
++                                <app-icon name="book-open" [size]="12"></app-icon>
++                                {{ activeDocProjectId() === project.id ? 'Hide Specifications' : 'View Specs & Changelog' }}
++                              </span>
++                              <app-icon [name]="activeDocProjectId() === project.id ? 'chevron-up' : 'chevron-down'" [size]="12"></app-icon>
++                            </button>
++
++                            @if (activeDocProjectId() === project.id) {
++                              <div class="mt-2 space-y-3 max-h-[300px] overflow-y-auto pr-1 text-[11px] font-sans">
++                                <div class="p-3 border border-[var(--border-color)]/30 bg-[var(--card-bg-subtle)] space-y-1" style="border-radius: 0px !important;">
++                                  <h6 class="font-black uppercase tracking-widest text-[var(--secondary-color)] text-[9px] m-0">Technical Specifications:</h6>
++                                  <p class="text-[11px] text-[var(--text-color-muted)] leading-relaxed m-0">{{ project.documentation }}</p>
++                                </div>
++
++                                @if (project.changelog && project.changelog.length > 0) {
++                                  <div class="p-3 border border-[var(--border-color)]/30 bg-[var(--card-bg-subtle)] space-y-2" style="border-radius: 0px !important;">
++                                    <h6 class="font-black uppercase tracking-widest text-[var(--tertiary-color)] text-[9px] m-0">Version Changelog:</h6>
++                                    <div class="space-y-2">
++                                      @for (entry of project.changelog; track entry.version) {
++                                        <div class="border-b border-[var(--border-color)]/10 pb-1.5 last:border-b-0 last:pb-0">
++                                          <div class="flex justify-between font-bold text-[10px]">
++                                            <span class="text-[var(--text-color)]">{{ entry.version }}</span>
++                                            <span class="text-[var(--text-color-muted)]">{{ entry.date }}</span>
++                                          </div>
++                                          <ul class="list-disc pl-3 text-[9px] text-[var(--text-color-subtle)] mt-0.5 space-y-0.5">
++                                            @for (change of entry.changes; track change) {
++                                              <li>{{ change }}</li>
++                                            }
++                                          </ul>
++                                        </div>
++                                      }
++                                    </div>
++                                  </div>
++                                }
++                              </div>
++                            }
++                          </div>
++                        }
++
++                        <!-- Details Footer Links -->
++                        <div class="flex justify-between items-center pt-4 border-t border-[var(--border-color)]/30 text-xs font-sans">
++                          <div class="flex items-center gap-4">
++                            <a [href]="project.demoUrl" target="_blank" class="font-black uppercase tracking-widest text-[var(--text-accent)] hover:underline flex items-center gap-1 min-h-[44px]">
++                              Demo Sandbox
++                              <app-icon name="external-link" [size]="12"></app-icon>
++                            </a>
++                            <a [href]="project.codeUrl" target="_blank" class="font-black uppercase tracking-widest text-[var(--text-accent)] hover:underline flex items-center gap-1 min-h-[44px]">
++                              Code Snippets
++                              <app-icon name="copy" [size]="12"></app-icon>
++                            </a>
++                          </div>
++                        </div>
++
++                      </div>
++                    }
++                  </div>
++                } @else {
++                  <!-- Symmetric 2-column Grid of Card Previews -->
++                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
++                    @for (proj of interleavedProjects(); track proj.id) {
++                      <div class="p-6 bg-[var(--card-bg)] border-2 border-[var(--border-color)] hover:border-[var(--text-accent)] transition-all flex flex-col justify-between"
++                           style="border-radius: 0px !important;">
++                        <div>
++                          <div class="flex justify-between items-start gap-2">
++                            <span class="px-2.5 py-1 text-[9px] font-black uppercase tracking-widest bg-[var(--card-bg-subtle)] text-[var(--text-accent)] border-2 border-[var(--text-accent)]" style="border-radius: 0px !important;">
++                              {{ proj.discipline }}
++                            </span>
++                            <span class="text-[9px] text-[var(--text-color-muted)] font-black uppercase tracking-widest">
++                              {{ proj.id }}
++                            </span>
++                          </div>
++                          <h3 class="font-serif text-2xl text-[var(--text-color)] mt-3 leading-tight">{{ proj.title }}</h3>
++                          <p class="text-sm text-[var(--text-color-muted)] mt-2 leading-relaxed">{{ proj.description }}</p>
++                          
++                          <ul class="list-disc pl-5 text-xs text-[var(--text-color-muted)] mt-4 space-y-1">
++                            @for (feat of proj.features; track feat) {
++                              <li>{{ feat }}</li>
++                            }
++                          </ul>
++                        </div>
++
++                        <div class="mt-6 pt-4 border-t border-[var(--border-color)]/30 flex items-center justify-between">
++                          <div class="flex flex-wrap gap-1.5 max-w-[70%]">
++                            @for (tech of proj.technologies; track tech) {
++                              <span class="px-2 py-0.5 text-[9px] font-bold border border-[var(--border-color)] text-[var(--text-color-subtle)]" style="border-radius: 0px !important;">
++                                {{ tech }}
++                              </span>
++                            }
++                          </div>
++                          <button (click)="selectedProjectId.set(proj.id)"
++                                  class="bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-xs font-bold py-2 px-4 border border-[var(--border-color)] transition-colors uppercase tracking-wider"
++                                  style="border-radius: 0px !important; min-height: 36px;">
++                            Details &amp; Sandbox
++                          </button>
++                        </div>
++                      </div>
++                    }
++                  </div>
++                }
++              </section>
++            } @else {
++              <!-- Care Mode Results View -->
++              <section role="region" aria-labelledby="results-heading" class="animate-pop space-y-8">
++                <!-- Results Header -->
++                <header class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
++                  <div>
++                    <p class="text-sm font-medium text-[var(--text-accent)] uppercase tracking-wider">A new perspective for:</p>
++                    <h2 id="results-heading" class="mt-2 text-[var(--text-color)]">
++                      {{ problemInput() }}
++                    </h2>
++                  </div>
++                  <div class="flex items-center gap-2 flex-wrap">
++                     <button (click)="editQuery()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
++                      <app-icon name="edit" [size]="18"></app-icon>
++                      <span>Edit Query</span>
++                    </button>
++                     <div class="bg-[var(--button-bg)] border border-[var(--border-color)] rounded-full p-1 flex items-center text-sm font-medium">
++                      <button (click)="resultsViewMode.set('list')" [class.bg-[var(--card-bg)]]="resultsViewMode() === 'list'" class="flex items-center justify-center min-w-[48px] min-h-[48px] organic-button transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-pressed]="resultsViewMode() === 'list'" aria-label="Switch to list view">
++                        <app-icon name="list" [size]="20"></app-icon>
++                      </button>
++                      <button (click)="resultsViewMode.set('graph')" [class.bg-[var(--card-bg)]]="resultsViewMode() === 'graph'" class="flex items-center justify-center min-w-[48px] min-h-[48px] organic-button transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-pressed]="resultsViewMode() === 'graph'" aria-label="Switch to graph view">
++                        <app-icon name="git-branch" [size]="20"></app-icon>
++                      </button>
+                     </div>
+-                </section>
+-              }
+-              
+-              @defer (on viewport) {
+-                <app-vitals-trend-graph></app-vitals-trend-graph>
+-              } @placeholder {
+-                <div class="h-64 animate-pulse bg-white/5 rounded-3xl mt-8"></div>
+-              }
+-            </section>
+-          }
++                  </div>
++                </header>
++                
++                @if (structuredProblem(); as problem) {
++                  <div class="bg-[var(--card-bg-subtle)] p-6 organic-shape">
++                    <h3 class="text-[var(--text-accent)]">{{problem.title}}</h3>
++                    <p><strong class="font-semibold text-[var(--text-color-muted)]">Condition:</strong> {{problem.condition}}</p>
++                    <p><strong class="font-semibold text-[var(--text-color-muted)]">Goal:</strong> {{problem.goal}}</p>
++                    <div>
++                      <strong class="font-semibold text-[var(--text-color-muted)]">Barriers:</strong>
++                      <ul class="list-disc pl-5 mt-1">
++                        @for(barrier of problem.barriers; track barrier) {
++                          <li>{{barrier}}</li>
++                        }
++                      </ul>
++                    </div>
++                  </div>
++                }
++
++                @if (resultsViewMode() === 'list') {
++                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
++                  @for (result of insightResults; track result.strategyName) {
++                    <div class="p-5 organic-shape flex flex-col" [style.--strategy-color]="'var(--strategy-' + getStrategyId(result.strategyName) + ')'">
++                      <header class="flex items-center gap-3 mb-4">
++                        <div class="w-10 h-10 rounded-lg bg-[var(--strategy-color)]/20 flex items-center justify-center text-[var(--strategy-color)]">
++                          <app-icon [name]="getStrategyIcon(result.strategyName)" [size]="24"></app-icon>
++                        </div>
++                        <h3 class="text-[var(--strategy-color)]">{{ result.strategyName }}</h3>
++                      </header>
++                      <div class="space-y-4 flex-1">
++                        @for (insight of result.insights; track insight.text; let i = $index) {
++                          @let id = 'insight-' + result.strategyName + '-' + i;
++                          <div class="insight-card-magical group relative">
++                            <p class="text-base/relaxed">{{ insight.text }}</p>
++                            @if (insight.influence) {
++                               <p class="text-sm text-[var(--text-color-muted)] mt-2 italic border-l-2 border-[var(--border-color)] pl-3">
++                                {{insight.influence}}
++                              </p>
++                            }
++                            <div class="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
++                              <button (click)="copyToClipboard(insight.text, id)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-label]="formatAriaLabel('Copy insight', insight.text)">
++                                @if (copiedId() === id) {
++                                  <app-icon name="check" [size]="20" class="text-green-500"></app-icon>
++                                } @else {
++                                  <app-icon name="copy" [size]="20"></app-icon>
++                                }
++                              </button>
++                              <button (click)="toggleInsightSave(insight, result.strategyName)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-label]="formatAriaLabel(isInsightSaved(insight.text) ? 'Unsave insight' : 'Save insight', insight.text)">
++                                 <app-icon name="bookmark" [size]="20" [class]="isInsightSaved(insight.text) ? 'fill-current text-[var(--text-highlight)]' : ''"></app-icon>
++                              </button>
++                            </div>
++                          </div>
++                        }
++                      </div>
++                    </div>
++                  }
++                </div>
++                } @else {
++                  @defer (on viewport; prefetch on idle) {
++                    <app-graph-view [results]="insightResults" [problem]="problemInput()" [strategies]="availableStrategies()"></app-graph-view>
++                  } @placeholder {
++                    <div class="h-[600px] organic-shape bg-black/5 animate-pulse flex items-center justify-center">
++                      <p class="text-[var(--text-color-muted)] italic">Rendering strategy graph...</p>
++                    </div>
++                  }
++                }
++
++                @if (appMode() === 'care' && savedInsightsForCurrentProblem().length > 0) {
++                  <div class="text-center py-8">
++                    <h3 class="mb-2 font-serif">Synthesize a Care Plan</h3>
++                    <p class="text-[var(--text-color-muted)] mb-4">You've saved {{ savedInsightsForCurrentProblem().length }} insight(s) for this goal. Ready to build a plan?</p>
++                    <button (click)="generateCarePlan()" [disabled]="isGeneratingCarePlan()" class="font-bold py-3 px-6 min-h-[48px] min-w-[120px] organic-button swirling-surface shadow-lg transition-all flex items-center justify-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--primary-cta-bg)] text-[var(--primary-cta-text)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
++                      @if(isGeneratingCarePlan()) {
++                        <app-icon name="loader" [size]="20" class="animate-spin"></app-icon>
++                        <span>Generating...</span>
++                      } @else {
++                        <app-icon name="sparkles" [size]="20"></app-icon>
++                        <span>Generate Care Plan</span>
++                      }
++                    </button>
++                  </div>
++                }
++                
++                @if (carePlan(); as plan) {
++                  <section class="mt-12 printable-section" id="care-plan-section" aria-labelledby="care-plan-heading">
++                      <div class="p-6 md:p-8 organic-shape">
++                          <header class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6 border-b border-[var(--border-color)] pb-6">
++                              <div>
++                                  <h3 id="care-plan-heading" class="text-[var(--text-accent)] font-serif">Synthesized Care Plan</h3>
++                                  <p class="text-[var(--text-color-muted)] mt-1">Based on your saved insights for: {{ problemInput() }}</p>
++                              </div>
++                              <div class="flex items-center gap-2 flex-wrap non-printable">
++                                  <button (click)="saveCarePlan()" [disabled]="isCarePlanSaved()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
++                                      @if (isCarePlanSaved()) {
++                                          <app-icon name="check" [size]="18"></app-icon>
++                                          <span>Saved</span>
++                                      } @else {
++                                          <app-icon name="bookmark" [size]="18"></app-icon>
++                                          <span>Save Plan</span>
++                                      }
++                                  </button>
++                                  <button (click)="copyCarePlan()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
++                                      @if (isCarePlanCopied()) {
++                                          <app-icon name="check" [size]="18" class="text-green-500"></app-icon>
++                                          <span>Copied!</span>
++                                      } @else {
++                                          <app-icon name="copy" [size]="18"></app-icon>
++                                          <span>Copy</span>
++                                      }
++                                  </button>
++                                  <button (click)="printPlan()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
++                                      <app-icon name="printer" [size]="18"></app-icon>
++                                      <span>Print</span>
++                                  </button>
++                              </div>
++                          </header>
++                          <div class="space-y-6 text-left">
++                              @for (section of getCarePlanSections(plan); track section.id) {
++                                  <div>
++                                      <h4 class="flex items-center gap-3 mb-2 font-serif">
++                                          <app-icon [name]="section.icon" [size]="20" class="text-[var(--text-accent)]"></app-icon>
++                                          {{ section.title }}
++                                      </h4>
++                                      <ul class="list-disc pl-10 space-y-1 text-[var(--text-color-muted)]">
++                                          @for (item of section.items; track item) {
++                                              <li>{{ item }}</li>
++                                          }
++                                      </ul>
++                                  </div>
++                              }
++                          </div>
++                      </div>
++                  </section>
++                }
++                
++                @defer (on viewport) {
++                  <app-vitals-trend-graph></app-vitals-trend-graph>
++                } @placeholder {
++                  <div class="h-64 animate-pulse bg-white/5 rounded-3xl mt-8"></div>
++                }
++              </section>
++            }
+  @else {
+             <!-- Generator Input View -->
+             <div class="max-w-4xl mx-auto animate-pop pb-8">
+@@ -548,7 +980,428 @@
+               <div class="h-screen bg-[var(--bg-color)] animate-pulse"></div>
+             }
+           }
++          @case ('galleries') {
++            <section class="animate-pop space-y-6">
++              <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
++                <div>
++                  <h2 class="text-transparent bg-clip-text bg-linear-to-r from-[var(--text-highlight)] to-[var(--text-accent)] m-0">Visual Art Galleries</h2>
++                  <p class="text-[var(--text-color-muted)] mt-1">Exploring the boundary of science, code, and photography</p>
++                </div>
++
++                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1 max-w-2xl justify-end">
++                  <div class="relative flex-1 max-w-md">
++                    <app-icon name="search" [size]="18" class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-color-muted)]"></app-icon>
++                    <input
++                      id="search-gallery"
++                      name="search-gallery"
++                      type="text"
++                      [ngModel]="gallerySearchQuery()"
++                      (ngModelChange)="gallerySearchQuery.set($event)"
++                      placeholder="Search artwork title, description, tags, tools..."
++                      class="w-full pl-10 pr-4 py-2 bg-[var(--card-bg)] border-2 border-[var(--border-color)] focus:ring-2 focus:ring-[var(--ring-color)] focus:outline-none transition-all text-sm"
++                      style="border-radius: 0px !important;"
++                    >
++                    @if (gallerySearchQuery()) {
++                      <button (click)="gallerySearchQuery.set('')" class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-color-muted)] hover:text-[var(--text-color)] focus:outline-none" aria-label="Clear search">
++                        <app-icon name="x" [size]="16"></app-icon>
++                      </button>
++                    }
++                  </div>
++
++                  <div class="flex items-center bg-[var(--button-bg)] border-2 border-[var(--border-color)] p-0.5" style="border-radius: 0px !important;">
++                    <button (click)="selectedGalleryCategory.set('all')" [class.bg-[var(--card-bg)]]="selectedGalleryCategory() === 'all'" class="px-3 py-1.5 text-xs font-bold transition-all focus:outline-none" style="border-radius: 0px !important;">All</button>
++                    <button (click)="selectedGalleryCategory.set('genai')" [class.bg-[var(--card-bg)]]="selectedGalleryCategory() === 'genai'" class="px-3 py-1.5 text-xs font-bold transition-all focus:outline-none" style="border-radius: 0px !important;">GenAI</button>
++                    <button (click)="selectedGalleryCategory.set('photography')" [class.bg-[var(--card-bg)]]="selectedGalleryCategory() === 'photography'" class="px-3 py-1.5 text-xs font-bold transition-all focus:outline-none" style="border-radius: 0px !important;">Photography</button>
++                  </div>
++                </div>
++              </header>
++
++              <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
++                <div class="lg:col-span-4 h-[400px] bg-[var(--card-bg-subtle)] border-2 border-[var(--border-color)] relative" style="border-radius: 0px !important;">
++                  <app-gallery-query-map
++                    [artworks]="artworks"
++                    [selectedTags]="selectedGalleryTags()"
++                    [activeCategory]="selectedGalleryCategory()"
++                    (tagToggle)="toggleGalleryTag($event)"
++                    (artworkSelected)="expandedArtworkId.set($event.id)">
++                  </app-gallery-query-map>
++                </div>
++
++                <div class="lg:col-span-4 flex flex-wrap gap-2 items-center bg-[var(--card-bg-subtle)] border-2 border-[var(--border-color)] p-4" style="border-radius: 0px !important;">
++                  <span class="text-xs font-black uppercase tracking-wider text-[var(--text-color-muted)] flex items-center gap-1.5 mr-2">
++                    <app-icon name="tag" [size]="14"></app-icon>
++                    Filter Tags:
++                  </span>
++                  @for (tag of getAllGalleryTags(artworks, selectedGalleryCategory()); track tag) {
++                    <button (click)="toggleGalleryTag(tag)"
++                            [class.bg-[var(--text-accent)]]="selectedGalleryTags().has(tag)"
++                            [class.text-white]="selectedGalleryTags().has(tag)"
++                            [class.bg-[var(--button-bg)]]="!selectedGalleryTags().has(tag)"
++                            [class.hover:bg-[var(--button-bg-hover)]]="!selectedGalleryTags().has(tag)"
++                            class="px-3 py-1 border border-[var(--border-color)] text-xs font-medium transition-all"
++                            style="border-radius: 0px !important;">
++                      #{{ tag }}
++                    </button>
++                  }
++                  @if (selectedGalleryTags().size > 0) {
++                    <button (click)="clearGalleryTags()" class="text-xs text-[var(--text-accent)] font-bold hover:underline ml-2" style="cursor: pointer;">
++                      Clear Filters
++                    </button>
++                  }
++                </div>
++
++                <div class="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
++                  @for (art of filteredGalleryArtworks(); track art.id; let i = $index) {
++                    @if (expandedArtworkId() === art.id) {
++                      <div [id]="'artwork-card-' + art.id" class="col-span-1 md:col-span-2 lg:col-span-4 bg-[var(--card-bg)] border-2 border-[var(--secondary-color)] p-6 md:p-8 space-y-6" style="border-radius: 0px !important;">
++                        <header class="flex justify-between items-start border-b border-[var(--border-color)]/30 pb-4">
++                          <div>
++                            <span class="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-[var(--card-bg)] text-[var(--text-accent)] border-2 border-[var(--text-accent)]" style="border-radius: 0px !important;">
++                              {{ art.category === 'genai' ? 'Generative AI Art' : 'Digital Photography' }}
++                            </span>
++                            <h3 class="font-serif text-3xl mt-2 mb-0">{{ art.title }}</h3>
++                          </div>
++                          <button (click)="expandedArtworkId.set(null)" class="flex items-center justify-center w-10 h-10 border-2 border-black hover:bg-neutral-100 text-black transition-colors focus:outline-none" aria-label="Close details panel" style="border-radius: 0px !important;">
++                            <app-icon name="x" [size]="20"></app-icon>
++                          </button>
++                        </header>
++
++                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
++                          <div class="lg:col-span-5 space-y-6">
++                            <div class="aspect-video relative overflow-hidden bg-black border-2 border-black" style="border-radius: 0px !important;">
++                              <img [src]="art.image" [alt]="art.title" class="w-full h-full object-cover">
++                            </div>
++                            
++                            <div class="space-y-4 text-sm leading-relaxed">
++                              <p class="text-[var(--text-color-muted)] m-0">{{ art.description }}</p>
++                              
++                              <div class="space-y-2">
++                                <h4 class="text-[10px] font-black uppercase tracking-widest text-[var(--text-color-subtle)] m-0">Creative Stack:</h4>
++                                <div class="flex flex-wrap gap-1.5">
++                                  @for (t of art.stack; track t) {
++                                    <span class="px-2 py-0.5 text-xs font-bold border border-[var(--border-color)] text-[var(--text-color-subtle)]" style="border-radius: 0px !important;">
++                                      {{ t }}
++                                    </span>
++                                  }
++                                </div>
++                              </div>
++
++                              <div class="space-y-2">
++                                <h4 class="text-[10px] font-black uppercase tracking-widest text-[var(--text-color-subtle)] m-0">Semantic Tags:</h4>
++                                <div class="flex flex-wrap gap-1.5">
++                                  @for (tag of art.tags; track tag) {
++                                    <span class="text-xs font-bold text-[var(--text-accent)]">#{{ tag }}</span>
++                                  }
++                                </div>
++                              </div>
++                            </div>
++                          </div>
++
++                          <div class="lg:col-span-7 space-y-6 border-t-2 lg:border-t-0 lg:border-l-2 border-[var(--border-color)]/30 pt-6 lg:pt-0 lg:pl-8">
++                            <h4 class="text-xs font-black uppercase tracking-widest text-[var(--secondary-color)] flex items-center gap-1.5 m-0 pb-2 border-b border-[var(--border-color)]/30">
++                              <app-icon name="zap" [size]="14"></app-icon>
++                              Live Concept Simulator Sandbox
++                            </h4>
++                            
++                            @switch (art.id) {
++                              @case ('art-gear-study') {
++                                <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-4 text-center" style="border-radius: 0px !important;">
++                                  <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] text-left m-0">Live Kinetic Engine Simulator</h6>
++                                  <div class="flex justify-center py-2">
++                                    <svg width="100" height="100" viewBox="0 0 100 100" class="overflow-visible">
++                                      <g [style.transform]="'rotate(' + getGearRotationAngle() + 'deg)'" style="transform-origin: 50px 50px; transition: transform 0.1s linear;">
++                                        <circle cx="50" cy="50" r="36" fill="none" stroke="var(--primary-color)" stroke-width="4" stroke-dasharray="10 5"></circle>
++                                        <circle cx="50" cy="50" r="12" fill="var(--primary-color)"></circle>
++                                        <line x1="50" y1="12" x2="50" y2="88" stroke="black" stroke-width="3"></line>
++                                        <line x1="12" y1="50" x2="88" y2="50" stroke="black" stroke-width="3"></line>
++                                      </g>
++                                    </svg>
++                                  </div>
++                                  <div class="flex flex-col gap-2 text-xs text-left">
++                                    <div class="flex justify-between items-center">
++                                      <span>Rotation Speed: {{ gearSpeed() }}x</span>
++                                      <input type="range" min="1" max="5" [value]="gearSpeed()" (input)="gearSpeed.set(+$any($event.target).value)" class="w-32 accent-[var(--primary-color)] h-1 cursor-pointer">
++                                    </div>
++                                    <button (click)="gearIsRunning.set(!gearIsRunning())" class="w-full bg-[var(--button-bg)] hover:bg-[var(--primary-color)] hover:text-black py-2 border-2 border-black font-bold transition-all text-xs uppercase tracking-wider" style="border-radius:0px !important; min-height: 44px;">
++                                      {{ gearIsRunning() ? 'Pause Rotation' : 'Resume Rotation' }}
++                                    </button>
++                                  </div>
++                                </div>
++                              }
++                              @case ('art-fluid-physics') {
++                                <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3 text-center" style="border-radius: 0px !important;">
++                                  <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] text-left m-0">Live Convection Flow Wind Monitor</h6>
++                                  <p class="text-xs text-[var(--text-color-muted)] text-left m-0">Simulates real-time convection vector friction advection.</p>
++                                  <div class="p-6 bg-black border-2 border-black text-left font-mono text-xs text-[var(--primary-color)] space-y-2" style="border-radius: 0px !important;">
++                                    <div>Advection Solver Status: RUNNING</div>
++                                    <div>Friction Factor Dampening: {{ fluidFriction() }}</div>
++                                    <div>Active Force Velocity Grid: 64x64 flat dynamic buffer</div>
++                                    <div class="flex items-center justify-between pt-2">
++                                      <span>Adjust Friction:</span>
++                                      <input type="range" min="80" max="99" [value]="fluidFriction() * 100" (input)="fluidFriction.set(+$any($event.target).value / 100)" class="w-32 accent-[var(--primary-color)] h-1 cursor-pointer">
++                                    </div>
++                                  </div>
++                                </div>
++                              }
++                              @case ('art-synth-waves') {
++                                <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
++                                  <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">Interactive XY Frequency Synth Pad</h6>
++                                  <div class="relative overflow-hidden bg-black border-2 border-black" style="height: 120px; border-radius: 0px !important;">
++                                    @if (synthIsPlaying()) {
++                                      <svg class="absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 300 100" preserveAspectRatio="none">
++                                        <path [attr.d]="synthWaveformPath()" fill="none" stroke="var(--primary-color)" stroke-width="2"></path>
++                                      </svg>
++                                    }
++                                    <div class="absolute inset-0 flex flex-col justify-center items-center cursor-crosshair select-none transition-all hover:bg-neutral-950 z-20"
++                                         (mousemove)="synthUpdateFreq($event)"
++                                         (mousedown)="synthStart()"
++                                         (mouseup)="synthStop()"
++                                         (mouseleave)="synthStop()">
++                                      @if (!synthIsPlaying()) {
++                                        <span class="text-[10px] text-[var(--text-color-muted)] font-black uppercase tracking-wider">Click/Hold & Drag to Play Synth</span>
++                                      } @else {
++                                        <span class="text-xs font-mono text-[var(--primary-color)] font-bold bg-black/75 px-3 py-1 border border-black" style="border-radius: 0px !important;">{{ synthFrequency() }} Hz Frequency</span>
++                                      }
++                                    </div>
++                                  </div>
++                                  <div class="flex justify-between items-center text-[10px] font-bold">
++                                    <span>Oscillator Waveform:</span>
++                                    <div class="flex gap-1">
++                                      @for (type of ['sine', 'square', 'sawtooth', 'triangle']; track type) {
++                                        <button (click)="synthUpdateOscType(type)"
++                                                [class.bg-[var(--primary-color)]]="synthOscType() === type"
++                                                [class.text-black]="synthOscType() === type"
++                                                class="px-2 py-1 border-2 border-black uppercase text-[9px] font-bold" style="border-radius:0px !important; min-height: 28px;">
++                                          {{ type }}
++                                        </button>
++                                      }
++                                    </div>
++                                  </div>
++                                </div>
++                              }
++                              @case ('art-pnw-mist') {
++                                <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
++                                  <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">Live Lojong Meditative Respiration Guide</h6>
++                                  <app-lojong-cleansing [inhale]="inhaleTime()" [hold]="holdTime()" [exhale]="exhaleTime()"></app-lojong-cleansing>
++                                  <div class="grid grid-cols-3 gap-2 text-[9px]">
++                                    <div class="flex flex-col">
++                                      <span>Inhale: {{ inhaleTime() }}ms</span>
++                                      <input type="range" min="1000" max="6000" step="100" [value]="inhaleTime()" (input)="inhaleTime.set(+$any($event.target).value)" class="accent-[var(--primary-color)] h-1 cursor-pointer">
++                                    </div>
++                                    <div class="flex flex-col">
++                                      <span>Hold: {{ holdTime() }}ms</span>
++                                      <input type="range" min="1000" max="6000" step="100" [value]="holdTime()" (input)="holdTime.set(+$any($event.target).value)" class="accent-[var(--primary-color)] h-1 cursor-pointer">
++                                    </div>
++                                    <div class="flex flex-col">
++                                      <span>Exhale: {{ exhaleTime() }}ms</span>
++                                      <input type="range" min="2000" max="12000" step="100" [value]="exhaleTime()" (input)="exhaleTime.set(+$any($event.target).value)" class="accent-[var(--primary-color)] h-1 cursor-pointer">
++                                    </div>
++                                  </div>
++                                </div>
++                              }
++                              @case ('art-urban-geometry') {
++                                <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
++                                  <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">Steel &amp; Concrete - Interactive Network Graph</h6>
++                                  <div style="height: 180px;" class="border border-[var(--border-color)] bg-white overflow-hidden relative">
++                                    <app-graph-view [results]="null" [problem]="'Steel & Concrete Structure'" [strategies]="availableStrategies()"></app-graph-view>
++                                  </div>
++                                </div>
++                              }
++                              @case ('art-event-ops') {
++                                <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
++                                  <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">Orchestration Speech Synthesizer</h6>
++                                  <div class="bg-black p-3 border-2 border-black font-mono text-[10px] min-h-[40px] text-[var(--primary-color)]">
++                                    Audible Announcement: {{ simulatedSpeechText() || 'Idle.' }}
++                                  </div>
++                                  <button (click)="speakA11yText('Event supply logistics initialized: Portland public bridge barricades deployed.')" class="w-full bg-[var(--button-bg)] hover:bg-[var(--primary-color)] hover:text-black py-2 border-2 border-black font-bold text-xs uppercase tracking-wider" style="border-radius: 0px !important; min-height: 44px;">
++                                    Announce Logistics Route
++                                  </button>
++                                </div>
++                              }
++                              @case ('art-bauhaus') {
++                                <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
++                                  <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">Bauhaus Streaming prompt weaver</h6>
++                                  <div class="flex flex-col gap-2 text-xs">
++                                    <input type="text" [value]="weaverPrompt()" (input)="weaverPrompt.set($event.target.value)" class="p-2 bg-black border-2 border-black text-xs font-mono text-white" style="border-radius: 0px !important;">
++                                    <button (click)="runWeaverMockStream()" [disabled]="weaverIsStreaming()" class="w-full bg-[var(--secondary-color)] text-white hover:bg-[#d94f44] py-2 border-2 border-transparent font-bold text-xs uppercase tracking-wider" style="border-radius: 0px !important; min-height: 44px;">
++                                      {{ weaverIsStreaming() ? 'Streaming Prompt Tokens...' : 'Start Prompt Stream' }}
++                                    </button>
++                                    @if (weaverStreamingText()) {
++                                      <pre class="bg-black p-3 border border-[var(--border-color)]/30 text-[10px] font-mono text-[var(--text-color-subtle)] overflow-x-auto whitespace-pre-wrap max-h-[100px]" style="border-radius: 0px !important;"><code>{{ weaverStreamingText() }}</code></pre>
++                                    }
++                                  </div>
++                                </div>
++                              }
++                              @case ('art-midwest-roots') {
++                                <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
++                                  <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">IPTC Metadata Compilation Panel</h6>
++                                  <div class="bg-black p-4 border-2 border-black text-left font-mono text-xs text-[var(--primary-color)] space-y-2" style="border-radius: 0px !important;">
++                                    <div>IPTC Header: EXIF Profile v2.1</div>
++                                    <div>Location Coordinates: 41.02° N, 83.65° W (Ohio)</div>
++                                    <div>Active Keywords: ["Ohio", "Rustic", "Landscape", "Barn", "Timber"]</div>
++                                    <div class="pt-2">
++                                      <button (click)="curriculumService.liveAnnouncement.set('IPTC metadata compiled and written back to original image header.')" class="w-full bg-[var(--button-bg)] hover:bg-[var(--primary-color)] hover:text-black py-2 border border-black font-bold transition-all text-xs uppercase tracking-wider" style="border-radius:0px !important; min-height: 44px;">
++                                        Write IPTC Header Block
++                                      </button>
++                                    </div>
++                                  </div>
++                                </div>
++                              }
++                            }
++                          </div>
++                        </div>
++                      </div>
++                    } @else {
++                      <div (click)="expandedArtworkId.set(art.id)" class="waterfall-item bg-[var(--card-bg)] border-2 border-[var(--border-color)] hover:border-[var(--secondary-color)] p-4 transition-all duration-300 flex flex-col group relative overflow-hidden cursor-pointer" style="border-radius: 0px !important;">
++                        <div class="aspect-video relative overflow-hidden border-b-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] flex items-center justify-center">
++                          <img [src]="art.image" [alt]="art.title" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
++                          <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-2 text-center">
++                            <span class="text-[10px] font-black uppercase tracking-wider text-[var(--primary-color)]">Inspect Simulated Concept</span>
++                          </div>
++                        </div>
++                        
++                        <div class="p-3 flex-1 flex flex-col justify-between space-y-3">
++                          <div class="space-y-1">
++                            <h4 class="font-serif text-base leading-tight text-[var(--text-color)] m-0 group-hover:text-[var(--secondary-color)] transition-colors">{{ art.title }}</h4>
++                            <p class="text-[11px] text-[var(--text-color-muted)] leading-normal line-clamp-2">{{ art.description }}</p>
++                          </div>
++                          
++                          <div class="flex flex-wrap gap-1">
++                            @for (t of art.stack; track t) {
++                              <span class="px-1.5 py-0.5 text-[9px] font-bold border border-[var(--border-color)] text-[var(--text-color-subtle)]" style="border-radius: 0px !important;">
++                                {{ t }}
++                              </span>
++                            }
++                          </div>
++                        </div>
++                      </div>
++                    }
++                  }
++                </div>
++              </div>
++            </section>
++          }
++          @case ('bio') {
++            <app-expertise></app-expertise>
++          }
++          @case ('teaching') {
++            @if (selectedLesson() === null) {
++              <app-lesson-browser (selectLesson)="handleSelectLesson($event)"></app-lesson-browser>
++            } @else {
++              <app-lesson-detail [lesson]="selectedLesson()!" (goBack)="selectedLesson.set(null)"></app-lesson-detail>
++            }
++          }
++          @case ('contact') {
++            <section class="animate-pop max-w-2xl mx-auto space-y-6">
++              <header class="border-b-2 border-[var(--border-color)] pb-4">
++                <div class="flex items-center gap-3">
++                  <div class="h-0.5 w-6 bg-[var(--primary-color)]"></div>
++                  <h2 class="text-xs font-black uppercase tracking-widest text-[var(--primary-color)] flex items-center gap-2 m-0">
++                    <app-icon name="mail" [size]="14"></app-icon>
++                    Get In Touch
++                  </h2>
++                </div>
++                <p class="text-sm text-[var(--text-color-muted)] mt-2">
++                  Have a project idea, question, or want to collaborate? Send a message directly.
++                </p>
++              </header>
++
++              @if (contactSuccess()) {
++                <div class="p-6 border-2 border-green-500 bg-green-500/10 text-green-400 space-y-3" style="border-radius: 0px !important;">
++                  <h3 class="font-serif text-2xl m-0 flex items-center gap-2">
++                    <app-icon name="check" [size]="24"></app-icon>
++                    Message Sent Successfully!
++                  </h3>
++                  <p class="text-sm">Thank you for reaching out, Phil. I will respond to your message shortly.</p>
++                  <button (click)="contactSuccess.set(false)" class="border-2 border-green-500 px-4 py-2 hover:bg-green-500 hover:text-black font-bold uppercase text-xs" style="border-radius: 0px !important;">Send Another Message</button>
++                </div>
++              } @else {
++                <form (submit)="$event.preventDefault(); submitContactForm()" class="space-y-4">
++                  <div class="flex flex-col gap-1.5">
++                    <label for="contact-name" class="text-xs font-bold uppercase tracking-wider text-[var(--text-color-muted)]">Your Name:</label>
++                    <input
++                      id="contact-name"
++                      name="contact-name"
++                      type="text"
++                      [ngModel]="contactName()"
++                      (ngModelChange)="contactName.set($event)"
++                      required
++                      placeholder="Enter your name"
++                      class="p-3 bg-[var(--card-bg)] border-2 border-[var(--border-color)] focus:ring-2 focus:ring-[var(--ring-color)] focus:outline-none text-sm"
++                      style="border-radius: 0px !important;"
++                    >
++                  </div>
++
++                  <div class="flex flex-col gap-1.5">
++                    <label for="contact-email" class="text-xs font-bold uppercase tracking-wider text-[var(--text-color-muted)]">Your Email:</label>
++                    <input
++                      id="contact-email"
++                      name="contact-email"
++                      type="email"
++                      [ngModel]="contactEmail()"
++                      (ngModelChange)="contactEmail.set($event)"
++                      required
++                      placeholder="Enter your email address"
++                      class="p-3 bg-[var(--card-bg)] border-2 border-[var(--border-color)] focus:ring-2 focus:ring-[var(--ring-color)] focus:outline-none text-sm"
++                      style="border-radius: 0px !important;"
++                    >
++                  </div>
++
++                  <div class="flex flex-col gap-1.5">
++                    <label for="contact-message" class="text-xs font-bold uppercase tracking-wider text-[var(--text-color-muted)]">Your Message:</label>
++                    <textarea
++                      id="contact-message"
++                      name="contact-message"
++                      rows="6"
++                      [ngModel]="contactMessage()"
++                      (ngModelChange)="contactMessage.set($event)"
++                      required
++                      placeholder="Describe your project, inquiry, or challenge..."
++                      class="p-3 bg-[var(--card-bg)] border-2 border-[var(--border-color)] focus:ring-2 focus:ring-[var(--ring-color)] focus:outline-none text-sm resize-none"
++                      style="border-radius: 0px !important;"
++                    ></textarea>
++                  </div>
++
++                  <button
++                    type="submit"
++                    [disabled]="contactLoading()"
++                    class="w-full bg-[var(--secondary-color)] hover:bg-[#d94f44] text-white font-bold py-3 border-2 border-transparent uppercase text-sm tracking-wider flex items-center justify-center gap-2 disabled:opacity-50"
++                    style="border-radius: 0px !important; min-height: 48px;"
++                  >
++                    @if (contactLoading()) {
++                      <app-icon name="loader" [size]="16" class="animate-spin"></app-icon>
++                      <span>Sending Message...</span>
++                    } @else {
++                      <app-icon name="mail" [size]="16"></app-icon>
++                      <span>Submit Message</span>
++                    }
++                  </button>
++                </form>
++              }
++            </section>
++          }
+       }
++
++      <!-- Footer -->
++      <footer class="mt-20 border-t-2 border-[var(--border-color)]/30 pt-8 pb-4 text-center text-xs text-[var(--text-color-muted)] flex flex-col sm:flex-row justify-between items-center gap-4 w-full non-printable">
++        <div class="flex items-center gap-2 font-bold uppercase tracking-wider text-[var(--text-color-subtle)] text-[10px]">
++          <span>&copy; 2026 GearArts</span>
++          <span>&middot;</span>
++          <span>Phil Gear</span>
++        </div>
++        
++        <div class="flex gap-4">
++          @for (social of profile.socials; track social.name) {
++            <a [href]="social.url" 
++               target="_blank" 
++               [attr.aria-label]="social.name"
++               class="flex items-center justify-center w-10 h-10 border-2 border-[var(--border-color)] hover:bg-[var(--secondary-color)] hover:text-white hover:border-[var(--secondary-color)] transition-all"
++               style="border-radius: 0px !important; min-height: 44px; min-width: 44px;">
++              <app-icon [name]="social.icon" [size]="18"></app-icon>
++            </a>
++          }
++        </div>
++      </footer>
+     </div>
+   </main>
+ </div>

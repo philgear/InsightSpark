@@ -3,23 +3,24 @@
 
 <head>
   <meta charset="UTF-8">
+  <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Lora:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
-  <title>Insight Spark</title>
+  <title>GearArts</title>
 
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
   <meta name="description"
-    content="A creative companion that uses lateral thinking strategies to generate novel insights and solutions for your problems using Gemini AI.">
-  <meta name="theme-color" content="#24211c">
+    content="Creating a sustainable future through art and technology using lateral thinking strategies and Gemini AI.">
+  <meta name="theme-color" content="#1A1112">
   <!-- iOS specific tags -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Insight Spark">
-  <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png">
+  <meta name="apple-mobile-web-app-title" content="GearArts">
+  <link rel="apple-touch-icon" href="favicon.png">
 
 
   <style>
@@ -48,46 +49,46 @@
       --font-size-4xl: 1.875rem;
       /* 30px */
 
-      /* Dried Thistle Palette - Dark Theme */
-      --bg-color: #24211c;
-      --text-color: #FDF5E6;
-      --text-color-muted: #A89F91;
-      --text-color-subtle: #867d71;
-      --text-accent: #9370DB;
-      --text-highlight: #8B5A2B;
-
-      --header-bg: rgba(36, 33, 28, 0.7);
-      --card-bg: rgba(48, 43, 36, 0.8);
-      --card-bg-subtle: rgba(253, 245, 230, 0.05);
-
-      --border-color: rgba(147, 112, 219, 0.2);
-      --border-color-strong: rgba(147, 112, 219, 0.4);
-      --border-accent: rgba(139, 90, 43, 0.2);
-
-      --button-bg: rgba(253, 245, 230, 0.05);
-      --button-bg-hover: rgba(253, 245, 230, 0.1);
-
-      --primary-cta-bg: linear-gradient(105deg, #9370DB, #8B5A2B);
-      --primary-cta-text: #FDF5E6;
-
-      --ring-color: var(--text-accent);
+      /* GearArts Brand Palette - Dark Theme */
+  --bg-color: #faa63c; /* Class cls-3 Coral-Red body background */
+  --text-color: #faa63c; /* Class cls-2 Melon-Orange/Amber */
+  --text-color-muted: #ef6658; /* Coral for text inside cards */
+  --text-color-subtle: #3ebc9e; /* Teal-Green */
+  --text-accent: #3ebc9e;
+  --text-highlight: #ef6658;
+  
+  --header-bg: #faa63c; /* Amber card background globally */
+  --card-bg: #faa63c; /* Amber */
+  --card-bg-subtle: #faa63c; /* Amber */
+  
+  --border-color: #3ebc9e; /* Teal */
+  --border-color-strong: #3ebc9e;
+  --border-accent: #3ebc9e;
+  
+  --button-bg: #faa63c;
+  --button-bg-hover: #ef6658;
+  
+  --primary-cta-bg: #3ebc9e;
+  --primary-cta-text: #ef6658;
+  
+  --ring-color: var(--text-accent);
 
       /* Semantic status tokens (theme-aware) */
-      --color-danger: #e05c6b;
-      --color-warning: #d4a44c;
-      --color-success: #7aab62;
+      --color-danger: #ef6658;
+      --color-warning: #faa63c;
+      --color-success: #3ebc9e;
 
       /* Vibrant Strategy Colors - Dark Theme */
-      --strategy-purple: #9d7dfa;
-      --strategy-green: #9ae6b4;
-      --strategy-chocolate: #f6ad55;
-      --strategy-thistle: #cbd5e0;
+      --strategy-purple: #ef6658;
+      --strategy-green: #3ebc9e;
+      --strategy-chocolate: #faa63c;
+      --strategy-thistle: #faa63c;
 
       /* Icon Colors (Vibrant & Distinct) */
-      --icon-purple: #c084fc;
-      --icon-green: #4ade80;
-      --icon-chocolate: #fb923c;
-      --icon-thistle: #e2e8f0;
+      --icon-purple: #ef6658;
+      --icon-green: #3ebc9e;
+      --icon-chocolate: #faa63c;
+      --icon-thistle: #faa63c;
 
       /* Strategy Colors Assignments */
       --strategy-what-if: var(--strategy-purple);
@@ -119,44 +120,43 @@
     }
 
     .light-theme {
-      /* Dried Thistle Palette - Light Theme */
-      --bg-color: #FDF5E6;
-      --text-color: #3B4720;
-      --text-color-muted: #8B5A2B;
-      --text-color-subtle: #A89F91;
-      --text-accent: #8B5A2B;
-      --text-highlight: #9370DB;
+  /* GearArts Brand Palette - Light Theme */
+  --bg-color: #faa63c; /* Coral-Red background */
+  --text-color: #faa63c; /* Amber text */
+  --text-color-muted: #ef6658; /* Coral text inside cards */
+  --text-accent: #3ebc9e; /* Teal */
+  --text-highlight: #ef6658;
 
-      --header-bg: rgba(253, 245, 230, 0.7);
-      --card-bg: rgba(255, 255, 255, 0.7);
-      --card-bg-subtle: rgba(139, 90, 43, 0.05);
+  --header-bg: #faa63c; /* Amber card background globally */
+  --card-bg: #faa63c; /* Amber */
+  --card-bg-subtle: #faa63c; /* Amber */
 
-      --border-color: rgba(139, 90, 43, 0.15);
-      --border-color-strong: rgba(139, 90, 43, 0.25);
-      --border-accent: rgba(147, 112, 219, 0.2);
+  --border-color: #ef6658; /* Coral border */
+  --border-color-strong: #ef6658;
+  --border-accent: #ef6658;
 
-      --button-bg: rgba(139, 90, 43, 0.05);
-      --button-bg-hover: rgba(139, 90, 43, 0.1);
+  --button-bg: #faa63c;
+  --button-bg-hover: #ef6658;
 
-      --primary-cta-bg: linear-gradient(105deg, #9370DB, #8B5A2B);
-      --primary-cta-text: #FDF5E6;
+  --primary-cta-bg: #3ebc9e;
+  --primary-cta-text: #ef6658;
 
-      /* Semantic status tokens (light theme) */
-      --color-danger: #c0392b;
-      --color-warning: #b7770d;
-      --color-success: #3d7a37;
+  /* Semantic status tokens (light theme) */
+      --color-danger: #ef6658;
+      --color-warning: #faa63c;
+      --color-success: #3ebc9e;
 
       /* Adaptive Strategy Colors for Light Theme */
-      --strategy-purple: #6b46c1;
-      --strategy-green: #2f855a;
-      --strategy-chocolate: #9c4221;
-      --strategy-thistle: #4a5568;
+      --strategy-purple: #ef6658;
+      --strategy-green: #3ebc9e;
+      --strategy-chocolate: #faa63c;
+      --strategy-thistle: #ef6658;
 
       /* Icon Colors (Light Theme - Richer Shades) */
-      --icon-purple: #553c9a;
-      --icon-green: #276749;
-      --icon-chocolate: #7b341e;
-      --icon-thistle: #2d3748;
+      --icon-purple: #ef6658;
+      --icon-green: #3ebc9e;
+      --icon-chocolate: #faa63c;
+      --icon-thistle: #ef6658;
     }
 
     body {
@@ -330,7 +330,7 @@
       background: rgba(255, 255, 255, 0.05);
       border-radius: 9999px;
       overflow: hidden;
-      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+      box-shadow: none;
     }
 
     .proton-stream {
@@ -366,33 +366,11 @@
     }
 
     /* Syd Mead / Fluidist UI Styles */
-    .fluid-background {
-      position: absolute;
-      inset: 0;
-      overflow: hidden;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 0;
-    }
+    
 
-    .fluid-background::before {
-      content: '';
-      position: absolute;
-      width: 200%;
-      height: 200%;
-      top: -50%;
-      left: -50%;
-      background: radial-gradient(circle at 20% 20%, var(--text-accent), transparent 30%),
-        radial-gradient(circle at 80% 70%, var(--text-highlight), transparent 40%);
-      opacity: 0.1;
-      filter: blur(120px);
-      animation: fluid-flow 60s ease-in-out infinite alternate;
-    }
+    
 
-    .fluid-background.animating::before {
-      opacity: 0.15;
-    }
+    
 
     @keyframes fluid-flow {
       0% {
@@ -412,19 +390,10 @@
       }
     }
 
-    .organic-shape {
-      position: relative;
-      border: 1px solid var(--border-color);
-      background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.05) 0%, transparent 50%), var(--card-bg);
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
-    }
+    .organic-shape { position: relative; border: 1px solid var(--border-color); background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: none; }
 
     .organic-button {
       border-radius: 9999px;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
       background: var(--button-bg);
       border: 1px solid var(--border-color);
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -434,7 +403,7 @@
     .organic-button:focus {
       background: var(--button-bg-hover);
       border-color: var(--border-color-strong);
-      box-shadow: 0 4px 15px -2px rgba(0, 0, 0, 0.1), 0 0 10px -2px var(--text-highlight);
+      box-shadow: none;
       transform: translateY(-1px);
     }
 
@@ -446,18 +415,18 @@
     /* Premium Generate Button */
     .generate-button {
       color: var(--primary-cta-text);
-      background: linear-gradient(135deg, #9370DB 0%, #8B5A2B 50%, #9370DB 100%);
+      background: linear-gradient(135deg, #E5576C 0%, #F3A134 50%, #E5576C 100%);
       background-size: 200% auto;
       transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
       transform: scale(1);
-      box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      box-shadow: none;
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .generate-button:not(:disabled):hover {
       background-position: right center;
       transform: translateY(-2px) scale(1.01);
-      box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.5), 0 0 15px -2px var(--text-highlight);
+      box-shadow: none;
     }
 
     .generate-button:not(:disabled):active {
@@ -467,8 +436,6 @@
     /* Premium Strategy Chip (Dieter Rams x Zaha Hadid) */
     .strategy-button {
       background-color: var(--card-bg-subtle);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--border-color);
       border-radius: 12px;
       padding: 1rem;
@@ -496,7 +463,7 @@
       background-color: var(--button-bg-hover);
       border-color: var(--border-color-strong);
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.3);
+      box-shadow: none;
     }
 
     .strategy-button:hover::before {
@@ -506,7 +473,7 @@
     .strategy-button.selected {
       background-color: var(--card-bg);
       border-color: var(--text-highlight);
-      box-shadow: 0 0 20px -5px var(--text-highlight), inset 0 0 0 1px var(--text-highlight);
+      box-shadow: none;
     }
 
     .strategy-button.selected h4 {
@@ -592,8 +559,8 @@
       visibility: hidden;
       background: transparent !important;
       color: #000 !important;
-      box-shadow: none !important;
-      text-shadow: none !important;
+      box-shadow: none;
+      text-shadow: none;
     }
 
     .printable-section,
@@ -660,6 +627,7 @@
     "@angular/forms": "https://esm.sh/@angular/forms@^21.0.8?external=rxjs",
     "@angular/common": "https://esm.sh/@angular/common@^21.0.8?external=rxjs",
     "@angular/platform-browser": "https://esm.sh/@angular/platform-browser@^21.0.8?external=rxjs",
+    "@angular/router": "https://esm.sh/@angular/router@^21.0.8?external=rxjs",
     "@angular/service-worker": "https://esm.sh/@angular/service-worker@^21.0.8?external=rxjs",
     "rxjs/": "https://esm.sh/rxjs@^7.8.2/"
   }

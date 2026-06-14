@@ -2,24 +2,45 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, Type } from '@google/genai';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Load .env manually if it exists
+try {
+  const envPath = path.join(__dirname, '.env');
+  if (fs.existsSync(envPath)) {
+    const envConfig = fs.readFileSync(envPath, 'utf8');
+    envConfig.split('\n').forEach(line => {
+      const parts = line.split('=');
+      if (parts.length >= 2) {
+        const key = parts[0].trim();
+        const value = parts.slice(1).join('=').trim().replace(/(^['"]|['"]$)/g, '');
+        process.env[key] = value;
+      }
+    });
+  }
+} catch (e) {
+  console.warn('Could not read .env file:', e);
+}
+
 const app = express();
 const port = process.env.PORT || 8080;
 
 app.use(helmet({
   contentSecurityPolicy: {
+    useDefaults: false,
     directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:"],
-      connectSrc: ["'self'"],
+      'default-src': ["'self'"],
+      'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://esm.sh"],
+      'script-src-attr': ["'unsafe-inline'"],
+      'style-src': ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      'font-src': ["'self'", "https://fonts.gstatic.com"],
+      'img-src': ["'self'", "data:"],
+      'connect-src': ["'self'", "https://fonts.gstatic.com", "https://esm.sh"],
     },
   },
 }));
@@ -28,12 +49,11 @@ app.use(express.json());
 
 // Initialize Gemini API
 const apiKey = process.env.GEMINI_API_KEY;
-let ai;
 if (!apiKey) {
-  console.warn('WARNING: GEMINI_API_KEY environment variable is not set. API endpoints will fail.');
-} else {
-  ai = new GoogleGenAI({ apiKey });
+  console.error('ERROR: GEMINI_API_KEY is not defined in environment or .env file!');
+  process.exit(1);
 }
+const ai = new GoogleGenAI({ apiKey });
 
 const HIPAA_SYSTEM_INSTRUCTION = `
 You are a compassionate, knowledgeable, and HIPAA-compliant care support AI partner. Your primary function is to provide creative and supportive insights for an individual's care based on a de-identified health goal. 
@@ -109,6 +129,61 @@ app.post('/api/structure', async (req, res) => {
   } catch (error) {
     console.error('Error in /api/structure:', error);
     res.status(500).json({ error: 'Failed to structure problem' });
+  }
+});
+
+app.post('/api/reframe', async (req, res) => {
+  try {
+    if (!ai) {
+      return res.status(500).json({ error: 'Gemini API is not configured. Missing GEMINI_API_KEY environment variable.' });
+    }
+    const { problem } = req.body;
+    
+    const reframeSchema = {
+      type: Type.OBJECT,
+      properties: {
+        habitualPath: { 
+          type: Type.STRING, 
+          description: 'A description of the typical, obvious, or rigid approach (Einstellung trap) that developers or designers usually default to.' 
+        },
+        alternativePath: { 
+          type: Type.STRING, 
+          description: 'A description of the creative, elegant, or optimized alternative approach that bypasses the mental rut.' 
+        },
+        explanation: {
+          type: Type.STRING,
+          description: 'A brief cognitive analysis of why the alternative approach beats the Einstellung trap.'
+        }
+      },
+      required: ['habitualPath', 'alternativePath', 'explanation']
+    };
+
+    const prompt = `
+      The user is trying to design or implement the following creative technology or software goal:
+      "${problem}"
+
+      Analyze this goal through the lens of cognitive biases, specifically the Einstellung Effect (where a familiar solution blocks a simpler alternative).
+      
+      Generate a JSON object contrasting:
+      1. The habitual/obvious implementation route (e.g. over-engineering, using familiar but bloated libraries, choosing complex loops).
+      2. An elegant alternative route (e.g. using CSS math, native browser APIs, lightweight trigonometric math, canvas direct pixels, or smart resource reuse).
+      3. A quick cognitive explanation of the contrast.
+    `;
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: reframeSchema,
+          temperature: 0.7
+        }
+    });
+
+    res.json(JSON.parse(response.text));
+  } catch (error) {
+    console.error('Error in /api/reframe:', error);
+    res.status(500).json({ error: 'Failed to reframe query' });
   }
 });
 
