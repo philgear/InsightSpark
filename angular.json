@@ -29,6 +29,7 @@
           },
           "configurations": {
             "production": {
+              "subresourceIntegrity": true,
               "outputHashing": "all",
               "optimization": {
                 "scripts": true,

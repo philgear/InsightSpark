@@ -46,7 +46,7 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://accounts.google.com/gsi/client"],
+      scriptSrc: ["'self'", "https://accounts.google.com/gsi/client"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://accounts.google.com/gsi/style"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https://orcid.org", "https://*.orcid.org"],
@@ -60,6 +60,7 @@ app.use(helmet({
         "https://*.philgear.dev",
         "https://philgear.dev"
       ],
+      objectSrc: ["'none'"],
     },
   },
 }));
