@@ -27,6 +27,7 @@ html {
   --text-color-subtle: #867d71;
   --text-accent: #9370DB;
   --text-highlight: #8B5A2B;
+  --setup-btn-text: #12100d;
   
   --header-bg: rgba(36, 33, 28, 0.7);
   --card-bg: rgba(48, 43, 36, 0.8);
@@ -101,6 +102,7 @@ html {
   --text-color-subtle: #A89F91;
   --text-accent: #8B5A2B;
   --text-highlight: #9370DB;
+  --setup-btn-text: #FDF5E6;
 
   --header-bg: rgba(253, 245, 230, 0.7);
   --card-bg: rgba(255, 255, 255, 0.7);

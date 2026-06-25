@@ -46,12 +46,12 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "https://accounts.google.com/gsi/client"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://accounts.google.com/gsi/style"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:", "https://orcid.org", "https://*.orcid.org"],
-      connectSrc: ["'self'", "https://accounts.google.com/gsi/", "https://fonts.gstatic.com", "https://fonts.googleapis.com", "https://orcid.org", "https://*.orcid.org"],
-      frameSrc: ["'self'", "https://accounts.google.com/gsi/"],
+      connectSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com", "https://orcid.org", "https://*.orcid.org"],
+      frameSrc: ["'self'"],
       frameAncestors: [
         "'self'",
         "https://pocketgull.app",
@@ -1146,7 +1146,7 @@ app.get(['/privacy', '/privacy.html'], (req, res) => {
 });
 
 // Route all other requests to index.html to support Angular routing
-app.get('*', (req, res) => {
+app.get('{/*any}', (req, res) => {
   if (path.extname(req.path)) {
     return res.status(404).end();
   }

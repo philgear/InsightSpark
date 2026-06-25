@@ -37,9 +37,6 @@ An interactive lateral thinking workbench and medical care planner. **Pivot & Pu
 ### 4. ORCID Researcher Integration
 *   Connect your secure **ORCID ID** to authenticate your clinical or academic credentials, automatically appending attribution metadata to your exported care and action plans.
 
-### 5. Developer Chaos Sandbox
-*   Test application resilience directly from the settings drawer. Simulate transient or permanent API errors (`429 Rate Limit`, `500 Server Error`, or `Network Drop`) to verify exponential backoff retries.
-
 <div align="center">
   <img width="800" alt="Architecture Overview" src="docs/divider-architecture.png" />
 </div>
