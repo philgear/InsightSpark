@@ -19,7 +19,7 @@ function getStoredApiKey(): string {
       return value;
     }
     return atob(value);
-  } catch (e) {
+  } catch {
     return value;
   }
 }
@@ -309,7 +309,7 @@ export class GeminiService {
     } catch (error) {
       console.error(`Failed to generate insights for problem: '${problem}'`, error);
       const errMsg = (error as Error).message || "Failed to generate any insights. Please check your connection or try again.";
-      throw new Error(errMsg);
+      throw new Error(errMsg, { cause: error });
     }
   }
 

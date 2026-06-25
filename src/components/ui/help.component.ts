@@ -19,7 +19,7 @@ function getStoredApiKey(): string {
       return value;
     }
     return atob(value);
-  } catch (e) {
+  } catch {
     return value;
   }
 }
@@ -189,6 +189,7 @@ function removeStoredApiKey(): void {
           </span>
         </summary>
         
+        <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
         <div class="mt-4 pt-4 border-t border-[var(--border-color)]/40 cursor-default" (click)="$event.stopPropagation()">
           <p class="text-sm text-[var(--text-color-muted)] mb-4">
             Simulate backend API failures (429, 500, or network drops) to test client-side resilience and retry patterns.

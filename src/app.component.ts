@@ -39,7 +39,7 @@ function getStoredApiKey(): string {
       return value;
     }
     return atob(value);
-  } catch (e) {
+  } catch {
     return value;
   }
 }
