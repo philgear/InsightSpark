@@ -1,4 +1,4 @@
-<div class="flex flex-col h-screen w-full overflow-hidden relative app-shell text-[var(--text-color)] app-mode-creative">
+﻿<div class="flex flex-col h-screen w-full overflow-hidden relative app-shell text-[var(--text-color)] app-mode-creative">
   
   <!-- Fluid Backgrounds -->
   <div class="fluid-background" [class.animating]="isLoading()"></div>
@@ -9,7 +9,7 @@
     <div class="max-w-7xl mx-auto flex items-center relative z-10">
       
       <!-- Left: Logo & Brand -->
-      <div class="flex-1 flex justify-start items-center gap-6">
+      <div class="flex-1 flex justify-start">
         <button (click)="setView('generator'); reset()" class="flex items-center gap-2 text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-color)] focus:ring-[var(--ring-color)] rounded-lg p-1 -ml-1 transition-transform active:scale-95" aria-label="GearArts, return to generator">
           <div class="p-1 bg-white/10 backdrop-blur-md rounded-lg shadow-inner border border-[var(--border-accent)] overflow-hidden">
              <img [src]="logoPath()" alt="GearArts Logo" class="h-10 w-10 object-contain transition-opacity duration-300" width="40" height="40">
@@ -19,32 +19,6 @@
             <p class="text-[var(--font-size-sm)] text-[var(--text-color-muted)] hidden sm:block tracking-[-0.02em] leading-none uppercase opacity-70">Curriculum & Portfolio Showcase</p>
           </div>
         </button>
-
-        <!-- Navigation Links -->
-        <nav class="hidden md:flex items-center gap-2 text-xs font-black uppercase tracking-widest border-l-2 border-[var(--border-color)]/30 pl-6">
-          <button (click)="setView('generator'); reset()" 
-                  class="px-3 py-1.5 border-2 border-transparent hover:border-[var(--secondary-color)] hover:text-[var(--secondary-color)] transition-all cursor-pointer"
-                  [class.border-[var(--secondary-color)]]="currentView() === 'generator'"
-                  [class.text-[var(--secondary-color)]]="currentView() === 'generator'">
-            Home
-          </button>
-          <button (click)="navigateToGalleries()" 
-                  class="px-3 py-1.5 border-2 border-transparent hover:border-[var(--secondary-color)] hover:text-[var(--secondary-color)] transition-all cursor-pointer">
-            Galleries
-          </button>
-          <button (click)="setView('bio')" 
-                  class="px-3 py-1.5 border-2 border-transparent hover:border-[var(--secondary-color)] hover:text-[var(--secondary-color)] transition-all cursor-pointer"
-                  [class.border-[var(--secondary-color)]]="currentView() === 'bio'"
-                  [class.text-[var(--secondary-color)]]="currentView() === 'bio'">
-            Bio
-          </button>
-          <button (click)="setView('contact')" 
-                  class="px-3 py-1.5 border-2 border-transparent hover:border-[var(--secondary-color)] hover:text-[var(--secondary-color)] transition-all cursor-pointer"
-                  [class.border-[var(--secondary-color)]]="currentView() === 'contact'"
-                  [class.text-[var(--secondary-color)]]="currentView() === 'contact'">
-            Contact
-          </button>
-        </nav>
       </div>
       
       <!-- Right: Unified Controls Grid -->
@@ -78,14 +52,6 @@
       </div>
     </div>
   </header>
-  
-  <!-- Mobile Navigation Bar -->
-  <nav class="flex md:hidden bg-[var(--header-bg)] border-b border-[var(--border-color)]/30 justify-around text-[10px] font-black uppercase tracking-widest p-2 z-20 relative non-printable">
-    <button (click)="setView('generator'); reset()" class="p-1 hover:text-[var(--secondary-color)]" [class.text-[var(--secondary-color)]]="currentView() === 'generator'">Home</button>
-    <button (click)="navigateToGalleries()" class="p-1 hover:text-[var(--secondary-color)]">Galleries</button>
-    <button (click)="setView('bio')" class="p-1 hover:text-[var(--secondary-color)]" [class.text-[var(--secondary-color)]]="currentView() === 'bio'">Bio</button>
-    <button (click)="setView('contact')" class="p-1 hover:text-[var(--secondary-color)]" [class.text-[var(--secondary-color)]]="currentView() === 'contact'">Contact</button>
-  </nav>
   
   <!-- Update Available Banner -->
   @if (isUpdateAvailable()) {
@@ -445,399 +411,41 @@
                 }
               </section>
             } @else {
-              <!-- Generator Input View (Homepage Landing) -->
-              <div class="animate-pop pb-8 space-y-12">
-                
-                <!-- Hero Section -->
-                <section class="text-center py-6 border-b-2 border-[var(--border-color)]/25">
-                  <h2 class="font-serif text-4xl md:text-5xl text-[var(--text-color)] m-0 leading-tight">
-                    The Convergence of Art & Code
-                  </h2>
-                  <p class="max-w-2xl mx-auto text-sm md:text-base text-[var(--text-color-muted)] mt-3 leading-relaxed">
-                    Phil Gear's Creative Portfolio. Exploring the boundaries of visual arts, computer science engineering, and interactive D3 networks.
-                  </p>
-                </section>
-
-                <!-- Dual Layout Grid -->
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                  
-                  <!-- Left Side: Custom Showcase Compiler Card -->
-                  <div class="lg:col-span-7 bg-[var(--card-bg)] border-2 border-[var(--border-color)] p-6 flex flex-col justify-between" style="border-radius: 0px !important;">
-                    <div class="space-y-4">
-                      <header>
-                        <h3 class="font-serif text-2xl text-[var(--text-color)] m-0">Compile Customized Curriculum</h3>
-                        <p class="text-xs text-[var(--text-color-muted)] mt-1 leading-relaxed">
-                          Describe your technology goal, project challenge, or query below to compile a custom curriculum deck.
-                        </p>
-                      </header>
-
-                      <div class="step-pour" [class.active-step]="problemInput().length > 5">
-                        <textarea #problemTextarea
-                          id="problem-input"
-                          name="problem-input"
-                          [ngModel]="problemInput()"
-                          (ngModelChange)="problemInput.set($event)"
-                          placeholder="E.g. I want to build a kinetic gear simulation..."
-                          class="w-full p-3 text-sm bg-[var(--card-bg)] border-2 border-[var(--border-color-strong)] focus:outline-none resize-none"
-                          style="min-height: 120px;"
-                          aria-label="Describe your challenge, idea, or question"
-                          autocomplete="off">
-                        </textarea>
-                        <span class="flex justify-end text-[10px] text-[var(--text-color-subtle)] mt-1 pr-1">{{ problemInput().length }} / 1000</span>
-                      </div>
-
-                      <!-- Quick Suggestions -->
-                      <div class="space-y-2">
-                        <span class="text-[10px] font-black uppercase tracking-wider text-[var(--text-color-subtle)] block">Try a compiled sample query:</span>
-                        <div class="flex flex-wrap gap-2">
-                          <button (click)="selectQuickQuery('Trigonometric and kinetic gear simulation')" class="px-2.5 py-1 border border-[var(--border-color)] text-[10px] font-bold hover:bg-[var(--secondary-color)] hover:text-white transition-all text-left bg-[var(--button-bg)] cursor-pointer" style="border-radius: 0px !important;">Kinetic Gears</button>
-                          <button (click)="selectQuickQuery('Navier-Stokes fluid dynamics convection')" class="px-2.5 py-1 border border-[var(--border-color)] text-[10px] font-bold hover:bg-[var(--secondary-color)] hover:text-white transition-all text-left bg-[var(--button-bg)] cursor-pointer" style="border-radius: 0px !important;">Fluid Physics</button>
-                          <button (click)="selectQuickQuery('Web audio frequency synthesis XY pad')" class="px-2.5 py-1 border border-[var(--border-color)] text-[10px] font-bold hover:bg-[var(--secondary-color)] hover:text-white transition-all text-left bg-[var(--button-bg)] cursor-pointer" style="border-radius: 0px !important;">Audio Synth</button>
-                          <button (click)="selectQuickQuery('Generative AI weaver streaming text')" class="px-2.5 py-1 border border-[var(--border-color)] text-[10px] font-bold hover:bg-[var(--secondary-color)] hover:text-white transition-all text-left bg-[var(--button-bg)] cursor-pointer" style="border-radius: 0px !important;">Prompt Weaver</button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <!-- Compile Action Button -->
-                    <div class="mt-6 border-t border-[var(--border-color)]/20 pt-4">
-                      <button (click)="generateInsights()"
-                              [disabled]="isGenerateDisabled()"
-                              class="generate-button w-full flex items-center justify-center gap-3 focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)] cursor-pointer">
-                        <app-icon [name]="generateButtonIcon()" [size]="20"></app-icon>
-                        <span>{{ generateButtonText() }}</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Right Side: About Phil Gear & Artist Statement -->
-                  <div class="lg:col-span-5 bg-[var(--card-bg)] border-2 border-[var(--border-color)] p-6 flex flex-col justify-between" style="border-radius: 0px !important;">
-                    <div class="space-y-4">
-                      <header>
-                        <span class="px-2 py-0.5 text-[8px] font-black uppercase tracking-widest bg-[var(--card-bg-subtle)] text-[var(--text-accent)] border border-[var(--text-accent)]" style="border-radius: 0px !important;">
-                          Artist Statement
-                        </span>
-                        <h3 class="font-serif text-2xl text-[var(--text-color)] mt-2 mb-0">Phil Gear</h3>
-                        <p class="text-xs text-[var(--text-color-subtle)] italic m-0">{{ profile.title }}</p>
-                      </header>
-
-                      <p class="text-xs text-[var(--text-color-muted)] leading-relaxed m-0">
-                        {{ profile.bio }}
-                      </p>
-                      
-                      <div class="border-t border-[var(--border-color)]/20 pt-3">
-                        <h4 class="text-[10px] font-black uppercase tracking-widest text-[var(--text-color-subtle)] m-0 mb-2">Connect & Follow:</h4>
-                        <div class="flex gap-2">
-                          @for (social of profile.socials; track social.name) {
-                            <a [href]="social.url" 
-                               target="_blank" 
-                               [attr.aria-label]="social.name"
-                               class="flex items-center justify-center w-8 h-8 border border-[var(--border-color)] hover:bg-[var(--secondary-color)] hover:text-white hover:border-[var(--secondary-color)] transition-all bg-[var(--button-bg)]"
-                               style="border-radius: 0px !important; min-height: 32px; min-width: 32px;">
-                              <app-icon [name]="social.icon" [size]="14"></app-icon>
-                            </a>
-                          }
-                        </div>
-                      </div>
-                    </div>
-
-                    <button (click)="setView('bio')" class="w-full mt-6 bg-[var(--button-bg)] hover:bg-[var(--primary-color)] hover:text-black py-2.5 border-2 border-black font-bold text-xs uppercase tracking-wider transition-all cursor-pointer" style="border-radius: 0px !important; min-height: 40px;">
-                      Read Full Bio &amp; Artist Statement
-                    </button>
-                  </div>
-
+              <!-- Generator Input View -->
+              <div class="max-w-4xl mx-auto animate-pop pb-8">
+                <div class="flex flex-col mist-stagger">
+                  <!-- Step 1: Main Input -->
+                <div class="step-pour" [class.active-step]="problemInput().length > 5">
+                  <textarea #problemTextarea
+                    id="problem-input"
+                    name="problem-input"
+                    [ngModel]="problemInput()"
+                    (ngModelChange)="problemInput.set($event)"
+                    placeholder="Describe your challenge, idea, or question..."
+                    class="w-full p-4 text-base bg-[var(--card-bg)] border-2 border-[var(--border-color-strong)] focus:outline-none resize-none"
+                    aria-label="Describe your challenge, idea, or question"
+                    autocomplete="off">
+                  </textarea>
+                  <span class="flex justify-end text-sm text-[var(--text-color-subtle)] mt-1 pr-1">{{ problemInput().length }} / 1000</span>
                 </div>
 
-                <!-- Section Divider for Galleries -->
-                <div id="galleries-section" class="pt-8 border-t-2 border-[var(--border-color)]/25 scroll-mt-20">
-                  <div class="flex items-center gap-3">
-                    <div class="h-0.5 w-8 bg-[var(--text-accent)]"></div>
-                    <h2 class="text-transparent bg-clip-text bg-linear-to-r from-[var(--text-highlight)] to-[var(--text-accent)] m-0">
-                      Visual Art Galleries
-                    </h2>
-                  </div>
-                  <p class="text-xs text-[var(--text-color-muted)] mt-2">
-                    Exploring the boundary of science, code, and photography. Filter tags or hover/click nodes in the interactive query map.
-                  </p>
+                <!-- Connector to Generate -->
+                <div class="step-connector" [class.active]="problemInput().length > 5">
+                  <div class="step-connector__orb"></div><div class="step-connector__orb"></div><div class="step-connector__orb"></div>
                 </div>
 
-                <!-- Embedded Galleries Container -->
-                <div class="space-y-6">
-                  <!-- Control toolbar -->
-                  <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full justify-between">
-                    <div class="relative flex-1 max-w-md">
-                      <app-icon name="search" [size]="18" class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-color-muted)]"></app-icon>
-                      <input
-                        id="search-gallery"
-                        name="search-gallery"
-                        type="text"
-                        [ngModel]="gallerySearchQuery()"
-                        (ngModelChange)="gallerySearchQuery.set($event)"
-                        placeholder="Search artwork title, tags, tools..."
-                        class="w-full pl-10 pr-4 py-2 bg-[var(--card-bg)] border-2 border-[var(--border-color)] focus:ring-2 focus:ring-[var(--ring-color)] focus:outline-none transition-all text-xs"
-                        style="border-radius: 0px !important;"
-                      >
-                      @if (gallerySearchQuery()) {
-                        <button (click)="gallerySearchQuery.set('')" class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-color-muted)] hover:text-[var(--text-color)] focus:outline-none cursor-pointer" aria-label="Clear search">
-                          <app-icon name="x" [size]="16"></app-icon>
-                        </button>
-                      }
-                    </div>
-
-                    <div class="flex items-center bg-[var(--button-bg)] border-2 border-[var(--border-color)] p-0.5" style="border-radius: 0px !important;">
-                      <button (click)="selectedGalleryCategory.set('all')" [class.bg-[var(--card-bg)]]="selectedGalleryCategory() === 'all'" class="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all focus:outline-none cursor-pointer" style="border-radius: 0px !important;">All</button>
-                      <button (click)="selectedGalleryCategory.set('genai')" [class.bg-[var(--card-bg)]]="selectedGalleryCategory() === 'genai'" class="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all focus:outline-none cursor-pointer" style="border-radius: 0px !important;">GenAI</button>
-                      <button (click)="selectedGalleryCategory.set('photography')" [class.bg-[var(--card-bg)]]="selectedGalleryCategory() === 'photography'" class="px-3 py-1.5 text-[10px] font-black uppercase tracking-widest transition-all focus:outline-none cursor-pointer" style="border-radius: 0px !important;">Photo</button>
-                    </div>
-                  </div>
-
-                  <!-- Map & Filters -->
-                  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    <div class="lg:col-span-4 h-[400px] bg-[var(--card-bg-subtle)] border-2 border-[var(--border-color)] relative" style="border-radius: 0px !important;">
-                      <app-gallery-query-map
-                        [artworks]="artworks"
-                        [selectedTags]="selectedGalleryTags()"
-                        [activeCategory]="selectedGalleryCategory()"
-                        (tagToggle)="toggleGalleryTag($event)"
-                        (artworkSelected)="expandedArtworkId.set($event.id)">
-                      </app-gallery-query-map>
-                    </div>
-
-                    <div class="lg:col-span-4 flex flex-wrap gap-2 items-center bg-[var(--card-bg-subtle)] border-2 border-[var(--border-color)] p-4" style="border-radius: 0px !important;">
-                      <span class="text-xs font-black uppercase tracking-wider text-[var(--text-color-muted)] flex items-center gap-1.5 mr-2">
-                        <app-icon name="tag" [size]="14"></app-icon>
-                        Filter Tags:
-                      </span>
-                      @for (tag of getAllGalleryTags(artworks, selectedGalleryCategory()); track tag) {
-                        <button (click)="toggleGalleryTag(tag)"
-                                [class.bg-[var(--text-accent)]]="selectedGalleryTags().has(tag)"
-                                [class.text-white]="selectedGalleryTags().has(tag)"
-                                [class.bg-[var(--button-bg)]]="!selectedGalleryTags().has(tag)"
-                                [class.hover:bg-[var(--button-bg-hover)]]="!selectedGalleryTags().has(tag)"
-                                class="px-3 py-1 border border-[var(--border-color)] text-xs font-medium transition-all cursor-pointer"
-                                style="border-radius: 0px !important;">
-                          #{{ tag }}
-                        </button>
-                      }
-                      @if (selectedGalleryTags().size > 0) {
-                        <button (click)="clearGalleryTags()" class="text-xs text-[var(--text-accent)] font-bold hover:underline ml-2 cursor-pointer" style="cursor: pointer;">
-                          Clear Filters
-                        </button>
-                      }
-                    </div>
-
-                    <div class="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                      @for (art of filteredGalleryArtworks(); track art.id; let i = $index) {
-                        @if (expandedArtworkId() === art.id) {
-                          <div [id]="'artwork-card-' + art.id" class="col-span-1 md:col-span-2 lg:col-span-4 bg-[var(--card-bg)] border-2 border-[var(--secondary-color)] p-6 md:p-8 space-y-6" style="border-radius: 0px !important;">
-                            <header class="flex justify-between items-start border-b border-[var(--border-color)]/30 pb-4">
-                              <div>
-                                <span class="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-[var(--card-bg)] text-[var(--text-accent)] border-2 border-[var(--text-accent)]" style="border-radius: 0px !important;">
-                                  {{ art.category === 'genai' ? 'Generative AI Art' : 'Digital Photography' }}
-                                </span>
-                                <h3 class="font-serif text-3xl mt-2 mb-0">{{ art.title }}</h3>
-                              </div>
-                              <button (click)="expandedArtworkId.set(null)" class="flex items-center justify-center w-10 h-10 border-2 border-black hover:bg-neutral-100 text-black transition-colors focus:outline-none cursor-pointer" aria-label="Close details panel" style="border-radius: 0px !important;">
-                                <app-icon name="x" [size]="20"></app-icon>
-                              </button>
-                            </header>
-
-                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                              <div class="lg:col-span-5 space-y-6">
-                                <div class="aspect-video relative overflow-hidden bg-black border-2 border-black" style="border-radius: 0px !important;">
-                                  <img [src]="art.image" [alt]="art.title" class="w-full h-full object-cover">
-                                </div>
-                                
-                                <div class="space-y-4 text-sm leading-relaxed">
-                                  <p class="text-[var(--text-color-muted)] m-0">{{ art.description }}</p>
-                                  
-                                  <div class="space-y-2">
-                                    <h4 class="text-[10px] font-black uppercase tracking-widest text-[var(--text-color-subtle)] m-0">Creative Stack:</h4>
-                                    <div class="flex flex-wrap gap-1.5">
-                                      @for (t of art.stack; track t) {
-                                        <span class="px-2 py-0.5 text-xs font-bold border border-[var(--border-color)] text-[var(--text-color-subtle)]" style="border-radius: 0px !important;">
-                                          {{ t }}
-                                        </span>
-                                      }
-                                    </div>
-                                  </div>
-
-                                  <div class="space-y-2">
-                                    <h4 class="text-[10px] font-black uppercase tracking-widest text-[var(--text-color-subtle)] m-0">Semantic Tags:</h4>
-                                    <div class="flex flex-wrap gap-1.5">
-                                      @for (tag of art.tags; track tag) {
-                                        <span class="text-xs font-bold text-[var(--text-accent)]">#{{ tag }}</span>
-                                      }
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <div class="lg:col-span-7 space-y-6 border-t-2 lg:border-t-0 lg:border-l-2 border-[var(--border-color)]/30 pt-6 lg:pt-0 lg:pl-8">
-                                <h4 class="text-xs font-black uppercase tracking-widest text-[var(--secondary-color)] flex items-center gap-1.5 m-0 pb-2 border-b border-[var(--border-color)]/30">
-                                  <app-icon name="zap" [size]="14"></app-icon>
-                                  Live Concept Simulator Sandbox
-                                </h4>
-                                
-                                @switch (art.id) {
-                                  @case ('art-gear-study') {
-                                    <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-4 text-center" style="border-radius: 0px !important;">
-                                      <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] text-left m-0">Live Kinetic Engine Simulator</h6>
-                                      <div class="flex justify-center py-2">
-                                        <svg width="100" height="100" viewBox="0 0 100 100" class="overflow-visible">
-                                          <g [style.transform]="'rotate(' + getGearRotationAngle() + 'deg)'" style="transform-origin: 50px 50px; transition: transform 0.1s linear;">
-                                            <circle cx="50" cy="50" r="36" fill="none" stroke="var(--primary-color)" stroke-width="4" stroke-dasharray="10 5"></circle>
-                                            <circle cx="50" cy="50" r="12" fill="var(--primary-color)"></circle>
-                                            <line x1="50" y1="12" x2="50" y2="88" stroke="black" stroke-width="3"></line>
-                                            <line x1="12" y1="50" x2="88" y2="50" stroke="black" stroke-width="3"></line>
-                                          </g>
-                                        </svg>
-                                      </div>
-                                      <div class="flex flex-col gap-2 text-xs text-left">
-                                        <div class="flex justify-between items-center">
-                                          <span>Rotation Speed: {{ gearSpeed() }}x</span>
-                                          <input type="range" min="1" max="5" [value]="gearSpeed()" (input)="gearSpeed.set(+$any($event.target).value)" class="w-32 accent-[var(--primary-color)] h-1 cursor-pointer">
-                                        </div>
-                                        <button (click)="gearIsRunning.set(!gearIsRunning())" class="w-full bg-[var(--button-bg)] hover:bg-[var(--primary-color)] hover:text-black py-2 border-2 border-black font-bold transition-all text-xs uppercase tracking-wider cursor-pointer" style="border-radius:0px !important; min-height: 44px;">
-                                          {{ gearIsRunning() ? 'Pause Rotation' : 'Resume Rotation' }}
-                                        </button>
-                                      </div>
-                                    </div>
-                                  }
-                                  @case ('art-fluid-physics') {
-                                    <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3 text-center" style="border-radius: 0px !important;">
-                                      <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] text-left m-0">Live Convection Flow Wind Monitor</h6>
-                                      <p class="text-xs text-[var(--text-color-muted)] text-left m-0">Simulates real-time convection vector friction advection.</p>
-                                      <div class="p-6 bg-black border-2 border-black text-left font-mono text-xs text-[var(--primary-color)] space-y-2" style="border-radius: 0px !important;">
-                                        <div>Advection Solver Status: RUNNING</div>
-                                        <div>Friction Factor Dampening: {{ fluidFriction() }}</div>
-                                        <div>Active Force Velocity Grid: 64x64 flat dynamic buffer</div>
-                                        <div class="flex items-center justify-between pt-2">
-                                          <span>Adjust Friction:</span>
-                                          <input type="range" min="80" max="99" [value]="fluidFriction() * 100" (input)="fluidFriction.set(+$any($event.target).value / 100)" class="w-32 accent-[var(--primary-color)] h-1 cursor-pointer">
-                                        </div>
-                                      </div>
-                                    </div>
-                                  }
-                                  @case ('art-synth-waves') {
-                                    <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
-                                      <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">Interactive XY Frequency Synth Pad</h6>
-                                      <div class="relative overflow-hidden bg-black border-2 border-black" style="height: 120px; border-radius: 0px !important;">
-                                        <div class="absolute inset-0 flex flex-col justify-center items-center cursor-crosshair select-none transition-all hover:bg-neutral-950 z-20"
-                                             (mousemove)="synthUpdateFreq($event)"
-                                             (mousedown)="synthStart()"
-                                             (mouseup)="synthStop()"
-                                             (mouseleave)="synthStop()">
-                                          @if (!synthIsPlaying()) {
-                                            <span class="text-[10px] text-[var(--text-color-muted)] font-black uppercase tracking-wider">Click/Hold & Drag to Play Synth</span>
-                                          } @else {
-                                            <span class="text-xs font-mono text-[var(--primary-color)] font-bold bg-black/75 px-3 py-1 border border-black" style="border-radius: 0px !important;">{{ synthFrequency() }} Hz Frequency</span>
-                                          }
-                                        </div>
-                                      </div>
-                                      <div class="flex justify-between items-center text-[10px] font-bold">
-                                        <span>Oscillator Waveform:</span>
-                                        <div class="flex gap-1">
-                                          @for (type of ['sine', 'square', 'sawtooth', 'triangle']; track type) {
-                                            <button (click)="synthUpdateOscType(type)"
-                                                    [class.bg-[var(--primary-color)]]="synthOscType() === type"
-                                                    [class.text-black]="synthOscType() === type"
-                                                    class="px-2 py-1 border-2 border-black uppercase text-[9px] font-bold cursor-pointer" style="border-radius:0px !important; min-height: 28px;">
-                                              {{ type }}
-                                            </button>
-                                          }
-                                        </div>
-                                      </div>
-                                    </div>
-                                  }
-                                  @case ('art-pnw-mist') {
-                                    <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
-                                      <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">Live Lojong Meditative Respiration Guide</h6>
-                                      <app-lojong-cleansing></app-lojong-cleansing>
-                                    </div>
-                                  }
-                                  @case ('art-urban-geometry') {
-                                    <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
-                                      <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">Steel &amp; Concrete - Interactive Network Graph</h6>
-                                      <div style="height: 180px;" class="border border-[var(--border-color)] bg-white overflow-hidden relative">
-                                        <app-graph-view [results]="null" [problem]="'Steel & Concrete Structure'" [strategies]="availableStrategies()"></app-graph-view>
-                                      </div>
-                                    </div>
-                                  }
-                                  @case ('art-event-ops') {
-                                    <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
-                                      <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">Orchestration Speech Synthesizer</h6>
-                                      <div class="bg-black p-3 border-2 border-black font-mono text-[10px] min-h-[40px] text-[var(--primary-color)]">
-                                        Audible Announcement: {{ simulatedSpeechText() || 'Idle.' }}
-                                      </div>
-                                      <button (click)="speakA11yText('Event supply logistics initialized: Portland public bridge barricades deployed.')" class="w-full bg-[var(--button-bg)] hover:bg-[var(--primary-color)] hover:text-black py-2 border-2 border-black font-bold text-xs uppercase tracking-wider cursor-pointer" style="border-radius: 0px !important; min-height: 44px;">
-                                        Announce Logistics Route
-                                      </button>
-                                    </div>
-                                  }
-                                  @case ('art-bauhaus') {
-                                    <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
-                                      <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">Bauhaus Streaming prompt weaver</h6>
-                                      <div class="flex flex-col gap-2 text-xs">
-                                        <input type="text" [value]="weaverPrompt()" (input)="weaverPrompt.set($any($event.target).value)" class="p-2 bg-black border-2 border-black text-xs font-mono text-white" style="border-radius: 0px !important;">
-                                        <button (click)="runWeaverMockStream()" [disabled]="weaverIsStreaming()" class="w-full bg-[var(--secondary-color)] text-white hover:bg-[#d94f44] py-2 border-2 border-transparent font-bold text-xs uppercase tracking-wider cursor-pointer" style="border-radius: 0px !important; min-height: 44px;">
-                                          {{ weaverIsStreaming() ? 'Streaming Prompt Tokens...' : 'Start Prompt Stream' }}
-                                        </button>
-                                        @if (weaverStreamingText()) {
-                                          <pre class="bg-black p-3 border border-[var(--border-color)]/30 text-[10px] font-mono text-[var(--text-color-subtle)] overflow-x-auto whitespace-pre-wrap max-h-[100px]" style="border-radius: 0px !important;"><code>{{ weaverStreamingText() }}</code></pre>
-                                        }
-                                      </div>
-                                    </div>
-                                  }
-                                  @case ('art-midwest-roots') {
-                                    <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
-                                      <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">IPTC Metadata Compilation Panel</h6>
-                                      <div class="bg-black p-4 border-2 border-black text-left font-mono text-xs text-[var(--primary-color)] space-y-2" style="border-radius: 0px !important;">
-                                        <div>IPTC Header: EXIF Profile v2.1</div>
-                                        <div>Location Coordinates: 41.02° N, 83.65° W (Ohio)</div>
-                                        <div>Active Keywords: ["Ohio", "Rustic", "Landscape", "Barn", "Timber"]</div>
-                                        <div class="pt-2">
-                                          <button (click)="curriculumService.liveAnnouncement.set('IPTC metadata compiled and written back to original image header.')" class="w-full bg-[var(--button-bg)] hover:bg-[var(--primary-color)] hover:text-black py-2 border border-black font-bold transition-all text-xs uppercase tracking-wider cursor-pointer" style="border-radius:0px !important; min-height: 44px;">
-                                            Write IPTC Header Block
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  }
-                                }
-                              </div>
-                            </div>
-                          </div>
-                        } @else {
-                          <div (click)="expandedArtworkId.set(art.id)" class="waterfall-item bg-[var(--card-bg)] border-2 border-[var(--border-color)] hover:border-[var(--secondary-color)] p-4 transition-all duration-300 flex flex-col group relative overflow-hidden cursor-pointer" style="border-radius: 0px !important;">
-                            <div class="aspect-video relative overflow-hidden border-b-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] flex items-center justify-center">
-                              <img [src]="art.image" [alt]="art.title" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-                              <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-2 text-center">
-                                <span class="text-[10px] font-black uppercase tracking-wider text-[var(--primary-color)]">Inspect Simulated Concept</span>
-                              </div>
-                            </div>
-                            
-                            <div class="p-3 flex-1 flex flex-col justify-between space-y-3">
-                              <div class="space-y-1">
-                                <h4 class="font-serif text-base leading-tight text-[var(--text-color)] m-0 group-hover:text-[var(--secondary-color)] transition-colors">{{ art.title }}</h4>
-                                <p class="text-[11px] text-[var(--text-color-muted)] leading-normal line-clamp-2">{{ art.description }}</p>
-                              </div>
-                              
-                              <div class="flex flex-wrap gap-1">
-                                @for (t of art.stack; track t) {
-                                  <span class="px-1.5 py-0.5 text-[9px] font-bold border border-[var(--border-color)] text-[var(--text-color-subtle)]" style="border-radius: 0px !important;">
-                                    {{ t }}
-                                  </span>
-                                }
-                              </div>
-                            </div>
-                          </div>
-                        }
-                      }
-                    </div>
-                  </div>
+                <!-- Generate Button -->
+                <div>
+                  <button (click)="generateInsights()"
+                          [disabled]="isGenerateDisabled()"
+                          class="generate-button w-full flex items-center justify-center gap-3 focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                    <app-icon [name]="generateButtonIcon()" [size]="22"></app-icon>
+                    <span>{{ generateButtonText() }}</span>
+                  </button>
                 </div>
 
               </div>
+            </div>
           }
         }
         @case ('saved') {
@@ -903,7 +511,288 @@
               <div class="h-screen bg-[var(--bg-color)] animate-pulse"></div>
             }
           }
+          @case ('galleries') {
+            <section class="animate-pop space-y-6">
+              <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <h2 class="text-transparent bg-clip-text bg-linear-to-r from-[var(--text-highlight)] to-[var(--text-accent)] m-0">Visual Art Galleries</h2>
+                  <p class="text-[var(--text-color-muted)] mt-1">Exploring the boundary of science, code, and photography</p>
+                </div>
 
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1 max-w-2xl justify-end">
+                  <div class="relative flex-1 max-w-md">
+                    <app-icon name="search" [size]="18" class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-color-muted)]"></app-icon>
+                    <input
+                      id="search-gallery"
+                      name="search-gallery"
+                      type="text"
+                      [ngModel]="gallerySearchQuery()"
+                      (ngModelChange)="gallerySearchQuery.set($event)"
+                      placeholder="Search artwork title, description, tags, tools..."
+                      class="w-full pl-10 pr-4 py-2 bg-[var(--card-bg)] border-2 border-[var(--border-color)] focus:ring-2 focus:ring-[var(--ring-color)] focus:outline-none transition-all text-sm"
+                      style="border-radius: 0px !important;"
+                    >
+                    @if (gallerySearchQuery()) {
+                      <button (click)="gallerySearchQuery.set('')" class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-color-muted)] hover:text-[var(--text-color)] focus:outline-none" aria-label="Clear search">
+                        <app-icon name="x" [size]="16"></app-icon>
+                      </button>
+                    }
+                  </div>
+
+                  <div class="flex items-center bg-[var(--button-bg)] border-2 border-[var(--border-color)] p-0.5" style="border-radius: 0px !important;">
+                    <button (click)="selectedGalleryCategory.set('all')" [class.bg-[var(--card-bg)]]="selectedGalleryCategory() === 'all'" class="px-3 py-1.5 text-xs font-bold transition-all focus:outline-none" style="border-radius: 0px !important;">All</button>
+                    <button (click)="selectedGalleryCategory.set('genai')" [class.bg-[var(--card-bg)]]="selectedGalleryCategory() === 'genai'" class="px-3 py-1.5 text-xs font-bold transition-all focus:outline-none" style="border-radius: 0px !important;">GenAI</button>
+                    <button (click)="selectedGalleryCategory.set('photography')" [class.bg-[var(--card-bg)]]="selectedGalleryCategory() === 'photography'" class="px-3 py-1.5 text-xs font-bold transition-all focus:outline-none" style="border-radius: 0px !important;">Photography</button>
+                  </div>
+                </div>
+              </header>
+
+              <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                <div class="lg:col-span-4 h-[400px] bg-[var(--card-bg-subtle)] border-2 border-[var(--border-color)] relative" style="border-radius: 0px !important;">
+                  <app-gallery-query-map
+                    [artworks]="artworks"
+                    [selectedTags]="selectedGalleryTags()"
+                    [activeCategory]="selectedGalleryCategory()"
+                    (tagToggle)="toggleGalleryTag($event)"
+                    (artworkSelected)="expandedArtworkId.set($event.id)">
+                  </app-gallery-query-map>
+                </div>
+
+                <div class="lg:col-span-4 flex flex-wrap gap-2 items-center bg-[var(--card-bg-subtle)] border-2 border-[var(--border-color)] p-4" style="border-radius: 0px !important;">
+                  <span class="text-xs font-black uppercase tracking-wider text-[var(--text-color-muted)] flex items-center gap-1.5 mr-2">
+                    <app-icon name="tag" [size]="14"></app-icon>
+                    Filter Tags:
+                  </span>
+                  @for (tag of getAllGalleryTags(artworks, selectedGalleryCategory()); track tag) {
+                    <button (click)="toggleGalleryTag(tag)"
+                            [class.bg-[var(--text-accent)]]="selectedGalleryTags().has(tag)"
+                            [class.text-white]="selectedGalleryTags().has(tag)"
+                            [class.bg-[var(--button-bg)]]="!selectedGalleryTags().has(tag)"
+                            [class.hover:bg-[var(--button-bg-hover)]]="!selectedGalleryTags().has(tag)"
+                            class="px-3 py-1 border border-[var(--border-color)] text-xs font-medium transition-all"
+                            style="border-radius: 0px !important;">
+                      #{{ tag }}
+                    </button>
+                  }
+                  @if (selectedGalleryTags().size > 0) {
+                    <button (click)="clearGalleryTags()" class="text-xs text-[var(--text-accent)] font-bold hover:underline ml-2" style="cursor: pointer;">
+                      Clear Filters
+                    </button>
+                  }
+                </div>
+
+                <div class="lg:col-span-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  @for (art of filteredGalleryArtworks(); track art.id; let i = $index) {
+                    @if (expandedArtworkId() === art.id) {
+                      <div [id]="'artwork-card-' + art.id" class="col-span-1 md:col-span-2 lg:col-span-4 bg-[var(--card-bg)] border-2 border-[var(--secondary-color)] p-6 md:p-8 space-y-6" style="border-radius: 0px !important;">
+                        <header class="flex justify-between items-start border-b border-[var(--border-color)]/30 pb-4">
+                          <div>
+                            <span class="px-2.5 py-1 text-[10px] font-black uppercase tracking-widest bg-[var(--card-bg)] text-[var(--text-accent)] border-2 border-[var(--text-accent)]" style="border-radius: 0px !important;">
+                              {{ art.category === 'genai' ? 'Generative AI Art' : 'Digital Photography' }}
+                            </span>
+                            <h3 class="font-serif text-3xl mt-2 mb-0">{{ art.title }}</h3>
+                          </div>
+                          <button (click)="expandedArtworkId.set(null)" class="flex items-center justify-center w-10 h-10 border-2 border-black hover:bg-neutral-100 text-black transition-colors focus:outline-none" aria-label="Close details panel" style="border-radius: 0px !important;">
+                            <app-icon name="x" [size]="20"></app-icon>
+                          </button>
+                        </header>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                          <div class="lg:col-span-5 space-y-6">
+                            <div class="aspect-video relative overflow-hidden bg-black border-2 border-black" style="border-radius: 0px !important;">
+                              <img [src]="art.image" [alt]="art.title" class="w-full h-full object-cover">
+                            </div>
+                            
+                            <div class="space-y-4 text-sm leading-relaxed">
+                              <p class="text-[var(--text-color-muted)] m-0">{{ art.description }}</p>
+                              
+                              <div class="space-y-2">
+                                <h4 class="text-[10px] font-black uppercase tracking-widest text-[var(--text-color-subtle)] m-0">Creative Stack:</h4>
+                                <div class="flex flex-wrap gap-1.5">
+                                  @for (t of art.stack; track t) {
+                                    <span class="px-2 py-0.5 text-xs font-bold border border-[var(--border-color)] text-[var(--text-color-subtle)]" style="border-radius: 0px !important;">
+                                      {{ t }}
+                                    </span>
+                                  }
+                                </div>
+                              </div>
+
+                              <div class="space-y-2">
+                                <h4 class="text-[10px] font-black uppercase tracking-widest text-[var(--text-color-subtle)] m-0">Semantic Tags:</h4>
+                                <div class="flex flex-wrap gap-1.5">
+                                  @for (tag of art.tags; track tag) {
+                                    <span class="text-xs font-bold text-[var(--text-accent)]">#{{ tag }}</span>
+                                  }
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="lg:col-span-7 space-y-6 border-t-2 lg:border-t-0 lg:border-l-2 border-[var(--border-color)]/30 pt-6 lg:pt-0 lg:pl-8">
+                            <h4 class="text-xs font-black uppercase tracking-widest text-[var(--secondary-color)] flex items-center gap-1.5 m-0 pb-2 border-b border-[var(--border-color)]/30">
+                              <app-icon name="zap" [size]="14"></app-icon>
+                              Live Concept Simulator Sandbox
+                            </h4>
+                            
+                            @switch (art.id) {
+                              @case ('art-gear-study') {
+                                <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-4 text-center" style="border-radius: 0px !important;">
+                                  <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] text-left m-0">Live Kinetic Engine Simulator</h6>
+                                  <div class="flex justify-center py-2">
+                                    <svg width="100" height="100" viewBox="0 0 100 100" class="overflow-visible">
+                                      <g [style.transform]="'rotate(' + getGearRotationAngle() + 'deg)'" style="transform-origin: 50px 50px; transition: transform 0.1s linear;">
+                                        <circle cx="50" cy="50" r="36" fill="none" stroke="var(--primary-color)" stroke-width="4" stroke-dasharray="10 5"></circle>
+                                        <circle cx="50" cy="50" r="12" fill="var(--primary-color)"></circle>
+                                        <line x1="50" y1="12" x2="50" y2="88" stroke="black" stroke-width="3"></line>
+                                        <line x1="12" y1="50" x2="88" y2="50" stroke="black" stroke-width="3"></line>
+                                      </g>
+                                    </svg>
+                                  </div>
+                                  <div class="flex flex-col gap-2 text-xs text-left">
+                                    <div class="flex justify-between items-center">
+                                      <span>Rotation Speed: {{ gearSpeed() }}x</span>
+                                      <input type="range" min="1" max="5" [value]="gearSpeed()" (input)="gearSpeed.set(+$any($event.target).value)" class="w-32 accent-[var(--primary-color)] h-1 cursor-pointer">
+                                    </div>
+                                    <button (click)="gearIsRunning.set(!gearIsRunning())" class="w-full bg-[var(--button-bg)] hover:bg-[var(--primary-color)] hover:text-black py-2 border-2 border-black font-bold transition-all text-xs uppercase tracking-wider" style="border-radius:0px !important; min-height: 44px;">
+                                      {{ gearIsRunning() ? 'Pause Rotation' : 'Resume Rotation' }}
+                                    </button>
+                                  </div>
+                                </div>
+                              }
+                              @case ('art-fluid-physics') {
+                                <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3 text-center" style="border-radius: 0px !important;">
+                                  <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] text-left m-0">Live Convection Flow Wind Monitor</h6>
+                                  <p class="text-xs text-[var(--text-color-muted)] text-left m-0">Simulates real-time convection vector friction advection.</p>
+                                  <div class="p-6 bg-black border-2 border-black text-left font-mono text-xs text-[var(--primary-color)] space-y-2" style="border-radius: 0px !important;">
+                                    <div>Advection Solver Status: RUNNING</div>
+                                    <div>Friction Factor Dampening: {{ fluidFriction() }}</div>
+                                    <div>Active Force Velocity Grid: 64x64 flat dynamic buffer</div>
+                                    <div class="flex items-center justify-between pt-2">
+                                      <span>Adjust Friction:</span>
+                                      <input type="range" min="80" max="99" [value]="fluidFriction() * 100" (input)="fluidFriction.set(+$any($event.target).value / 100)" class="w-32 accent-[var(--primary-color)] h-1 cursor-pointer">
+                                    </div>
+                                  </div>
+                                </div>
+                              }
+                              @case ('art-synth-waves') {
+                                <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
+                                  <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">Interactive XY Frequency Synth Pad</h6>
+                                  <div class="relative overflow-hidden bg-black border-2 border-black" style="height: 120px; border-radius: 0px !important;">
+                                    <div class="absolute inset-0 flex flex-col justify-center items-center cursor-crosshair select-none transition-all hover:bg-neutral-950 z-20"
+                                         (mousemove)="synthUpdateFreq($event)"
+                                         (mousedown)="synthStart()"
+                                         (mouseup)="synthStop()"
+                                         (mouseleave)="synthStop()">
+                                      @if (!synthIsPlaying()) {
+                                        <span class="text-[10px] text-[var(--text-color-muted)] font-black uppercase tracking-wider">Click/Hold & Drag to Play Synth</span>
+                                      } @else {
+                                        <span class="text-xs font-mono text-[var(--primary-color)] font-bold bg-black/75 px-3 py-1 border border-black" style="border-radius: 0px !important;">{{ synthFrequency() }} Hz Frequency</span>
+                                      }
+                                    </div>
+                                  </div>
+                                  <div class="flex justify-between items-center text-[10px] font-bold">
+                                    <span>Oscillator Waveform:</span>
+                                    <div class="flex gap-1">
+                                      @for (type of ['sine', 'square', 'sawtooth', 'triangle']; track type) {
+                                        <button (click)="synthUpdateOscType(type)"
+                                                [class.bg-[var(--primary-color)]]="synthOscType() === type"
+                                                [class.text-black]="synthOscType() === type"
+                                                class="px-2 py-1 border-2 border-black uppercase text-[9px] font-bold" style="border-radius:0px !important; min-height: 28px;">
+                                          {{ type }}
+                                        </button>
+                                      }
+                                    </div>
+                                  </div>
+                                </div>
+                              }
+                              @case ('art-pnw-mist') {
+                                <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
+                                  <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">Live Lojong Meditative Respiration Guide</h6>
+                                  <app-lojong-cleansing></app-lojong-cleansing>
+                                </div>
+                              }
+                              @case ('art-urban-geometry') {
+                                <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
+                                  <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">Steel &amp; Concrete - Interactive Network Graph</h6>
+                                  <div style="height: 180px;" class="border border-[var(--border-color)] bg-white overflow-hidden relative">
+                                    <app-graph-view [results]="null" [problem]="'Steel & Concrete Structure'" [strategies]="availableStrategies()"></app-graph-view>
+                                  </div>
+                                </div>
+                              }
+                              @case ('art-event-ops') {
+                                <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
+                                  <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">Orchestration Speech Synthesizer</h6>
+                                  <div class="bg-black p-3 border-2 border-black font-mono text-[10px] min-h-[40px] text-[var(--primary-color)]">
+                                    Audible Announcement: {{ simulatedSpeechText() || 'Idle.' }}
+                                  </div>
+                                  <button (click)="speakA11yText('Event supply logistics initialized: Portland public bridge barricades deployed.')" class="w-full bg-[var(--button-bg)] hover:bg-[var(--primary-color)] hover:text-black py-2 border-2 border-black font-bold text-xs uppercase tracking-wider" style="border-radius: 0px !important; min-height: 44px;">
+                                    Announce Logistics Route
+                                  </button>
+                                </div>
+                              }
+                              @case ('art-bauhaus') {
+                                <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
+                                  <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">Bauhaus Streaming prompt weaver</h6>
+                                  <div class="flex flex-col gap-2 text-xs">
+                                    <input type="text" [value]="weaverPrompt()" (input)="weaverPrompt.set($event.target.value)" class="p-2 bg-black border-2 border-black text-xs font-mono text-white" style="border-radius: 0px !important;">
+                                    <button (click)="runWeaverMockStream()" [disabled]="weaverIsStreaming()" class="w-full bg-[var(--secondary-color)] text-white hover:bg-[#d94f44] py-2 border-2 border-transparent font-bold text-xs uppercase tracking-wider" style="border-radius: 0px !important; min-height: 44px;">
+                                      {{ weaverIsStreaming() ? 'Streaming Prompt Tokens...' : 'Start Prompt Stream' }}
+                                    </button>
+                                    @if (weaverStreamingText()) {
+                                      <pre class="bg-black p-3 border border-[var(--border-color)]/30 text-[10px] font-mono text-[var(--text-color-subtle)] overflow-x-auto whitespace-pre-wrap max-h-[100px]" style="border-radius: 0px !important;"><code>{{ weaverStreamingText() }}</code></pre>
+                                    }
+                                  </div>
+                                </div>
+                              }
+                              @case ('art-midwest-roots') {
+                                <div class="p-4 border-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] space-y-3" style="border-radius: 0px !important;">
+                                  <h6 class="text-[10px] font-black uppercase tracking-widest text-[var(--primary-color)] m-0">IPTC Metadata Compilation Panel</h6>
+                                  <div class="bg-black p-4 border-2 border-black text-left font-mono text-xs text-[var(--primary-color)] space-y-2" style="border-radius: 0px !important;">
+                                    <div>IPTC Header: EXIF Profile v2.1</div>
+                                    <div>Location Coordinates: 41.02° N, 83.65° W (Ohio)</div>
+                                    <div>Active Keywords: ["Ohio", "Rustic", "Landscape", "Barn", "Timber"]</div>
+                                    <div class="pt-2">
+                                      <button (click)="curriculumService.liveAnnouncement.set('IPTC metadata compiled and written back to original image header.')" class="w-full bg-[var(--button-bg)] hover:bg-[var(--primary-color)] hover:text-black py-2 border border-black font-bold transition-all text-xs uppercase tracking-wider" style="border-radius:0px !important; min-height: 44px;">
+                                        Write IPTC Header Block
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              }
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    } @else {
+                      <div (click)="expandedArtworkId.set(art.id)" class="waterfall-item bg-[var(--card-bg)] border-2 border-[var(--border-color)] hover:border-[var(--secondary-color)] p-4 transition-all duration-300 flex flex-col group relative overflow-hidden cursor-pointer" style="border-radius: 0px !important;">
+                        <div class="aspect-video relative overflow-hidden border-b-2 border-[var(--border-color)] bg-[var(--card-bg-subtle)] flex items-center justify-center">
+                          <img [src]="art.image" [alt]="art.title" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                          <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-2 text-center">
+                            <span class="text-[10px] font-black uppercase tracking-wider text-[var(--primary-color)]">Inspect Simulated Concept</span>
+                          </div>
+                        </div>
+                        
+                        <div class="p-3 flex-1 flex flex-col justify-between space-y-3">
+                          <div class="space-y-1">
+                            <h4 class="font-serif text-base leading-tight text-[var(--text-color)] m-0 group-hover:text-[var(--secondary-color)] transition-colors">{{ art.title }}</h4>
+                            <p class="text-[11px] text-[var(--text-color-muted)] leading-normal line-clamp-2">{{ art.description }}</p>
+                          </div>
+                          
+                          <div class="flex flex-wrap gap-1">
+                            @for (t of art.stack; track t) {
+                              <span class="px-1.5 py-0.5 text-[9px] font-bold border border-[var(--border-color)] text-[var(--text-color-subtle)]" style="border-radius: 0px !important;">
+                                {{ t }}
+                              </span>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  }
+                </div>
+              </div>
+            </section>
+          }
           @case ('bio') {
             <app-expertise></app-expertise>
           }

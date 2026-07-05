@@ -26,12 +26,32 @@
               "styles.css"
             ],
             "tsConfig": "tsconfig.json",
-            "allowedCommonJsDependencies": ["p-retry"]
+            "allowedCommonJsDependencies": [
+              "p-retry",
+              "cytoscape-fcose",
+              "@braintree/sanitize-url",
+              "dayjs",
+              "dayjs/plugin/isoWeek.js",
+              "dayjs/plugin/customParseFormat.js",
+              "dayjs/plugin/advancedFormat.js",
+              "dayjs/plugin/duration.js",
+              "cytoscape-cose-bilkent",
+              "partial-json"
+            ]
           },
           "configurations": {
             "production": {
               "outputHashing": "all",
-              "optimization": true,
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": true
+                },
+                "fonts": {
+                  "inline": false
+                }
+              },
               "sourceMap": false,
               "extractLicenses": true,
               "namedChunks": false,

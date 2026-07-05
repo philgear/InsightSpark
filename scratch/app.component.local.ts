@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnDestroy, effect, untracked } from '@angular/core';
+﻿import { Component, inject, signal, computed, OnDestroy, effect, untracked } from '@angular/core';
 import { LojongCleansingComponent } from './components/ui/lojong-cleansing.component';
 import { IconComponent } from './components/ui/icon.component';
 import { CommonModule, Location } from '@angular/common';
@@ -542,8 +542,7 @@ export class AppComponent implements OnDestroy {
     } else if (initialPath.startsWith('/help')) {
       this.currentView.set('help');
     } else if (initialPath.startsWith('/galleries')) {
-      this.currentView.set('generator');
-      setTimeout(() => this.scrollToSection('galleries-section'), 300);
+      this.currentView.set('galleries');
     } else if (initialPath.startsWith('/bio')) {
       this.currentView.set('bio');
     } else if (initialPath.startsWith('/contact')) {
@@ -563,8 +562,7 @@ export class AppComponent implements OnDestroy {
       } else if (url.startsWith('/help')) {
         this.currentView.set('help');
       } else if (url.startsWith('/galleries')) {
-        this.currentView.set('generator');
-        setTimeout(() => this.scrollToSection('galleries-section'), 100);
+        this.currentView.set('galleries');
       } else if (url.startsWith('/bio')) {
         this.currentView.set('bio');
       } else if (url.startsWith('/contact')) {
@@ -786,28 +784,6 @@ export class AppComponent implements OnDestroy {
     this.location.go(routes[view] || '/');
   }
 
-  scrollToSection(id: string) {
-    setTimeout(() => {
-      const el = document.getElementById(id);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }, 50);
-  }
-
-  navigateToGalleries() {
-    this.insights.set(null); // Reset showcase search output if active
-    this.setView('generator');
-    this.location.go('/galleries');
-    this.scrollToSection('galleries-section');
-  }
-
-  selectQuickQuery(query: string) {
-    this.insights.set(null);
-    this.problemInput.set(query);
-    this.generateInsights();
-  }
-
   toggleDiscipline(name: string) {
     this.selectedDisciplines.update(current => {
       const newSet = new Set(current);
@@ -930,7 +906,6 @@ export class AppComponent implements OnDestroy {
     this.activeChunkProjectId.set(null);
     this.initGears();
     this.liquidFillLevel.set(10);
-    this.location.go('/');
 
     this.curriculumService.liveAnnouncement.set('Search options and filters reset.');
   }
