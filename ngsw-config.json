@@ -33,9 +33,20 @@
         "urls": [
           "https://cdn-tailwindcss.vercel.app/**",
           "https://d3js.org/**",
-          "https://esm.sh/**"
+          "https://esm.sh/**",
+          "https://fonts.gstatic.com/**",
+          "https://fonts.googleapis.com/**"
         ]
       }
     }
+  ],
+  "navigationUrls": [
+    "/**",
+    "!/**/*.*",
+    "!/**/*__*",
+    "!/terms",
+    "!/privacy",
+    "!/terms.html",
+    "!/privacy.html"
   ]
 }
