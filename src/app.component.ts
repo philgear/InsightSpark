@@ -8,6 +8,7 @@ import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { GeminiService } from './services/gemini.service';
 import { StorageService, Theme } from './services/storage.service';
+import { PocketgullIntegrationService } from './services/pocketgull-integration.service';
 import { CreativeStrategy, InsightItem, InsightResult, SavedInsight, STRATEGIES, CarePlan, SavedCarePlan, StructuredProblem, CreativePlan, SavedCreativePlan } from './models/creative-types';
 import { AgenticResult, AgenticPhase, AGENTIC_PHASES } from './models/agent-types';
 import { IconComponent } from './components/ui/icon.component';
@@ -124,6 +125,7 @@ export class AppComponent implements OnDestroy {
   private swUpdate: SwUpdate | null = inject(SwUpdate, { optional: true });
   public storageService = inject(StorageService);
   private vitalsService = inject(VitalsService);
+  public pocketgullService = inject(PocketgullIntegrationService);
 
   // View State
   currentView = signal<'generator' | 'saved' | 'help'>('generator');
@@ -250,6 +252,14 @@ export class AppComponent implements OnDestroy {
     
     // Theme initialization
     this.theme.set(this.storageService.getTheme());
+
+    // Pocketgull Integration Subscription
+    this.pocketgullService.incomingMessages$.pipe(takeUntil(this.destroy$)).subscribe(msg => {
+      if (msg.type === 'SET_PROBLEM' && msg.payload) {
+        if (msg.payload.problem) this.problemInput.set(msg.payload.problem);
+        if (msg.payload.mode) this.appMode.set(msg.payload.mode);
+      }
+    });
 
 
     // Effect to apply theme class to document
@@ -948,5 +958,12 @@ export class AppComponent implements OnDestroy {
       ? content.substring(0, maxLength - 3) + '...' 
       : content;
     return `${prefix}: "${truncatedContent}"`;
+  }
+
+  exportPlanToPocketgull(type: 'care-plan' | 'creative-plan', plan: any) {
+    this.pocketgullService.exportData(
+      type === 'care-plan' ? 'EXPORT_CARE_PLAN' : 'EXPORT_CREATIVE_PLAN', 
+      plan
+    );
   }
 }

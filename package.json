@@ -13,11 +13,11 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
-    "@angular/build": "22.0.1",
+    "@angular/build": "^22.0.6",
     "@angular/cli": "22.0.1",
     "@angular/common": "22.0.1",
     "@angular/compiler": "22.0.1",
-    "@angular/compiler-cli": "22.0.1",
+    "@angular/compiler-cli": "^22.0.6",
     "@angular/core": "22.0.1",
     "@angular/forms": "22.0.1",
     "@angular/platform-browser": "22.0.1",
@@ -35,11 +35,11 @@
     "rxjs": "7.8.2"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@tailwindcss/postcss": "latest",
     "@types/d3": "^7.4.3",
     "@types/node": "^25.9.3",
     "angular-eslint": "22.0.0",
-    "@eslint/js": "^10.0.1",
     "eslint": "^10.5.0",
     "postcss": "latest",
     "sloc": "^0.3.2",
@@ -51,5 +51,14 @@
   "overrides": {
     "picomatch": "^4.0.4",
     "undici": "^8.2.0"
+  },
+  "allowScripts": {
+    "esbuild@0.27.2": true,
+    "esbuild@0.28.1": true,
+    "@google/genai@2.8.0": true,
+    "@parcel/watcher@2.5.6": true,
+    "lmdb@3.5.4": true,
+    "msgpackr-extract@3.0.4": true,
+    "protobufjs@7.6.5": true
   }
 }
