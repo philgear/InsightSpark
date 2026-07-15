@@ -4,36 +4,22 @@
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
     "module": "ESNext",
-    "lib": [
-      "ES2024",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2024", "DOM", "DOM.Iterable"],
     "strict": true,
     "erasableSyntaxOnly": true,
     "skipLibCheck": true,
-    "types": [
-      "node"
-    ],
+    "types": ["node"],
     "moduleResolution": "bundler",
     "isolatedModules": true,
     "moduleDetection": "force",
     "allowJs": true,
     "jsx": "react-jsx",
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     }
   },
-  "files": [
-    "./index.tsx"
-  ],
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.html"
-  ],
+  "files": ["./index.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.html"],
   "angularCompilerOptions": {
     "disableTypeScriptVersionCheck": true
   }
