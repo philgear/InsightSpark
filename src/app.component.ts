@@ -421,7 +421,7 @@ export class AppComponent implements OnDestroy {
     if (!text) return null;
 
     const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-    const phoneRegex = /\b(?:\+?\d{1,3}[-.\s]+)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/;
+    const phoneRegex = /(?:\+\d{1,3}[-.\s])?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/;
     const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/;
     const ipRegex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
 
