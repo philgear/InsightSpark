@@ -430,6 +430,7 @@ function setStoredModel(modelName: string): void {
             [value]="userApiKey()"
             (input)="updateApiKey($any($event.target).value)"
             placeholder="AIzaSy..."
+            aria-label="Custom Gemini API Key"
             class="w-full p-3 bg-(--card-bg-subtle) border border-(--border-color) rounded-lg focus:ring-2 focus:ring-(--ring-color) focus:outline-none transition-all text-sm font-mono"
             autocomplete="off"
           >
