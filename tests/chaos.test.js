@@ -62,6 +62,27 @@ describe('GeminiService Chaos Engineering & Retry Resilience', () => {
     assert.strictEqual(delayCalls.length, 0, 'Should not have triggered any retries');
   });
 
+  test('Model Configuration: Should forward x-gemini-model header when configured', async () => {
+    let capturedHeaders = null;
+    const prevFetch = globalThis.fetch;
+    globalThis.fetch = async (url, options) => {
+      capturedHeaders = options?.headers;
+      return { ok: true, json: async () => ({ title: 'Custom Model Goal' }) };
+    };
+
+    const prevGetItem = globalThis.localStorage.getItem;
+    globalThis.localStorage.getItem = (key) => key === 'user_gemini_model' ? 'gemini-3.6-flash' : null;
+
+    try {
+      const testService = new GeminiService();
+      await testService.structureHealthGoal('Model Test');
+      assert.strictEqual(capturedHeaders['x-gemini-model'], 'gemini-3.6-flash');
+    } finally {
+      globalThis.fetch = prevFetch;
+      globalThis.localStorage.getItem = prevGetItem;
+    }
+  });
+
   test('Transient 429 Mode: Should retry twice, wait exponentially, and resolve on the 3rd attempt', async () => {
     service = new GeminiService();
     service.simulatedFailureType = '429';

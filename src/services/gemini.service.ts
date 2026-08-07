@@ -47,6 +47,10 @@ export class GeminiService {
     if (userApiKey) {
       authHeaders['x-gemini-api-key'] = userApiKey;
     }
+    const userModel = localStorage.getItem('spark_model_val') || localStorage.getItem('user_gemini_model');
+    if (userModel) {
+      authHeaders['x-gemini-model'] = userModel;
+    }
     return authHeaders;
   }
 
@@ -112,7 +116,7 @@ export class GeminiService {
     }
   }
 
-  async structureHealthGoal(problem: string): Promise<StructuredProblem> {
+  async structureHealthGoal(problem: string, image?: { mimeType: string; data: string }): Promise<StructuredProblem> {
     if (this.isDemoMode()) {
       return {
         title: "Hip Recovery & Gardening Connection",
@@ -125,24 +129,24 @@ export class GeminiService {
         ]
       };
     }
-    const cacheKey = problem.trim();
+    const cacheKey = problem.trim() + (image ? `|img:${image.data.substring(0, 32)}` : '');
     if (this.structureCache.has(cacheKey)) {
         return this.structureCache.get(cacheKey)!;
     }
 
-    const promise = this._structureHealthGoal(problem);
+    const promise = this._structureHealthGoal(problem, image);
     this.structureCache.set(cacheKey, promise);
     return promise;
   }
 
-  private async _structureHealthGoal(problem: string): Promise<StructuredProblem> {
+  private async _structureHealthGoal(problem: string, image?: { mimeType: string; data: string }): Promise<StructuredProblem> {
     return this._withRetries(async () => {
       const response = await fetch('/api/structure', {
         method: 'POST',
         headers: this.getAuthHeaders({
           'Content-Type': 'application/json'
         }),
-        body: JSON.stringify({ problem })
+        body: JSON.stringify({ problem, image })
       });
 
       if (!response.ok) {
@@ -160,9 +164,9 @@ export class GeminiService {
     });
   }
 
-  private generateInsightCacheKey(problem: string, strategies: CreativeStrategy[], mode: 'creative' | 'care', gist?: string, healthSnapshot?: string): string {
+  private generateInsightCacheKey(problem: string, strategies: CreativeStrategy[], mode: 'creative' | 'care', gist?: string, healthSnapshot?: string, image?: { mimeType: string; data: string }): string {
     const strategyIds = strategies.map(s => s.id).sort().join(',');
-    return `${problem.trim()}|${strategyIds}|${mode}|${gist?.trim() || ''}|${healthSnapshot?.trim() || ''}`;
+    return `${problem.trim()}|${strategyIds}|${mode}|${gist?.trim() || ''}|${healthSnapshot?.trim() || ''}|${image ? image.data.substring(0, 32) : ''}`;
   }
 
   async generateInsights(
@@ -171,7 +175,8 @@ export class GeminiService {
     mode: 'creative' | 'care', 
     gist?: string, 
     healthSnapshot?: string,
-    onUpdate?: (partial: InsightResult[]) => void
+    onUpdate?: (partial: InsightResult[]) => void,
+    image?: { mimeType: string; data: string }
   ): Promise<InsightResult[]> {
     if (!problem.trim()) return [];
     if (this.isDemoMode()) {
@@ -182,12 +187,12 @@ export class GeminiService {
       return mockData;
     }
     
-    const cacheKey = this.generateInsightCacheKey(problem, strategies, mode, gist, healthSnapshot);
+    const cacheKey = this.generateInsightCacheKey(problem, strategies, mode, gist, healthSnapshot, image);
     if (this.insightCache.has(cacheKey)) {
         return this.insightCache.get(cacheKey)!;
     }
 
-    const promise = this._generateInsights(problem, strategies, mode, gist, healthSnapshot, onUpdate);
+    const promise = this._generateInsights(problem, strategies, mode, gist, healthSnapshot, onUpdate, image);
     this.insightCache.set(cacheKey, promise);
     return promise;
   }
@@ -198,7 +203,8 @@ export class GeminiService {
     mode: 'creative' | 'care', 
     gist?: string, 
     healthSnapshot?: string,
-    onUpdate?: (partial: InsightResult[]) => void
+    onUpdate?: (partial: InsightResult[]) => void,
+    image?: { mimeType: string; data: string }
   ): Promise<InsightResult[]> {
     try {
       const results = await this._withRetries(async () => {
@@ -212,7 +218,8 @@ export class GeminiService {
             strategies,
             mode,
             gist,
-            healthSnapshot
+            healthSnapshot,
+            image
           })
         });
 

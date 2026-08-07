@@ -149,9 +149,33 @@ export class AppComponent implements OnDestroy {
   // Generator State
   problemInput = signal('');
   gistInput = signal('');
+  uploadedImage = signal<{ mimeType: string; data: string; preview: string } | null>(null);
   availableStrategies = signal<CreativeStrategy[]>(STRATEGIES);
   selectedStrategyIds = signal<Set<string>>(new Set());
   copiedId = signal<string | null>(null);
+
+  onImageSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+    const file = input.files[0];
+    if (!file.type.startsWith('image/')) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64Data = result.split(',')[1];
+      this.uploadedImage.set({
+        mimeType: file.type,
+        data: base64Data,
+        preview: result
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeUploadedImage() {
+    this.uploadedImage.set(null);
+  }
 
   // Results
   insights = signal<InsightResult[] | null>(null);
@@ -612,6 +636,8 @@ export class AppComponent implements OnDestroy {
     try {
       const mode = this.appMode();
       const problem = this.problemInput();
+      const image = this.uploadedImage();
+      const imgPayload = image ? { mimeType: image.mimeType, data: image.data } : undefined;
       
       const promises: Promise<unknown>[] = [
         this.geminiService.generateInsights(
@@ -622,12 +648,13 @@ export class AppComponent implements OnDestroy {
           this.healthSnapshot() ?? undefined,
           (partialInsights) => {
             this.insights.set(partialInsights);
-          }
+          },
+          imgPayload
         )
       ];
 
       if (mode === 'care') {
-        promises.push(this.geminiService.structureHealthGoal(problem).then(struct => this.structuredProblem.set(struct)));
+        promises.push(this.geminiService.structureHealthGoal(problem, imgPayload).then(struct => this.structuredProblem.set(struct)));
       }
 
       const results = await promises[0] as InsightResult[]; // Wait primarily for insights

@@ -92,6 +92,27 @@ app.use('/api/', apiLimiter);
 
 // Initialize Gemini API
 const apiKey = process.env.GEMINI_API_KEY;
+const DEFAULT_MODEL = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
+
+function getModel(req) {
+  return req?.headers?.['x-gemini-model'] || req?.body?.model || DEFAULT_MODEL;
+}
+
+function formatContents(prompt, image) {
+  if (!image || typeof image !== 'object' || !image.data || !image.mimeType) {
+    return prompt;
+  }
+  return [
+    {
+      inlineData: {
+        mimeType: image.mimeType,
+        data: image.data,
+      },
+    },
+    prompt,
+  ];
+}
+
 let ai;
 if (!apiKey) {
   console.warn('WARNING: GEMINI_API_KEY environment variable is not set. API endpoints will fail.');
@@ -298,8 +319,8 @@ app.post('/api/structure', [
     `;
 
     const response = await genAI.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
+        model: getModel(req),
+        contents: formatContents(prompt, req.body.image),
         config: {
           systemInstruction: HIPAA_SYSTEM_INSTRUCTION,
           responseMimeType: 'application/json',
@@ -415,8 +436,8 @@ app.post('/api/insights', [
     res.setHeader('Connection', 'keep-alive');
 
     const responseStream = await genAI.models.generateContentStream({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
+        model: getModel(req),
+        contents: formatContents(prompt, req.body.image),
         config: {
           systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : undefined,
           responseMimeType: 'application/json',
@@ -503,7 +524,7 @@ app.post('/api/care-plan', [
       `;
 
     const response = await genAI.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: getModel(req),
         contents: prompt,
         config: {
           systemInstruction: HIPAA_SYSTEM_INSTRUCTION,
@@ -578,7 +599,7 @@ app.post('/api/creative-plan', [
       `;
 
     const response = await genAI.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: getModel(req),
         contents: prompt,
         config: {
           responseMimeType: 'application/json',
@@ -680,7 +701,7 @@ app.post('/api/agent/select', [
     `;
 
     const response = await genAI.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: getModel(req),
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -759,7 +780,7 @@ app.post('/api/agent/debate', [
     `;
 
     const response = await genAI.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: getModel(req),
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -839,7 +860,7 @@ app.post('/api/agent/refine', [
     `;
 
     const response = await genAI.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: getModel(req),
       contents: prompt,
       config: {
         responseMimeType: 'application/json',
@@ -890,7 +911,7 @@ app.post('/api/agent/pipeline', [
       .join('\n');
 
     const selectResponse = await genAI.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: getModel(req),
       contents: `Analyze this problem and select 3-5 optimal strategies:\n"${problem}"\n\nAvailable:\n${strategyList}`,
       config: {
         responseMimeType: 'application/json',
@@ -945,7 +966,7 @@ app.post('/api/agent/pipeline', [
     };
 
     const insightsResponse = await genAI.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: getModel(req),
       contents: `${gist ? `Guiding principle: "${gist}"\n\n` : ''}Problem: "${problem}"\n\nApply each strategy:\n${strategyText}\n\nFor each, provide 2-3 distinct, actionable insights.`,
       config: {
         systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : undefined,
@@ -967,7 +988,7 @@ app.post('/api/agent/pipeline', [
     ).join('\n');
 
     const debateResponse = await genAI.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: getModel(req),
       contents: `Problem: "${problem}"\n\nAgents:\n${selectedStrategies.map(s => `- "${s.name}": ${s.persona}`).join('\n')}\n\nInsights:\n${insightTextForDebate}\n\nEach agent critiques 1-2 insights from OTHER agents. Generate 4-8 debate entries.`,
       config: {
         responseMimeType: 'application/json',
@@ -1002,7 +1023,7 @@ app.post('/api/agent/pipeline', [
     ).join('\n');
 
     const refineResponse = await genAI.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: getModel(req),
       contents: `Problem: "${problem}"\n\nOriginal Insights:\n${insightTextForDebate}\n\nDebate:\n${debateTextForRefine}\n\nProduce 3-5 refined insights with confidence scores and a consensus statement.`,
       config: {
         responseMimeType: 'application/json',
@@ -1108,7 +1129,7 @@ app.post('/api/agent/:strategyId', [
     `;
 
     const response = await genAI.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: getModel(req),
       contents: prompt,
       config: {
         systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : undefined,

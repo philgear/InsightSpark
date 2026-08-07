@@ -37,6 +37,15 @@ function removeStoredApiKey(): void {
   localStorage.removeItem('user_gemini_api_key');
 }
 
+function getStoredModel(): string {
+  return localStorage.getItem('spark_model_val') || localStorage.getItem('user_gemini_model') || 'gemini-3.6-flash';
+}
+
+function setStoredModel(modelName: string): void {
+  localStorage.setItem('spark_model_val', modelName);
+  localStorage.setItem('user_gemini_model', modelName);
+}
+
 @Component({
   selector: 'app-help',
   standalone: true,
@@ -261,6 +270,55 @@ function removeStoredApiKey(): void {
         </div>
       </details>
       
+      <!-- Gemini Flash Model Selection -->
+      <div class="bg-(--card-bg) p-6 rounded-2xl border border-[var(--border-color)]">
+        <h3 class="text-(--text-accent) flex items-center gap-2 mb-2">
+          <app-icon name="sparkles" [size]="20"></app-icon>
+          Gemini Flash Model Tier
+        </h3>
+        <p class="text-sm text-(--text-color-muted) mb-4">
+          Select the Google Gemini Flash model tier for streaming insights, multi-agent debate, and care plans.
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl">
+          <button (click)="updateModel('gemini-3.6-flash')"
+                  [class.bg-[var(--text-accent)]]="userModel() === 'gemini-3.6-flash'"
+                  [class.text-[var(--primary-cta-text)]]="userModel() === 'gemini-3.6-flash'"
+                  [class.bg-[var(--button-bg)]]="userModel() !== 'gemini-3.6-flash'"
+                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemini-3.6-flash'"
+                  class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
+            <div>
+              <div class="font-bold text-sm">Gemini 3.6 Flash</div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Sub-second latency & highest reasoning accuracy</div>
+            </div>
+            <span class="inline-block text-[10px] uppercase font-bold tracking-wider mt-3 px-2 py-0.5 rounded bg-black/20 text-current w-fit">Recommended</span>
+          </button>
+
+          <button (click)="updateModel('gemini-3-flash')"
+                  [class.bg-[var(--text-accent)]]="userModel() === 'gemini-3-flash'"
+                  [class.text-[var(--primary-cta-text)]]="userModel() === 'gemini-3-flash'"
+                  [class.bg-[var(--button-bg)]]="userModel() !== 'gemini-3-flash'"
+                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemini-3-flash'"
+                  class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
+            <div>
+              <div class="font-bold text-sm">Gemini 3 Flash</div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">High speed & balanced lateral context</div>
+            </div>
+          </button>
+
+          <button (click)="updateModel('gemini-2.5-flash')"
+                  [class.bg-[var(--text-accent)]]="userModel() === 'gemini-2.5-flash'"
+                  [class.text-[var(--primary-cta-text)]]="userModel() === 'gemini-2.5-flash'"
+                  [class.bg-[var(--button-bg)]]="userModel() !== 'gemini-2.5-flash'"
+                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemini-2.5-flash'"
+                  class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
+            <div>
+              <div class="font-bold text-sm">Gemini 2.5 Flash</div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Legacy Flash engine compatibility mode</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
       <!-- Gemini API Key Settings -->
       <div class="bg-(--card-bg) p-6 rounded-2xl border border-[var(--border-color)]">
         <h3 class="text-(--text-accent) flex items-center gap-2 mb-2">
@@ -318,6 +376,7 @@ export class HelpComponent {
   chaosBehavior = model<'transient' | 'permanent'>('transient');
 
   userApiKey = signal(getStoredApiKey());
+  userModel = signal(getStoredModel());
   
   updateApiKey(val: string) {
     const trimmed = val.trim();
@@ -327,5 +386,10 @@ export class HelpComponent {
     } else {
       removeStoredApiKey();
     }
+  }
+
+  updateModel(val: string) {
+    this.userModel.set(val);
+    setStoredModel(val);
   }
 }

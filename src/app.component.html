@@ -497,6 +497,32 @@
                     [attr.aria-label]="problemInputAriaLabel()"
                     autocomplete="off">
                   </textarea>
+
+                  <!-- Multimodal Image Attachment -->
+                  <div class="mt-2.5 flex items-center gap-3">
+                    <input #imageInput type="file" accept="image/*" (change)="onImageSelected($event)" class="hidden">
+                    
+                    @if (!uploadedImage()) {
+                      <button (click)="imageInput.click()" 
+                              type="button" 
+                              class="text-xs font-semibold py-2 px-3 rounded-lg border border-[var(--border-color)] bg-[var(--card-bg)] hover:bg-[var(--button-bg-hover)] text-[var(--text-color)] transition-all flex items-center gap-2 cursor-pointer shadow-sm">
+                        <app-icon name="image" [size]="16" class="text-[var(--text-accent)]"></app-icon>
+                        <span>Attach Diagram / Image</span>
+                      </button>
+                    } @else {
+                      <div class="flex items-center gap-3 p-2 px-3 bg-[var(--card-bg-subtle)] border border-[var(--border-color)] rounded-xl">
+                        <img [src]="uploadedImage()?.preview" alt="Attachment Preview" class="h-10 w-10 object-cover rounded-lg border border-[var(--border-color)] shrink-0">
+                        <div class="flex-1 min-w-0">
+                          <div class="text-xs font-bold text-[var(--text-color)] truncate">Multimodal Diagram Attached</div>
+                          <div class="text-[11px] text-[var(--text-color-muted)]">Gemini Flash Visual Context</div>
+                        </div>
+                        <button (click)="removeUploadedImage()" type="button" class="p-1 text-[var(--text-color-muted)] hover:text-[var(--text-color)] transition-colors focus:outline-none cursor-pointer" aria-label="Remove image attachment">
+                          <app-icon name="x" [size]="16"></app-icon>
+                        </button>
+                      </div>
+                    }
+                  </div>
+
                   <div class="flex justify-between items-center text-sm text-[var(--text-color-subtle)] mt-1 px-1">
                     <span class="text-[11px] flex items-wrap items-center gap-1.5 opacity-75 hover:opacity-100 transition-opacity">
                       <app-icon name="key" [size]="12" class="text-[var(--text-accent)]"></app-icon>
