@@ -1,0 +1,17 @@
+# Pivot & Pulse (InsightSpark)
+
+> A fluid lateral thinking companion powered by Gemini AI that generates novel insights, de Bono creative strategies, and structured care plans.
+
+## Overview
+Pivot & Pulse provides structured lateral thinking tools for creative problem solving, strategic innovation, and personal care plan synthesis.
+
+## Core Features & AI Tools
+- [Creative Mode](https://spark.philgear.dev/#/creative): Generate multi-angle lateral thinking insights using de Bono 6 Thinking Hats and SCAMPER techniques.
+- [Care Mode](https://spark.philgear.dev/#/care): Synthesize de-identified health goals, wellness routines, and clinical decision support plans.
+- [Multimodal Reasoning](https://spark.philgear.dev/): Attach diagrams and images for Gemini visual analysis.
+- [Multilingual Support](https://spark.philgear.dev/): Native AI translation across 11 languages including Portland Sister Cities.
+- [Privacy Shield](https://spark.philgear.dev/): Client-side PII detection to protect personal health information.
+
+## Documentation & Legal
+- [Terms of Service](https://spark.philgear.dev/terms)
+- [Privacy Policy](https://spark.philgear.dev/privacy)

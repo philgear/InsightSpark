@@ -43,6 +43,12 @@ app.set('trust proxy', 1);
 const port = process.env.PORT || 8080;
 
 app.use(helmet({
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
@@ -1178,13 +1184,24 @@ app.use(express.static(path.join(__dirname, 'dist'), {
   maxAge: '1y',
   immutable: true,
   setHeaders: (res, filePath) => {
-    if (filePath.endsWith('.html') || filePath.endsWith('manifest.webmanifest')) {
+    if (filePath.endsWith('.html') || filePath.endsWith('.webmanifest') || filePath.endsWith('.xml') || filePath.endsWith('.txt')) {
       res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     }
   }
 }));
 
-// Static legal page routing
+// Static legal & meta file routing
+app.get('/robots.txt', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'robots.txt'));
+});
+app.get('/llms.txt', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'llms.txt'));
+});
+app.get('/sitemap.xml', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'sitemap.xml'));
+});
 app.get(['/terms', '/terms.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'terms.html'));
 });
