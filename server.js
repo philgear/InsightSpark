@@ -113,6 +113,28 @@ function formatContents(prompt, image) {
   ];
 }
 
+const SUPPORTED_LANGUAGES = {
+  ja: 'Japanese (Sapporo, Japan)',
+  es: 'Spanish (Guadalajara, Mexico)',
+  zh: 'Mandarin Chinese (Kaohsiung, Taiwan & Suzhou, China)',
+  ko: 'Korean (Ulsan, South Korea)',
+  it: 'Italian (Bologna, Italy)',
+  he: 'Hebrew (Ashkelon, Israel)',
+  ms: 'Malay (Kota Kinabalu, Malaysia)',
+  sn: 'Shona (Mutare, Zimbabwe)',
+  ru: 'Russian (Arkhangelsk, Russia)',
+  fr: 'French',
+  de: 'German'
+};
+
+function getLanguageInstruction(req) {
+  const lang = req?.headers?.['x-target-language'] || req?.body?.language;
+  if (lang && SUPPORTED_LANGUAGES[lang]) {
+    return `\nIMPORTANT: Produce all text content within the JSON response natively in ${SUPPORTED_LANGUAGES[lang]}. Ensure phrasing is natural, compassionate, and culturally appropriate.`;
+  }
+  return '';
+}
+
 let ai;
 if (!apiKey) {
   console.warn('WARNING: GEMINI_API_KEY environment variable is not set. API endpoints will fail.');
@@ -316,6 +338,7 @@ app.post('/api/structure', [
         - The 'title' should be very short and serve as a quick summary.
         - The 'condition', 'goal', and 'barriers' should be extracted or inferred from the input text.
         - Ensure the output is clean, concise, and uses person-centered, accessible language.
+        ${getLanguageInstruction(req)}
     `;
 
     const response = await genAI.models.generateContent({
@@ -429,6 +452,7 @@ app.post('/api/insights', [
       ` : ''}
       
       Return the output strictly as a JSON array of objects, with one object for each strategy, matching the schema.
+      ${getLanguageInstruction(req)}
     `;
 
     res.setHeader('Content-Type', 'text/event-stream');

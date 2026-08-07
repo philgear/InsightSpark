@@ -51,6 +51,10 @@ export class GeminiService {
     if (userModel) {
       authHeaders['x-gemini-model'] = userModel;
     }
+    const userLang = localStorage.getItem('spark_lang_val') || localStorage.getItem('user_target_language');
+    if (userLang) {
+      authHeaders['x-target-language'] = userLang;
+    }
     return authHeaders;
   }
 

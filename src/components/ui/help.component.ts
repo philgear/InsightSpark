@@ -319,6 +319,100 @@ function setStoredModel(modelName: string): void {
         </div>
       </div>
 
+      <!-- Multilingual & Portland Sister Cities Target Language -->
+      <div class="bg-(--card-bg) p-6 rounded-2xl border border-[var(--border-color)] mb-6">
+        <h3 class="text-(--text-accent) flex items-center gap-2 mb-2">
+          <app-icon name="globe" [size]="20"></app-icon>
+          Target Output Language & Portland Sister Cities
+        </h3>
+        <p class="text-sm text-(--text-color-muted) mb-4">
+          Select native AI generation language for Creative Insights & Care Plans. Includes Portland, Oregon's official Sister Cities.
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          <button (click)="updateLanguage('en')"
+                  [class.bg-[var(--text-accent)]]="userLanguage() === 'en'"
+                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'en'"
+                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'en'"
+                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'en'"
+                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
+            <span>🇺🇸 English</span>
+            <span class="opacity-70 text-[10px]">Default</span>
+          </button>
+          <button (click)="updateLanguage('ja')"
+                  [class.bg-[var(--text-accent)]]="userLanguage() === 'ja'"
+                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'ja'"
+                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'ja'"
+                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'ja'"
+                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
+            <span>🇯🇵 Japanese</span>
+            <span class="opacity-70 text-[10px]">Sapporo 🌸</span>
+          </button>
+          <button (click)="updateLanguage('es')"
+                  [class.bg-[var(--text-accent)]]="userLanguage() === 'es'"
+                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'es'"
+                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'es'"
+                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'es'"
+                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
+            <span>🇲🇽 Spanish</span>
+            <span class="opacity-70 text-[10px]">Guadalajara 🇲🇽</span>
+          </button>
+          <button (click)="updateLanguage('zh')"
+                  [class.bg-[var(--text-accent)]]="userLanguage() === 'zh'"
+                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'zh'"
+                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'zh'"
+                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'zh'"
+                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
+            <span>🇹🇼 Mandarin</span>
+            <span class="opacity-70 text-[10px]">Kaohsiung/Suzhou 🏮</span>
+          </button>
+          <button (click)="updateLanguage('ko')"
+                  [class.bg-[var(--text-accent)]]="userLanguage() === 'ko'"
+                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'ko'"
+                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'ko'"
+                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'ko'"
+                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
+            <span>🇰🇷 Korean</span>
+            <span class="opacity-70 text-[10px]">Ulsan 🇰🇷</span>
+          </button>
+          <button (click)="updateLanguage('it')"
+                  [class.bg-[var(--text-accent)]]="userLanguage() === 'it'"
+                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'it'"
+                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'it'"
+                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'it'"
+                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
+            <span>🇮🇹 Italian</span>
+            <span class="opacity-70 text-[10px]">Bologna 🏛️</span>
+          </button>
+          <button (click)="updateLanguage('he')"
+                  [class.bg-[var(--text-accent)]]="userLanguage() === 'he'"
+                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'he'"
+                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'he'"
+                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'he'"
+                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
+            <span>🇮🇱 Hebrew</span>
+            <span class="opacity-70 text-[10px]">Ashkelon 🕊️</span>
+          </button>
+          <button (click)="updateLanguage('ms')"
+                  [class.bg-[var(--text-accent)]]="userLanguage() === 'ms'"
+                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'ms'"
+                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'ms'"
+                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'ms'"
+                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
+            <span>🇲🇾 Malay</span>
+            <span class="opacity-70 text-[10px]">Kota Kinabalu 🌴</span>
+          </button>
+          <button (click)="updateLanguage('sn')"
+                  [class.bg-[var(--text-accent)]]="userLanguage() === 'sn'"
+                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'sn'"
+                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'sn'"
+                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'sn'"
+                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
+            <span>🇿🇼 Shona</span>
+            <span class="opacity-70 text-[10px]">Mutare 🇿🇼</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Gemini API Key Settings -->
       <div class="bg-(--card-bg) p-6 rounded-2xl border border-[var(--border-color)]">
         <h3 class="text-(--text-accent) flex items-center gap-2 mb-2">
@@ -377,6 +471,7 @@ export class HelpComponent {
 
   userApiKey = signal(getStoredApiKey());
   userModel = signal(getStoredModel());
+  userLanguage = signal(getStoredLanguage());
   
   updateApiKey(val: string) {
     const trimmed = val.trim();
@@ -392,4 +487,18 @@ export class HelpComponent {
     this.userModel.set(val);
     setStoredModel(val);
   }
+
+  updateLanguage(val: string) {
+    this.userLanguage.set(val);
+    setStoredLanguage(val);
+  }
+}
+
+function getStoredLanguage(): string {
+  return localStorage.getItem('spark_lang_val') || localStorage.getItem('user_target_language') || 'en';
+}
+
+function setStoredLanguage(val: string): void {
+  localStorage.setItem('spark_lang_val', val);
+  localStorage.setItem('user_target_language', val);
 }

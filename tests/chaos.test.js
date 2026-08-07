@@ -10,12 +10,13 @@ describe('GeminiService Chaos Engineering & Retry Resilience', () => {
   let service;
   let delayCalls = [];
 
+  let store = {};
   before(() => {
     // Mock global localStorage
     globalThis.localStorage = {
-      getItem: () => null,
-      setItem: () => {},
-      removeItem: () => {}
+      getItem: (key) => store[key] || null,
+      setItem: (key, val) => { store[key] = String(val); },
+      removeItem: (key) => { delete store[key]; }
     };
 
     // Mock global fetch
@@ -67,19 +68,34 @@ describe('GeminiService Chaos Engineering & Retry Resilience', () => {
     const prevFetch = globalThis.fetch;
     globalThis.fetch = async (url, options) => {
       capturedHeaders = options?.headers;
-      return { ok: true, json: async () => ({ title: 'Custom Model Goal' }) };
+      return { ok: true, json: async () => ({ title: 'Structured Goal' }) };
     };
-
-    const prevGetItem = globalThis.localStorage.getItem;
-    globalThis.localStorage.getItem = (key) => key === 'user_gemini_model' ? 'gemini-3.6-flash' : null;
-
+    globalThis.localStorage.setItem('spark_model_val', 'gemini-3.6-flash');
     try {
-      const testService = new GeminiService();
-      await testService.structureHealthGoal('Model Test');
+      service = new GeminiService();
+      await service.structureHealthGoal('Test Problem');
       assert.strictEqual(capturedHeaders['x-gemini-model'], 'gemini-3.6-flash');
     } finally {
       globalThis.fetch = prevFetch;
-      globalThis.localStorage.getItem = prevGetItem;
+      globalThis.localStorage.removeItem('spark_model_val');
+    }
+  });
+
+  test('Language Configuration: Should forward x-target-language header when configured', async () => {
+    let capturedHeaders = null;
+    const prevFetch = globalThis.fetch;
+    globalThis.fetch = async (url, options) => {
+      capturedHeaders = options?.headers;
+      return { ok: true, json: async () => ({ title: 'Structured Goal' }) };
+    };
+    globalThis.localStorage.setItem('spark_lang_val', 'ja');
+    try {
+      service = new GeminiService();
+      await service.structureHealthGoal('Test Problem');
+      assert.strictEqual(capturedHeaders['x-target-language'], 'ja');
+    } finally {
+      globalThis.fetch = prevFetch;
+      globalThis.localStorage.removeItem('spark_lang_val');
     }
   });
 
