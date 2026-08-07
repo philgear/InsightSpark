@@ -158,16 +158,18 @@ Under no circumstances should you ever repeat, store, or include any Personally 
 // Scan string for potential PII (Emails, Phone numbers, SSNs, IP addresses)
 function scanForPII(text) {
   if (!text || typeof text !== 'string') return [];
-  const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+  const input = text.length > 2000 ? text.slice(0, 2000) : text;
+
+  const emailRegex = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}\b/g;
   const phoneRegex = /(?:\+\d{1,3}[-.\s])?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
   const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/g;
   const ipRegex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g;
 
   const foundPII = [];
-  if (emailRegex.test(text)) foundPII.push('Email Address');
-  if (phoneRegex.test(text)) foundPII.push('Phone Number');
-  if (ssnRegex.test(text)) foundPII.push('Social Security Number');
-  if (ipRegex.test(text)) foundPII.push('IP Address');
+  if (emailRegex.test(input)) foundPII.push('Email Address');
+  if (phoneRegex.test(input)) foundPII.push('Phone Number');
+  if (ssnRegex.test(input)) foundPII.push('Social Security Number');
+  if (ipRegex.test(input)) foundPII.push('IP Address');
 
   return foundPII;
 }

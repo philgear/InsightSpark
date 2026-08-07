@@ -417,10 +417,11 @@ export class AppComponent implements OnDestroy {
   
   // Computed Signals
   piiWarning = computed(() => {
-    const text = this.problemInput();
-    if (!text) return null;
+    const rawText = this.problemInput();
+    if (!rawText) return null;
+    const text = rawText.length > 2000 ? rawText.slice(0, 2000) : rawText;
 
-    const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+    const emailRegex = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}\b/g;
     const phoneRegex = /(?:\+\d{1,3}[-.\s])?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/;
     const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/;
     const ipRegex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
