@@ -1,4 +1,4 @@
-import { Component, input, ElementRef, AfterViewInit, OnChanges, SimpleChanges, ViewChild, effect, untracked, inject } from '@angular/core';
+import { Component, input, ElementRef, AfterViewInit, OnChanges, SimpleChanges, ViewChild, effect, untracked, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { InsightResult, CreativeStrategy } from '../../models/creative-types';
 import { IconComponent } from './icon.component';
@@ -25,7 +25,8 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
   standalone: true,
   imports: [CommonModule, IconComponent],
   template: `
-    <div class="relative w-full h-[600px] organic-shape overflow-hidden bg-[var(--card-bg-subtle)] border border-[var(--border-color)]">
+    <div class="relative w-full h-[640px] organic-shape overflow-hidden bg-[var(--card-bg-subtle)] border border-[var(--border-color)] shadow-xl">
+      <!-- Main SVG Container -->
       <div #graphContainer class="w-full h-full non-printable"></div>
       
       <!-- Tooltip -->
@@ -34,7 +35,51 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
         <p class="text-[var(--text-color)] leading-relaxed" id="tooltip-text"></p>
       </div>
 
-      <!-- Graph Controls -->
+      <!-- Filter Chips & Legend Bar -->
+      <div class="absolute top-4 left-4 flex flex-wrap items-center gap-2 z-20">
+        <button (click)="setFilter('all')" 
+                [class.bg-[var(--text-accent)]]="activeFilter() === 'all'"
+                [class.text-[var(--primary-cta-text)]]="activeFilter() === 'all'"
+                [class.bg-[var(--card-bg)]]="activeFilter() !== 'all'"
+                class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] shadow-md transition-all focus:outline-none">
+          All Nodes ({{ totalNodeCount() }})
+        </button>
+        <button (click)="setFilter('problem')"
+                [class.bg-[var(--text-accent)]]="activeFilter() === 'problem'"
+                [class.text-[var(--primary-cta-text)]]="activeFilter() === 'problem'"
+                [class.bg-[var(--card-bg)]]="activeFilter() !== 'problem'"
+                class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] shadow-md transition-all focus:outline-none flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-[var(--text-accent)]"></span>
+          Problem Root
+        </button>
+        <button (click)="setFilter('strategy')"
+                [class.bg-[var(--text-accent)]]="activeFilter() === 'strategy'"
+                [class.text-[var(--primary-cta-text)]]="activeFilter() === 'strategy'"
+                [class.bg-[var(--card-bg)]]="activeFilter() !== 'strategy'"
+                class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] shadow-md transition-all focus:outline-none flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          Strategies
+        </button>
+        <button (click)="setFilter('insight')"
+                [class.bg-[var(--text-accent)]]="activeFilter() === 'insight'"
+                [class.text-[var(--primary-cta-text)]]="activeFilter() === 'insight'"
+                [class.bg-[var(--card-bg)]]="activeFilter() !== 'insight'"
+                class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] shadow-md transition-all focus:outline-none flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+          Insights
+        </button>
+      </div>
+
+      <!-- Export & Action Controls (Top Right) -->
+      <div class="absolute top-4 right-4 flex items-center gap-2 z-20">
+        <button (click)="exportSVG()" 
+                class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--card-bg)] border border-[var(--border-color)] shadow-md hover:bg-[var(--button-bg-hover)] text-xs font-bold text-[var(--text-color)] transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+          <app-icon name="download" [size]="16" class="text-[var(--text-accent)]"></app-icon>
+          <span>Export SVG</span>
+        </button>
+      </div>
+
+      <!-- Graph Navigation Controls (Bottom Right) -->
       <div class="absolute bottom-4 right-4 flex flex-col gap-2 z-20">
         <button (click)="zoomIn()" class="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] shadow-lg hover:bg-[var(--button-bg-hover)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" aria-label="Zoom In">
           <app-icon name="plus" [size]="18"></app-icon>
@@ -51,40 +96,56 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
   styles: [`
     :host ::ng-deep .graph-link {
       stroke: var(--border-color);
-      stroke-opacity: 0.3;
-      stroke-width: 1.5px;
+      stroke-opacity: 0.35;
+      stroke-width: 1.8px;
       transition: stroke 0.3s, stroke-opacity 0.3s, stroke-width 0.3s;
     }
     :host ::ng-deep .graph-link.highlighted {
       stroke: var(--text-accent);
       stroke-opacity: 1;
-      stroke-width: 3px;
+      stroke-width: 3.5px;
     }
     :host ::ng-deep .graph-node {
       cursor: pointer;
       transition: opacity 0.3s, transform 0.3s;
     }
-    :host ::ng-deep .graph-node circle {
-      transition: stroke 0.3s, stroke-width 0.3s, r 0.3s;
+    :host ::ng-deep .graph-node circle.main-circle {
+      transition: stroke 0.3s, stroke-width 0.3s, r 0.3s, fill 0.3s;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
     }
-    :host ::ng-deep .graph-node.highlighted circle {
+    :host ::ng-deep .graph-node.highlighted circle.main-circle {
       stroke: var(--text-highlight);
-      stroke-width: 3px;
+      stroke-width: 3.5px;
     }
     :host ::ng-deep .graph-node.dimmed {
-      opacity: 0.2;
+      opacity: 0.15;
     }
     :host ::ng-deep .graph-node text {
-      font-size: 10px;
-      font-weight: 500;
-      fill: var(--text-color-muted);
+      font-size: 11px;
+      font-weight: 600;
+      fill: var(--text-color);
       pointer-events: none;
       transition: fill 0.3s, font-size 0.3s;
+      text-shadow: 0 1px 2px var(--bg-color);
     }
     :host ::ng-deep .graph-node.highlighted text {
       fill: var(--text-color);
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
+    }
+    :host ::ng-deep .pulse-ring {
+      animation: pulse-ring 2.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+      transform-origin: center;
+    }
+    @keyframes pulse-ring {
+      0% {
+        r: 20px;
+        opacity: 0.8;
+      }
+      100% {
+        r: 45px;
+        opacity: 0;
+      }
     }
   `]
 })
@@ -95,6 +156,9 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
   results = input.required<InsightResult[]>();
   problem = input.required<string>();
   strategies = input.required<CreativeStrategy[]>();
+
+  activeFilter = signal<'all' | 'problem' | 'strategy' | 'insight'>('all');
+  totalNodeCount = signal<number>(0);
 
   private kleePalette = inject(KleePaletteService);
   
@@ -125,8 +189,13 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (this.isInitialized && (changes['results'] || changes['problem'])) {
-        this.renderGraph();
+      this.renderGraph();
     }
+  }
+
+  setFilter(filter: 'all' | 'problem' | 'strategy' | 'insight'): void {
+    this.activeFilter.set(filter);
+    this.renderGraph();
   }
 
   private getStrategyColor(strategyName: string): string {
@@ -135,22 +204,17 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
     return style.getPropertyValue(`--strategy-${strategyId}`).trim() || 'gray';
   }
 
-  /**
-   * Returns a hex color for a strategy, blended toward --bg-color at the given ratio.
-   * Uses KleePaletteService.blend() — the natural consumer of that unused method.
-   */
   private getBlendedStrategyColor(strategyName: string, blendRatio = 0): string {
     const strategyColor = this.getStrategyColor(strategyName);
     if (blendRatio === 0) return strategyColor;
     try {
       const bgColor = getComputedStyle(document.documentElement)
         .getPropertyValue('--bg-color').trim();
-      // Only blend if both values look like valid hex colors
       if (/^#[0-9a-f]{3,6}$/i.test(strategyColor) && /^#[0-9a-f]{3,6}$/i.test(bgColor)) {
         return this.kleePalette.blend(bgColor, strategyColor, blendRatio);
       }
     } catch {
-      // Fall back silently — CSS variable may be rgba()
+      // Fallback
     }
     return strategyColor;
   }
@@ -160,17 +224,20 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
     const links: GraphLink[] = [];
     const problemText = this.problem();
     const resultsData = this.results();
+    const filter = this.activeFilter();
 
     // 1. Problem Node
     const problemId = 'problem-root';
-    nodes.push({
-      id: problemId,
-      text: problemText.length > 50 ? problemText.substring(0, 47) + '...' : problemText,
-      fullText: problemText,
-      type: 'problem',
-      color: 'var(--text-accent)',
-      radius: 30,
-    });
+    if (filter === 'all' || filter === 'problem') {
+      nodes.push({
+        id: problemId,
+        text: problemText.length > 50 ? problemText.substring(0, 47) + '...' : problemText,
+        fullText: problemText,
+        type: 'problem',
+        color: 'var(--text-accent)',
+        radius: 32,
+      });
+    }
 
     // 2. Strategy and Insight Nodes
     resultsData.forEach((result, i) => {
@@ -178,43 +245,51 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
       const strategyName = result.strategyName;
       
       // Strategy Node
-      nodes.push({
-        id: strategyId,
-        text: strategyName,
-        fullText: strategyName,
-        type: 'strategy',
-        // Strategy nodes: fully saturated strategy color for visual anchoring
-        color: this.getStrategyColor(strategyName),
-        radius: 20,
-      });
+      if (filter === 'all' || filter === 'strategy') {
+        nodes.push({
+          id: strategyId,
+          text: strategyName,
+          fullText: strategyName,
+          type: 'strategy',
+          color: this.getStrategyColor(strategyName),
+          radius: 22,
+        });
 
-      // Link from Problem to Strategy
-      links.push({
-        source: problemId,
-        target: strategyId,
-      });
+        if (filter === 'all') {
+          links.push({
+            source: problemId,
+            target: strategyId,
+          });
+        }
+      }
 
       // Insight Nodes
-      result.insights.forEach((insight, j) => {
-        const insightId = `insight-${i}-${j}`;
-        nodes.push({
-          id: insightId,
-          text: insight.text.length > 30 ? insight.text.substring(0, 27) + '...' : insight.text,
-          fullText: insight.text,
-          type: 'insight',
-          // Insight nodes: blended 60% toward bg-color for subtle leaf fill
-          color: this.getBlendedStrategyColor(strategyName, 0.6),
-          radius: 10,
-        });
+      if (filter === 'all' || filter === 'insight') {
+        result.insights.forEach((insight, j) => {
+          const insightId = `insight-${i}-${j}`;
+          nodes.push({
+            id: insightId,
+            text: insight.text.length > 30 ? insight.text.substring(0, 27) + '...' : insight.text,
+            fullText: insight.text,
+            type: 'insight',
+            color: this.getBlendedStrategyColor(strategyName, 0.5),
+            radius: 12,
+          });
 
-        // Link from Strategy to Insight
-        links.push({
-          source: strategyId,
-          target: insightId,
+          if (filter === 'all' || filter === 'insight') {
+            const linkSource = (filter === 'insight') ? (nodes.find(n => n.type === 'strategy')?.id || problemId) : strategyId;
+            if (nodes.some(n => n.id === linkSource)) {
+              links.push({
+                source: linkSource,
+                target: insightId,
+              });
+            }
+          }
         });
-      });
+      }
     });
 
+    this.totalNodeCount.set(nodes.length);
     return { nodes, links };
   }
 
@@ -232,11 +307,11 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
 
     this.simulation = d3.forceSimulation(nodes)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .force("link", d3.forceLink(links).id((d: any) => d.id).distance((d:any) => d.source.type === 'problem' ? 220 : 110))
-        .force("charge", d3.forceManyBody().strength(-800))
+        .force("link", d3.forceLink(links).id((d: any) => d.id).distance((d: any) => d.source.type === 'problem' ? 220 : 120))
+        .force("charge", d3.forceManyBody().strength(-900))
         .force("center", d3.forceCenter(width / 2, height / 2))
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .force("collide", d3.forceCollide().radius((d: any) => d.radius + 18));
+        .force("collide", d3.forceCollide().radius((d: any) => d.radius + 20));
 
     this.svg = d3.select(container).append("svg")
         .attr("width", "100%")
@@ -275,7 +350,17 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
         .on("mouseout", () => this.hideTooltip())
         .call(this.drag(this.simulation));
         
+    // Pulse animation ring for Strategy Nodes
+    node.filter((d: GraphNode) => d.type === 'strategy')
+        .append("circle")
+        .attr("class", "pulse-ring")
+        .attr("r", 20)
+        .attr("fill", "none")
+        .attr("stroke", (d: GraphNode) => d.color)
+        .attr("stroke-width", 2);
+
     node.append("circle")
+        .attr("class", "main-circle")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .attr("r", (d: any) => d.radius)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -283,11 +368,13 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
 
     node.append("text")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .attr("dy", (d: any) => d.radius + 12)
+        .attr("dy", (d: any) => d.radius + 14)
+        .attr("text-anchor", "middle")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .text((d: any) => d.text)
         .clone(true).lower()
-        .attr("stroke", "var(--bg-color)");
+        .attr("stroke", "var(--bg-color)")
+        .attr("stroke-width", 3);
 
     this.simulation.on("tick", () => {
         link
@@ -392,6 +479,29 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
   private hideTooltip(): void {
     if (!this.tooltipElement) return;
     this.tooltipElement.nativeElement.classList.add('hidden');
+  }
+
+  public exportSVG(): void {
+    if (!this.graphContainer) return;
+    const svgElement = this.graphContainer.nativeElement.querySelector('svg');
+    if (!svgElement) return;
+
+    const serializer = new XMLSerializer();
+    let source = serializer.serializeToString(svgElement);
+
+    if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+      source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+
+    const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `pivot-pulse-strategy-graph-${Date.now()}.svg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 
   public resetZoom(): void {
