@@ -25,14 +25,14 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
   standalone: true,
   imports: [CommonModule, IconComponent],
   template: `
-    <div class="relative w-full h-[640px] organic-shape overflow-hidden bg-[var(--card-bg-subtle)] border border-[var(--border-color)] shadow-xl">
+    <div class="relative w-full h-160 organic-shape overflow-hidden bg-(--card-bg-subtle) border border-(--border-color) shadow-xl">
       <!-- Main SVG Container -->
       <div #graphContainer class="w-full h-full non-printable"></div>
       
       <!-- Tooltip -->
-      <div #tooltip class="absolute hidden pointer-events-none z-30 max-w-xs p-4 bg-[var(--header-bg)] backdrop-blur-md border border-[var(--border-color-strong)] rounded-xl shadow-2xl text-sm animate-pop">
-        <p class="font-medium text-[var(--text-accent)] mb-1 uppercase tracking-wider text-[10px]" id="tooltip-type"></p>
-        <p class="text-[var(--text-color)] leading-relaxed" id="tooltip-text"></p>
+      <div #tooltip class="absolute hidden pointer-events-none z-30 max-w-xs p-4 bg-(--header-bg) backdrop-blur-md border border-(--border-color-strong) rounded-xl shadow-2xl text-sm animate-pop">
+        <p class="font-medium text-(--text-accent) mb-1 uppercase tracking-wider text-[10px]" id="tooltip-type"></p>
+        <p class="text-(--text-color) leading-relaxed" id="tooltip-text"></p>
       </div>
 
       <!-- Filter Chips & Legend Bar -->
@@ -41,22 +41,22 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
                 [class.bg-[var(--text-accent)]]="activeFilter() === 'all'"
                 [class.text-[var(--primary-cta-text)]]="activeFilter() === 'all'"
                 [class.bg-[var(--card-bg)]]="activeFilter() !== 'all'"
-                class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] shadow-md transition-all focus:outline-none">
+                class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-(--border-color) shadow-md transition-all focus:outline-none">
           All Nodes ({{ totalNodeCount() }})
         </button>
         <button (click)="setFilter('problem')"
                 [class.bg-[var(--text-accent)]]="activeFilter() === 'problem'"
                 [class.text-[var(--primary-cta-text)]]="activeFilter() === 'problem'"
                 [class.bg-[var(--card-bg)]]="activeFilter() !== 'problem'"
-                class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] shadow-md transition-all focus:outline-none flex items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-[var(--text-accent)]"></span>
+                class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-(--border-color) shadow-md transition-all focus:outline-none flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-(--text-accent)"></span>
           Problem Root
         </button>
         <button (click)="setFilter('strategy')"
                 [class.bg-[var(--text-accent)]]="activeFilter() === 'strategy'"
                 [class.text-[var(--primary-cta-text)]]="activeFilter() === 'strategy'"
                 [class.bg-[var(--card-bg)]]="activeFilter() !== 'strategy'"
-                class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] shadow-md transition-all focus:outline-none flex items-center gap-1.5">
+                class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-(--border-color) shadow-md transition-all focus:outline-none flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
           Strategies
         </button>
@@ -64,7 +64,7 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
                 [class.bg-[var(--text-accent)]]="activeFilter() === 'insight'"
                 [class.text-[var(--primary-cta-text)]]="activeFilter() === 'insight'"
                 [class.bg-[var(--card-bg)]]="activeFilter() !== 'insight'"
-                class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] shadow-md transition-all focus:outline-none flex items-center gap-1.5">
+                class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-(--border-color) shadow-md transition-all focus:outline-none flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-amber-400"></span>
           Insights
         </button>
@@ -73,21 +73,21 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
       <!-- Export & Action Controls (Top Right) -->
       <div class="absolute top-4 right-4 flex items-center gap-2 z-20">
         <button (click)="exportSVG()" 
-                class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[var(--card-bg)] border border-[var(--border-color)] shadow-md hover:bg-[var(--button-bg-hover)] text-xs font-bold text-[var(--text-color)] transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
-          <app-icon name="download" [size]="16" class="text-[var(--text-accent)]"></app-icon>
+                class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-(--card-bg) border border-(--border-color) shadow-md hover:bg-(--button-bg-hover) text-xs font-bold text-(--text-color) transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-(--ring-color)">
+          <app-icon name="download" [size]="16" class="text-(--text-accent)"></app-icon>
           <span>Export SVG</span>
         </button>
       </div>
 
       <!-- Graph Navigation Controls (Bottom Right) -->
       <div class="absolute bottom-4 right-4 flex flex-col gap-2 z-20">
-        <button (click)="zoomIn()" class="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] shadow-lg hover:bg-[var(--button-bg-hover)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" aria-label="Zoom In">
+        <button (click)="zoomIn()" class="flex items-center justify-center w-10 h-10 rounded-full bg-(--card-bg) border border-(--border-color) shadow-lg hover:bg-(--button-bg-hover) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color)" aria-label="Zoom In">
           <app-icon name="plus" [size]="18"></app-icon>
         </button>
-        <button (click)="zoomOut()" class="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] shadow-lg hover:bg-[var(--button-bg-hover)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" aria-label="Zoom Out">
+        <button (click)="zoomOut()" class="flex items-center justify-center w-10 h-10 rounded-full bg-(--card-bg) border border-(--border-color) shadow-lg hover:bg-(--button-bg-hover) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color)" aria-label="Zoom Out">
           <app-icon name="minus" [size]="18"></app-icon>
         </button>
-        <button (click)="resetZoom()" class="flex items-center justify-center w-10 h-10 rounded-full bg-[var(--card-bg)] border border-[var(--border-color)] shadow-lg hover:bg-[var(--button-bg-hover)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" aria-label="Reset Zoom">
+        <button (click)="resetZoom()" class="flex items-center justify-center w-10 h-10 rounded-full bg-(--card-bg) border border-(--border-color) shadow-lg hover:bg-(--button-bg-hover) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color)" aria-label="Reset Zoom">
           <app-icon name="maximize" [size]="18"></app-icon>
         </button>
       </div>
@@ -488,8 +488,7 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
 
     const serializer = new XMLSerializer();
     let source = serializer.serializeToString(svgElement);
-
-    if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+    if (!source.match(/^<svg[^>]+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/)) {
       source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
     }
 

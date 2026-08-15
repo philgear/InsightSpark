@@ -280,8 +280,8 @@ export class AppComponent implements OnDestroy {
     // Pocketgull Integration Subscription
     this.pocketgullService.incomingMessages$.pipe(takeUntil(this.destroy$)).subscribe(msg => {
       if (msg.type === 'SET_PROBLEM' && msg.payload) {
-        if (msg.payload.problem) this.problemInput.set(msg.payload.problem);
-        if (msg.payload.mode) this.appMode.set(msg.payload.mode);
+        if (msg.payload['problem']) this.problemInput.set(msg.payload['problem'] as string);
+        if (msg.payload['mode']) this.appMode.set(msg.payload['mode'] as 'creative' | 'care');
       }
     });
 
@@ -987,11 +987,10 @@ export class AppComponent implements OnDestroy {
       : content;
     return `${prefix}: "${truncatedContent}"`;
   }
-
-  exportPlanToPocketgull(type: 'care-plan' | 'creative-plan', plan: any) {
+  exportPlanToPocketgull(type: 'care-plan' | 'creative-plan', plan: CarePlan | CreativePlan) {
     this.pocketgullService.exportData(
       type === 'care-plan' ? 'EXPORT_CARE_PLAN' : 'EXPORT_CREATIVE_PLAN', 
-      plan
+      plan as unknown as Record<string, unknown>
     );
   }
 }

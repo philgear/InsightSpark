@@ -3,7 +3,7 @@ import { Subject } from 'rxjs';
 
 export interface PocketgullMessage {
   type: string;
-  payload: any;
+  payload: Record<string, unknown>;
 }
 
 const ALLOWED_ORIGINS = [
@@ -31,7 +31,7 @@ export class PocketgullIntegrationService {
     // A simple check: if our window is not the top window, we are in an iframe
     try {
       this.isEmbedded.set(window !== window.parent);
-    } catch (e) {
+    } catch {
       // In strict cross-origin cases, accessing window.parent might throw, 
       // but if it throws, we definitely are embedded.
       this.isEmbedded.set(true);
@@ -54,7 +54,7 @@ export class PocketgullIntegrationService {
   /**
    * Dispatches data back to the parent Pocketgull window.
    */
-  public exportData(type: string, payload: any): void {
+  public exportData(type: string, payload: Record<string, unknown>): void {
     if (!this.isEmbedded()) {
       console.warn('Attempted to export data to Pocketgull, but not running inside an iframe.');
       return;
