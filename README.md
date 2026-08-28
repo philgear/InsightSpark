@@ -6,6 +6,8 @@
 
 # Pivot & Pulse (InsightSpark)
 
+[![CI](https://github.com/philgear/InsightSpark/actions/workflows/ci.yml/badge.svg)](https://github.com/philgear/InsightSpark/actions/workflows/ci.yml)
+[![CodeQL Analysis](https://github.com/philgear/InsightSpark/actions/workflows/codeql.yml/badge.svg)](https://github.com/philgear/InsightSpark/actions/workflows/codeql.yml)
 [![Angular](https://img.shields.io/badge/Angular-v22.0.0-DD0031?logo=angular&logoColor=white)](https://angular.dev/)
 [![Express](https://img.shields.io/badge/Express-v4.19.2-000000?logo=express&logoColor=white)](https://expressjs.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-latest-38BDF8?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
@@ -116,6 +118,13 @@ To spin up both backend proxy and frontend:
     npm run dev
     ```
 
+### 4. Run Test Suite & Build Verification
+To execute the automated security, resilience, and clinical validation test suite:
+```bash
+npm test        # Runs all 33 unit, chaos engineering, fuzzing, and compliance tests
+npm run build   # Verifies the production Angular bundle build
+```
+
 ---
 
 <div align="center">
@@ -137,6 +146,7 @@ If you use Pivot & Pulse (InsightSpark) in your research, please cite it as:
 ```text
 Gear, P. (2026). Pivot & Pulse (InsightSpark): A Lateral Thinking Workbench and Clinical Care Strategist. GitHub Repository. https://github.com/philgear/InsightSpark
 ```
+*(A standard `CITATION.cff` file is included in the repository root for automated BibTeX and APA export via GitHub's "Cite this repository" feature).*
 
 ---
 
