@@ -223,13 +223,14 @@ export class GeminiService {
         const selectedModel = localStorage.getItem('spark_model_val') || localStorage.getItem('user_gemini_model');
         
         // On-device execution branch: Chrome Built-in AI (Gemini Nano)
-        if (selectedModel === 'on-device-nano' && typeof (window as any)?.ai?.languageModel?.create === 'function') {
+        const win = window as unknown as { ai?: { languageModel?: { create: (opts: { systemPrompt: string }) => Promise<{ prompt: (p: string) => Promise<string>; destroy?: () => void }> } } };
+        if (selectedModel === 'on-device-nano' && typeof win?.ai?.languageModel?.create === 'function') {
           try {
             const systemPrompt = mode === 'care'
               ? 'You are a compassionate, HIPAA-compliant care support partner. Provide creative, positive psychology insights for health goals in valid JSON format matching schema: [{"strategyName": string, "insights": [{"text": string, "influence": string}]}].'
               : 'You are a creative thinking partner. Provide distinct actionable insights matching JSON schema: [{"strategyName": string, "insights": [{"text": string}]}].';
             
-            const session = await (window as any).ai.languageModel.create({ systemPrompt });
+            const session = await win.ai.languageModel.create({ systemPrompt });
             const strategyList = strategies.map(s => `- Strategy: ${mode === 'care' ? (s.careModeName || s.name) : s.name}`).join('\n');
             const promptText = `Problem: ${problem}\n\nStrategies:\n${strategyList}\n\nProvide 2 actionable insights per strategy. Output valid JSON array only.`;
             

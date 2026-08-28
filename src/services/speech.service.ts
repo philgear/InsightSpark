@@ -8,7 +8,6 @@ export class SpeechService {
   currentlySpeakingId = signal<string | null>(null);
   isListening = signal(false);
   speechSupported = signal(typeof window !== 'undefined' && 'speechSynthesis' in window);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   recognitionSupported = signal(typeof window !== 'undefined' && ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window));
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -116,7 +115,9 @@ export class SpeechService {
     if (this.recognition) {
       try {
         this.recognition.stop();
-      } catch {}
+      } catch {
+        // Recognition already stopped or unavailable
+      }
       this.isListening.set(false);
     }
   }

@@ -6,7 +6,7 @@ import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { GeminiService } from './services/gemini.service';
 import { StorageService, Theme } from './services/storage.service';
-import { TranslationService, SUPPORTED_LANGUAGES_LIST, LanguageInfo } from './services/translation.service';
+import { TranslationService, SUPPORTED_LANGUAGES_LIST } from './services/translation.service';
 import { PocketgullIntegrationService } from './services/pocketgull-integration.service';
 import { CreativeStrategy, InsightItem, InsightResult, SavedInsight, STRATEGIES, CarePlan, SavedCarePlan, StructuredProblem, CreativePlan, SavedCreativePlan, CareRole } from './models/creative-types';
 import { AgenticResult, AgenticPhase, AGENTIC_PHASES } from './models/agent-types';
