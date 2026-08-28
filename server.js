@@ -104,6 +104,28 @@ function getModel(req) {
   return req?.headers?.['x-gemini-model'] || req?.body?.model || DEFAULT_MODEL;
 }
 
+function getTemperature(req, defaultTemp = 0.7) {
+  const customTemp = req?.headers?.['x-gemini-temperature'] || req?.body?.temperature;
+  if (customTemp !== undefined && customTemp !== null && !isNaN(Number(customTemp))) {
+    const parsed = Number(customTemp);
+    return Math.max(0.0, Math.min(2.0, parsed));
+  }
+  return defaultTemp;
+}
+
+function getThinkingConfig(req) {
+  const thinkingBudget = req?.headers?.['x-gemini-thinking-budget'] || req?.body?.thinkingBudget;
+  if (thinkingBudget !== undefined && thinkingBudget !== null && !isNaN(Number(thinkingBudget))) {
+    const budget = Number(thinkingBudget);
+    if (budget > 0) {
+      return { thinkingConfig: { thinkingBudget: budget } };
+    } else if (budget === 0) {
+      return { thinkingConfig: { thinkingBudget: 0 } };
+    }
+  }
+  return {};
+}
+
 function formatContents(prompt, image) {
   if (!image || typeof image !== 'object' || !image.data || !image.mimeType) {
     return prompt;
@@ -120,6 +142,7 @@ function formatContents(prompt, image) {
 }
 
 const SUPPORTED_LANGUAGES = {
+  en: 'English',
   ja: 'Japanese (Sapporo, Japan)',
   es: 'Spanish (Guadalajara, Mexico)',
   zh: 'Mandarin Chinese (Kaohsiung, Taiwan & Suzhou, China)',
@@ -130,7 +153,14 @@ const SUPPORTED_LANGUAGES = {
   sn: 'Shona (Mutare, Zimbabwe)',
   ru: 'Russian (Arkhangelsk, Russia)',
   fr: 'French',
-  de: 'German'
+  de: 'German',
+  pt: 'Portuguese (Lisbon & São Paulo)',
+  ar: 'Arabic',
+  hi: 'Hindi',
+  nl: 'Dutch (Amsterdam)',
+  tl: 'Tagalog / Filipino',
+  vi: 'Vietnamese',
+  uk: 'Ukrainian'
 };
 
 function getLanguageInstruction(req) {
@@ -153,11 +183,16 @@ You are a compassionate, knowledgeable, and HIPAA-compliant care support AI part
 
 Your core principles are:
 1.  **Person-Centricity:** Every response must be framed with the individual's well-being, dignity, and understanding as the top priority.
-2.  **Positive Language:** Use encouraging, hopeful, and empowering language. Avoid negative or alarming terminology. Focus on what can be done, not just on the problems.
-3.  **Simplicity and Clarity:** Explain concepts in simple, jargon-free terms that an individual or their family can easily understand.
-4.  **Actionable Advice:** Insights should be practical and suggest concrete, manageable steps.
+2.  **Positive Psychology & PERMA+H:** Use encouraging, hopeful, and empowering language. Anchor in signature character strengths (VIA Strengths) and Learned Optimism (ABCDE reframing). Focus on micro-masteries, emotional vitality, and agency.
+3.  **Kinship Mesh & Caregiver Respite:** Support intergenerational circles (children, parents, grandparents, chosen family). Protect against caregiver burnout by designing co-activities that offload the primary caregiver, accommodating missing or strained family links through found kinship, and adapting to cognitive decline with sensory, music, and tactile bridges.
+4.  **Simplicity and Clarity:** Explain concepts in simple, jargon-free terms that an individual or their family can easily understand.
+5.  **Actionable Advice:** Insights should be practical and suggest concrete, manageable steps.
 
-**Crucial Safety Instruction:**
+Direct Preference Optimization (DPO) Alignment Rubric:
+- PREFER (Chosen): Asset-based inquiry, environmental micro-adaptations, caregiver respite, questions to empower the patient in clinical visits, actionable hope.
+- REJECT (Penalized): Prescriptive medical diagnosis, pathologizing deficit language ("patient failed to..."), overwhelming checklists, fear-based motivation.
+
+Crucial Safety Instruction:
 Under no circumstances should you ever repeat, store, or include any Personally Identifiable Information (PII) such as names, dates, addresses, or specific identifiers in your response. Your output must be completely anonymous and focused solely on the abstract health challenge.
 `;
 
@@ -196,8 +231,56 @@ const SAFETY_SETTINGS = [
   {
     category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
     threshold: 'BLOCK_MEDIUM_AND_ABOVE'
+  },
+  {
+    category: 'HARM_CATEGORY_CIVIC_INTEGRITY',
+    threshold: 'BLOCK_MEDIUM_AND_ABOVE'
   }
 ];
+
+function isLocalModel(model) {
+  return typeof model === 'string' && (model.startsWith('ollama:') || model.startsWith('local:'));
+}
+
+async function streamFromLocalOllama(modelName, prompt, systemInstruction, res) {
+  const localModel = modelName.replace(/^(ollama:|local:)/, '');
+  const ollamaUrl = process.env.OLLAMA_HOST || 'http://localhost:11434';
+  
+  const response = await fetch(`${ollamaUrl}/api/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: localModel,
+      prompt: `${systemInstruction ? systemInstruction + '\n\n' : ''}${prompt}`,
+      format: 'json',
+      stream: true
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Local Ollama error (${response.status}): Make sure 'ollama serve' is running with model '${localModel}'.`);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value, { stream: true });
+    const lines = chunk.split('\n').filter(Boolean);
+    for (const line of lines) {
+      try {
+        const parsed = JSON.parse(line);
+        if (parsed.response) {
+          res.write(`data: ${JSON.stringify({ text: parsed.response })}\n\n`);
+        }
+      } catch (e) {
+        // ignore incomplete JSON fragment
+      }
+    }
+  }
+}
 
 function getCleanErrorMessage(error) {
   if (!error) return 'An unexpected error occurred';
@@ -228,12 +311,29 @@ function getCleanErrorMessage(error) {
   return message;
 }
 
-// Config endpoint to expose Client ID to frontend
+// Config endpoint to expose Client ID & Local LLM status to frontend
 app.get('/api/config', (req, res) => {
   res.json({
     googleClientId: process.env.GOOGLE_CLIENT_ID || null,
     orcidClientId: process.env.ORCID_CLIENT_ID || null
   });
+});
+
+app.get('/api/local-llm/status', async (req, res) => {
+  try {
+    const ollamaUrl = process.env.OLLAMA_HOST || 'http://localhost:11434';
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 1200);
+    const response = await fetch(`${ollamaUrl}/api/tags`, { signal: controller.signal });
+    clearTimeout(timeout);
+    if (response.ok) {
+      const data = await response.json();
+      return res.json({ available: true, models: data.models || [] });
+    }
+  } catch (e) {
+    // Ollama not currently running on user's device
+  }
+  return res.json({ available: false, models: [] });
 });
 
 app.post('/api/auth/orcid', [
@@ -356,8 +456,9 @@ app.post('/api/structure', [
           systemInstruction: HIPAA_SYSTEM_INSTRUCTION,
           responseMimeType: 'application/json',
           responseSchema: schema,
-          temperature: 0.2,
-          safetySettings: SAFETY_SETTINGS
+          temperature: getTemperature(req, 0.2),
+          safetySettings: SAFETY_SETTINGS,
+          ...getThinkingConfig(req)
         }
     });
 
@@ -467,21 +568,29 @@ app.post('/api/insights', [
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    const responseStream = await genAI.models.generateContentStream({
-        model: getModel(req),
-        contents: formatContents(prompt, req.body.image),
-        config: {
-          systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : undefined,
-          responseMimeType: 'application/json',
-          responseSchema: insightsSchema,
-          temperature: 0.8,
-          safetySettings: SAFETY_SETTINGS
-        }
-    });
+    const targetModel = getModel(req);
+    const systemInstruction = mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : undefined;
 
-    for await (const chunk of responseStream) {
-      if (chunk.text) {
-        res.write(`data: ${JSON.stringify({ text: chunk.text })}\n\n`);
+    if (isLocalModel(targetModel)) {
+      await streamFromLocalOllama(targetModel, prompt, systemInstruction, res);
+    } else {
+      const responseStream = await genAI.models.generateContentStream({
+          model: targetModel,
+          contents: formatContents(prompt, req.body.image),
+          config: {
+            systemInstruction,
+            responseMimeType: 'application/json',
+            responseSchema: insightsSchema,
+            temperature: getTemperature(req, 0.8),
+            safetySettings: SAFETY_SETTINGS,
+            ...getThinkingConfig(req)
+          }
+      });
+
+      for await (const chunk of responseStream) {
+        if (chunk.text) {
+          res.write(`data: ${JSON.stringify({ text: chunk.text })}\n\n`);
+        }
       }
     }
 
@@ -553,6 +662,7 @@ app.post('/api/care-plan', [
         - "positiveAchievements" should highlight milestones to celebrate and motivate the person.
         - "recommendations" should propose supportive next steps.
         - All text must be easily understood by individuals and their families, avoiding clinical jargon.
+        ${getLanguageInstruction(req)}
       `;
 
     const response = await genAI.models.generateContent({
@@ -562,8 +672,9 @@ app.post('/api/care-plan', [
           systemInstruction: HIPAA_SYSTEM_INSTRUCTION,
           responseMimeType: 'application/json',
           responseSchema: carePlanSchema,
-          temperature: 0.6,
-          safetySettings: SAFETY_SETTINGS
+          temperature: getTemperature(req, 0.6),
+          safetySettings: SAFETY_SETTINGS,
+          ...getThinkingConfig(req)
         }
     });
 
@@ -628,6 +739,7 @@ app.post('/api/creative-plan', [
         - The "criticalPath" must describe concrete, step-by-step sequential implementation items.
         - The "riskAssessment" must identify critical failure modes, bottlenecks, or constraints.
         - All elements should be direct, logical, and highly actionable.
+        ${getLanguageInstruction(req)}
       `;
 
     const response = await genAI.models.generateContent({
@@ -636,14 +748,81 @@ app.post('/api/creative-plan', [
         config: {
           responseMimeType: 'application/json',
           responseSchema: creativePlanSchema,
-          temperature: 0.5,
-          safetySettings: SAFETY_SETTINGS
+          temperature: getTemperature(req, 0.5),
+          safetySettings: SAFETY_SETTINGS,
+          ...getThinkingConfig(req)
         }
     });
 
     res.json(JSON.parse(response.text));
   } catch (error) {
     console.error('Error in /api/creative-plan:', error);
+    res.status(500).json({ error: getCleanErrorMessage(error) });
+  }
+});
+
+// POST /api/translate — Fast on-demand translation for cards, plans, or text
+app.post('/api/translate', [
+  body('content').notEmpty(),
+  body('targetLanguage').isString().trim().notEmpty(),
+  body('contentType').optional().isString().trim(),
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const customApiKey = req.headers['x-gemini-api-key'];
+    const genAI = customApiKey ? new GoogleGenAI({ apiKey: customApiKey }) : ai;
+    if (!genAI) {
+      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or contact the administrator.' });
+    }
+
+    const { content, targetLanguage, contentType } = req.body;
+    const contentStr = typeof content === 'string' ? content : JSON.stringify(content);
+
+    const piiFound = scanForPII(contentStr);
+    if (piiFound.length > 0) {
+      return res.status(400).json({ error: `Security Check Blocked: Potential personally identifiable information (PII) detected (${piiFound.join(', ')}). Under HIPAA guidelines, please de-identify data before translation.` });
+    }
+
+    const langName = SUPPORTED_LANGUAGES[targetLanguage] || targetLanguage;
+    const isJson = typeof content === 'object' && content !== null;
+
+    const prompt = `
+      Translate the following content natively into ${langName}.
+      Maintain the exact same tone, clinical compassion (if medical/care), and conceptual clarity.
+      ${isJson ? 'You MUST return a valid JSON object matching the exact original keys and schema, translating only the string values.' : 'Return only the translated text without commentary or preamble.'}
+
+      Content to translate:
+      ${contentStr}
+    `;
+
+    const config = {
+      temperature: 0.2,
+      safetySettings: SAFETY_SETTINGS,
+      ...(isJson ? { responseMimeType: 'application/json' } : {}),
+      ...getThinkingConfig(req)
+    };
+
+    const response = await genAI.models.generateContent({
+      model: getModel(req),
+      contents: prompt,
+      config
+    });
+
+    if (isJson) {
+      try {
+        return res.json({ translated: JSON.parse(response.text) });
+      } catch {
+        return res.json({ translatedText: response.text });
+      }
+    }
+
+    res.json({ translatedText: response.text.trim() });
+  } catch (error) {
+    console.error('Error in /api/translate:', error);
     res.status(500).json({ error: getCleanErrorMessage(error) });
   }
 });

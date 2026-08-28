@@ -4,9 +4,19 @@ export interface CreativeStrategy {
   description: string;
   icon: string;
   color: string; // Storing the Hex code now
+  category?: 'provocation' | 'anchor';
   careModeName?: string;
   careModeDescription?: string;
   agentPersona?: string; // Personality voice used in debate rounds
+}
+
+export interface CareRole {
+  name: string;
+  gist: string;
+  icon: string;
+  isCustom?: boolean;
+  id?: string;
+  category?: 'clinical' | 'support' | 'creative' | 'custom';
 }
 
 export interface InsightItem {
@@ -230,6 +240,7 @@ export const STRATEGIES: CreativeStrategy[] = [
     description: 'List potential failure points, their consequences, and how to mitigate them.', 
     icon: 'shield', 
     color: '#6C7A68',
+    category: 'anchor',
     careModeName: 'Safety Net',
     careModeDescription: "Identify potential safety risks or plan failures and build early warning guardrails.",
     agentPersona: 'I see what can go wrong before it does. My job is to protect, not to pessimize — I build guardrails, not walls.'
@@ -240,8 +251,31 @@ export const STRATEGIES: CreativeStrategy[] = [
     description: 'Map out the absolute sequence of dependent steps required to achieve the goal.', 
     icon: 'git-branch', 
     color: '#E8B9C8',
+    category: 'anchor',
     careModeName: 'Milestone Map',
     careModeDescription: "Synthesize the exact step-by-step critical timeline of care dependencies.",
     agentPersona: 'I see dependencies. I map the non-negotiable sequence — what must happen first, what blocks what, and where the bottleneck hides.'
+  },
+  { 
+    id: 'perma-strengths', 
+    name: 'VIA Strengths & Optimism', 
+    description: 'Anchor the challenge in signature character strengths (VIA) and reframe setbacks using Seligman\'s Learned Optimism and asset-based inquiry.', 
+    icon: 'sparkles', 
+    color: '#9AE6B4',
+    category: 'anchor',
+    careModeName: 'PERMA+H & Strengths',
+    careModeDescription: "Activate character strengths and PERMA+H pillars (Positive Emotion, Engagement/Flow, Relationships, Meaning, Accomplishment, Health/Vitality).",
+    agentPersona: 'I do not fix deficits; I amplify signature strengths. When you see an obstacle, I see an opportunity for micro-mastery, engagement flow, and PERMA+H flourishing.'
+  },
+  {
+    id: 'kinship-triad',
+    name: 'Intergenerational Kinship',
+    description: 'Cross-pollinate youth playfulness, mid-life practical orchestration, and elder wisdom into a unified solution.',
+    icon: 'users',
+    color: '#F6AD55',
+    category: 'anchor',
+    careModeName: 'Family Kinship & Legacy',
+    careModeDescription: 'Distributes care across generations (children, parents, grandparents) into shared, joy-filled co-activities.',
+    agentPersona: 'I look through three generations at once: the wonder of children, the grounding of parents, and the enduring wisdom of grandparents.'
   }
 ];

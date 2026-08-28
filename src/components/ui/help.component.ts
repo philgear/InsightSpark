@@ -1,7 +1,9 @@
-import { Component, input, output, model, signal } from '@angular/core';
+import { Component, input, output, model, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IconComponent } from './icon.component';
 import { LojongCleansingComponent } from './lojong-cleansing.component';
+import { TranslationService } from '../../services/translation.service';
+import { GeminiService } from '../../services/gemini.service';
 
 function getStoredApiKey(): string {
   let value = localStorage.getItem('spark_cfg_val');
@@ -46,6 +48,30 @@ function setStoredModel(modelName: string): void {
   localStorage.setItem('user_gemini_model', modelName);
 }
 
+function getStoredTemperature(): number {
+  const val = localStorage.getItem('spark_temp_val');
+  if (val !== null && !isNaN(Number(val))) {
+    return Number(val);
+  }
+  return 0.7;
+}
+
+function setStoredTemperature(temp: number): void {
+  localStorage.setItem('spark_temp_val', temp.toString());
+}
+
+function getStoredThinkingBudget(): number {
+  const val = localStorage.getItem('spark_thinking_budget');
+  if (val !== null && !isNaN(Number(val))) {
+    return Number(val);
+  }
+  return 0; // 0 = standard / auto
+}
+
+function setStoredThinkingBudget(budget: number): void {
+  localStorage.setItem('spark_thinking_budget', budget.toString());
+}
+
 @Component({
   selector: 'app-help',
   standalone: true,
@@ -58,7 +84,7 @@ function setStoredModel(modelName: string): void {
              <img [src]="logoPath()" alt="" class="h-12 w-auto object-contain">
           </div>
           <div>
-            <h2 class="text-transparent bg-clip-text bg-linear-to-r from-(--text-highlight) to-(--text-accent)">Help & Pro Tips</h2>
+            <h2 class="text-transparent bg-clip-text bg-linear-to-r from-(--text-highlight) to-(--text-accent)">{{ t('settings.title') }}</h2>
             <p class="text-(--text-color-muted) mt-1">Get the most out of Pivot & Pulse in {{ appMode() === 'creative' ? 'Creative' : 'Care' }} Mode.</p>
           </div>
         </div>
@@ -66,7 +92,7 @@ function setStoredModel(modelName: string): void {
       
       @if (appMode() === 'creative') {
         <div class="space-y-6">
-          <div class="bg-(--card-bg) p-6 rounded-2xl border border-[var(--border-color)]">
+          <div class="bg-(--card-bg) p-6 rounded-2xl border border-(--border-color)">
               <h3 class="text-(--text-accent) flex items-center gap-2 mb-2">
                 <app-icon name="sparkles" [size]="20"></app-icon>
                 Crafting the Perfect Creative Prompt
@@ -74,7 +100,7 @@ function setStoredModel(modelName: string): void {
               <p class="text-sm text-(--text-color-muted) mb-3">
                 A good prompt gives the AI constraints to build against while leaving room for unexpected lateral connections. Use this simple formula:
               </p>
-              <div class="mb-4 p-3 bg-white/5 border border-(--border-color)/30 rounded-xl text-xs font-mono text-[var(--text-highlight)]">
+              <div class="mb-4 p-3 bg-white/5 border border-(--border-color)/30 rounded-xl text-xs font-mono text-(--text-highlight)">
                 Formula: Challenge + Context/Target + Desired Outcome/Style
               </div>
               <ul class="list-disc pl-6 space-y-2 text-(--text-color) text-sm/relaxed">
@@ -84,7 +110,7 @@ function setStoredModel(modelName: string): void {
               </ul>
           </div>
 
-          <div class="bg-(--card-bg) p-6 rounded-2xl border border-[var(--border-color)]">
+          <div class="bg-(--card-bg) p-6 rounded-2xl border border-(--border-color)">
               <h3 class="text-(--text-accent) flex items-center gap-2 mb-2">
                 <app-icon name="book" [size]="20" fallback="sparkles"></app-icon>
                 Unlocking Creative Blocks with Lateral Thinking
@@ -98,323 +124,304 @@ function setStoredModel(modelName: string): void {
                 <li><strong>Creating Action Plans:</strong> Once you find insights that excite you, bookmark them. You can then synthesize your bookmarks into a structured <strong>Creative Action Plan</strong> detailing a sequential Critical Path, Risk Assessment, and next actions.</li>
               </ul>
           </div>
-          
-          <div class="bg-(--card-bg) p-6 rounded-2xl border border-[var(--border-color)]">
-              <h3 class="text-(--text-accent) flex items-center gap-2 mb-2">
-                <app-icon name="dice" [size]="20"></app-icon>
-                Using the Thinking "Spark Plugs"
-              </h3>
-              <ul class="list-disc pl-6 space-y-2 text-(--text-color) text-sm/relaxed">
-                <li><strong>The Butterfly Effect (Chaos Theory):</strong> Great for plot hooks, marketing, or design. It helps you search for tiny, low-cost micro-changes that trigger massive, cascading positive outcomes.</li>
-                <li><strong>Combinatorial Evolution:</strong> Merges your problem with a seemingly unrelated field (like biology or music) to force a brand-new hybrid concept.</li>
-                <li><strong>Go Random:</strong> If you're facing a severe block, don't select any strategies. The app will roll a random trio of strategies for you, sparking spontaneous associations.</li>
-              </ul>
-          </div>
-
-          <div class="bg-(--card-bg) p-6 rounded-2xl border border-[var(--border-color)]">
-              <h3 class="text-(--text-accent) flex items-center gap-2 mb-2">
-                <app-icon name="activity" [size]="20" fallback="sparkles"></app-icon>
-                Movement & Posture for Insight (Incubation)
-              </h3>
-              <ul class="list-disc pl-6 space-y-2 text-(--text-color) text-sm/relaxed">
-                <li><strong>The Nietzsche Walk:</strong> <em>"All truly great thoughts are conceived while walking."</em> Light physical pacing engages the motor cortex, boosting divergent thinking and lowering rigid focus.</li>
-                <li><strong>Horizontal Incubation:</strong> Lying down reduces adrenaline levels associated with hyper-focused stress, allowing the brain to wander freely and connect distant memories (the "Aha!" moment).</li>
-                <li><strong>Environmental Reset:</strong> Changing your physical surroundings resets context-dependent memory blocks, freeing your mind from circular thinking patterns.</li>
-              </ul>
-          </div>
         </div>
       } @else {
         <div class="space-y-6">
-          <div class="bg-(--card-bg) p-6 rounded-2xl border border-[var(--border-color)]">
+          <div class="bg-(--card-bg) p-6 rounded-2xl border border-(--border-color)">
               <h3 class="text-(--text-accent) flex items-center gap-2 mb-2">
-                <app-icon name="shield" [size]="20"></app-icon>
-                HIPAA Compliance & Safety
+                <app-icon name="heart" [size]="20"></app-icon>
+                Framing Holistic, Person-Centered Goals
               </h3>
+              <p class="text-sm text-(--text-color-muted) mb-3">
+                In Care Mode, Pivot & Pulse shifts focus away from clinical deficits toward dignity, autonomy, and achievable steps.
+              </p>
+              <div class="mb-4 p-3 bg-white/5 border border-(--border-color)/30 rounded-xl text-xs font-mono text-(--text-highlight)">
+                Formula: Person + Current Context + Meaningful Life Goal + Real-World Barrier
+              </div>
               <ul class="list-disc pl-6 space-y-2 text-(--text-color) text-sm/relaxed">
-                <li><strong>De-identify Everything:</strong> <strong class="text-[var(--text-highlight)]">Never use real patient names, dates, addresses, or any other Protected Health Information (PHI).</strong> The app is a tool for creative problem-solving, not a medical record.</li>
-                <li><strong>Focus on the Health Challenge:</strong> Describe the challenge abstractly. Good: "78 y/o M with CHF, goal to improve med adherence." Bad: "John Smith, DOB 1/1/46, needs help taking his Lasix."</li>
-                <li><strong>Review All Output:</strong> Always use your clinical judgment to review and validate any suggestions before applying them in a real-world scenario.</li>
+                <li><strong>Start with What Matters to Them:</strong> Focus on personal meaning, e.g. <em>"Able to attend granddaughter's outdoor wedding"</em> rather than solely <em>"achieve 90 degrees knee flexion."</em></li>
+                <li><strong>Leverage Diverse Care Perspectives:</strong> Toggle between the <em>Bedside Nurse</em>, <em>Positive Psychologist</em>, <em>Kinship Coordinator</em>, and <em>Family Circle</em> to uncover blind spots.</li>
+                <li><strong>De-Identification Safeguards:</strong> Always exclude direct names, addresses, or phone numbers. The built-in scanner helps ensure HIPAA compliance before querying.</li>
               </ul>
           </div>
-          <div class="bg-(--card-bg) p-6 rounded-2xl border border-[var(--border-color)]">
+
+          <div class="bg-(--card-bg) p-6 rounded-2xl border border-(--border-color)">
               <h3 class="text-(--text-accent) flex items-center gap-2 mb-2">
-                <app-icon name="heart-pulse" [size]="20"></app-icon>
-                Thinking in Systems
+                <app-icon name="sparkles" [size]="20"></app-icon>
+                PERMA+H & Positive Psychology Foundations
               </h3>
-              <ul class="list-disc pl-6 space-y-2 text-(--text-color) text-sm/relaxed">
-                <li><strong>The Patient as a System:</strong> Use the <strong>Systems Theorist</strong> role to view the patient as a "Complex Adaptive System." Look for feedback loops—does a treatment cause a side effect that feeds back into the original problem?</li>
-                <li><strong>Leverage Points (Butterfly Effect):</strong> Use this strategy to find the "minimum effective dose" or the smallest behavioral change that creates the biggest ripple effect in health improvement.</li>
-                <li><strong>Save the Best Insights:</strong> As insights are generated, use the bookmark icon to save the most relevant ones. A care plan can only be synthesized from your saved insights.</li>
+              <p class="text-sm text-(--text-color-muted) mb-3">
+                Pivot & Pulse care strategies are grounded in the pioneering work of <strong>Dr. Martin E.P. Seligman</strong> and the University of Pennsylvania (UPenn) Positive Psychology Center:
+              </p>
+              <ul class="list-disc pl-6 space-y-1.5 text-(--text-color) text-sm/relaxed mb-4">
+                <li><strong>PERMA+H Pillars:</strong> <em>Positive Emotion, Engagement/Flow, Relationships, Meaning, Accomplishment, and Health/Vitality</em>.</li>
+                <li><strong>VIA Signature Strengths:</strong> Catalyzing signature character strengths (curiosity, kindness, perseverance, love of learning) rather than deficit remediation.</li>
+                <li><strong>Learned Optimism (ABCDE):</strong> Reframing adversity into temporary, specific, and actionable growth steps.</li>
               </ul>
+              <div class="p-3 bg-white/5 border border-(--border-color)/30 rounded-xl text-xs flex items-center justify-between gap-3">
+                <span class="text-(--text-color-muted)">Learn directly from Dr. Martin Seligman:</span>
+                <a href="https://www.coursera.org/specializations/positivepsychology" target="_blank" rel="noopener noreferrer" class="text-(--text-accent) hover:underline font-semibold flex items-center gap-1 shrink-0">
+                  <span>Foundations of Positive Psychology on Coursera</span>
+                  <span>&rarr;</span>
+                </a>
+              </div>
           </div>
         </div>
       }
 
-      <!-- Copyleft & Licensing Section -->
-      <div class="bg-(--card-bg) p-6 rounded-2xl border border-[var(--border-color)]">
-        <h3 class="text-(--text-accent) flex items-center gap-2 mb-2">
-          <app-icon name="key" [size]="20"></app-icon>
-          Sharing License, Credits & Attribution (Copyleft)
-        </h3>
-        <p class="text-sm text-(--text-color)/90 leading-relaxed mb-3">
-          All concepts, strategies, and plans generated by Pivot & Pulse are open-shared under the <strong>Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)</strong> license.
-        </p>
-        <ul class="list-disc pl-6 space-y-2 text-(--text-color) text-sm/relaxed">
-          <li><strong>Adapt and Share Freely:</strong> You are free to modify, mix, and build upon any output generated here, even for commercial purposes.</li>
-          <li><strong>Preserve the License (Copyleft):</strong> If you adapt or share these ideas, you must release them under the same CC BY-SA 4.0 license.</li>
-          <li><strong>Attribute the System & Creator:</strong> Standard credit should list the creators and core foundations: 
-            <br><em class="block mt-1 pl-2 border-l-2 border-(--text-accent)/30 text-(--text-highlight) text-xs font-mono">
-              "Ideated via Pivot & Pulse (a GearArts Project designed by Phil Gear), powered by Google Gemini, and inspired by Edward de Bono's Lateral Thinking."
-            </em>
-          </li>
-        </ul>
-        <div class="mt-4 pt-4 border-t border-(--border-color)/40 flex flex-wrap gap-4 items-center justify-between text-xs text-[var(--text-color-muted)]">
-          <div class="flex items-center gap-1.5">
-            <app-icon name="book" [size]="14"></app-icon>
-            <span>Inspired by <strong>Edward de Bono's "Lateral Thinking"</strong></span>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <a href="https://orcid.org/0009-0008-1372-5381" target="_blank" rel="noopener noreferrer" class="hover:text-(--text-accent) transition-colors inline-flex items-center gap-1 font-semibold">
-              <img src="assets/orcid.svg" alt="ORCID iD" class="h-3.5 w-3.5 inline select-none" width="14" height="14">
-              Researcher ID: 0009-0008-1372-5381 (Phil Gear)
-            </a>
-          </div>
-          <div class="flex items-center gap-1.5">
-            <app-icon name="sparkles" [size]="14"></app-icon>
-            <span>Powered by <strong>Google Gemini</strong></span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Collapsible Developer Diagnostics (Chaos Mode) -->
-      <details class="bg-(--card-bg) p-6 rounded-2xl border border-(--border-color) group cursor-pointer">
-        <summary class="text-(--text-accent) flex items-center justify-between font-semibold select-none list-none outline-none">
-          <div class="flex items-center gap-2">
-            <app-icon name="activity" [size]="20"></app-icon>
-            <span>Developer Diagnostics (Chaos Mode)</span>
-          </div>
-          <span class="transition-transform duration-200 group-open:rotate-180">
-            <app-icon name="chevron-down" [size]="16" fallback="sparkles"></app-icon>
-          </span>
-        </summary>
-        
-        <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
-        <div class="mt-4 pt-4 border-t border-(--border-color)/40 cursor-default" (click)="$event.stopPropagation()">
-          <p class="text-sm text-(--text-color-muted) mb-4">
-            Simulate backend API failures (429, 500, or network drops) to test client-side resilience and retry patterns.
-          </p>
-          
-          <div class="space-y-4">
-            <div>
-              <span class="block text-xs font-semibold uppercase tracking-wider text-(--text-color-muted) mb-2">Simulated Failure Type</span>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <button (click)="chaosType.set(null)"
-                        [class.bg-[var(--text-accent)]]="chaosType() === null"
-                        [class.text-[var(--primary-cta-text)]]="chaosType() === null"
-                        [class.bg-[var(--button-bg)]]="chaosType() !== null"
-                        [class.hover:bg-(--button-bg-hover)]="chaosType() !== null"
-                        class="text-xs font-medium py-2 px-3 rounded-lg border border-(--border-color) transition-colors focus:outline-none focus:ring-1 focus:ring-(--ring-color)">
-                  None (Normal)
-                </button>
-                <button (click)="chaosType.set('429')"
-                        [class.bg-[var(--text-accent)]]="chaosType() === '429'"
-                        [class.text-[var(--primary-cta-text)]]="chaosType() === '429'"
-                        [class.bg-[var(--button-bg)]]="chaosType() !== '429'"
-                        [class.hover:bg-(--button-bg-hover)]="chaosType() !== '429'"
-                        class="text-xs font-medium py-2 px-3 rounded-lg border border-(--border-color) transition-colors focus:outline-none focus:ring-1 focus:ring-(--ring-color)">
-                  429 Rate Limit
-                </button>
-                <button (click)="chaosType.set('500')"
-                        [class.bg-[var(--text-accent)]]="chaosType() === '500'"
-                        [class.text-[var(--primary-cta-text)]]="chaosType() === '500'"
-                        [class.bg-[var(--button-bg)]]="chaosType() !== '500'"
-                        [class.hover:bg-(--button-bg-hover)]="chaosType() !== '500'"
-                        class="text-xs font-medium py-2 px-3 rounded-lg border border-(--border-color) transition-colors focus:outline-none focus:ring-1 focus:ring-(--ring-color)">
-                  500 Internal Error
-                </button>
-                <button (click)="chaosType.set('drop')"
-                        [class.bg-[var(--text-accent)]]="chaosType() === 'drop'"
-                        [class.text-[var(--primary-cta-text)]]="chaosType() === 'drop'"
-                        [class.bg-[var(--button-bg)]]="chaosType() !== 'drop'"
-                        [class.hover:bg-(--button-bg-hover)]="chaosType() !== 'drop'"
-                        class="text-xs font-medium py-2 px-3 rounded-lg border border-(--border-color) transition-colors focus:outline-none focus:ring-1 focus:ring-(--ring-color)">
-                  Network Drop
-                </button>
-              </div>
-            </div>
-
-            @if (chaosType() !== null) {
-              <div class="animate-in slide-in-from-top-2 duration-200">
-                <span class="block text-xs font-semibold uppercase tracking-wider text-(--text-color-muted) mb-2">Failure Behavior</span>
-                <div class="flex gap-2">
-                  <button (click)="chaosBehavior.set('transient')"
-                          [class.bg-[var(--text-accent)]]="chaosBehavior() === 'transient'"
-                          [class.text-[var(--primary-cta-text)]]="chaosBehavior() === 'transient'"
-                          [class.bg-[var(--button-bg)]]="chaosBehavior() !== 'transient'"
-                          [class.hover:bg-(--button-bg-hover)]="chaosBehavior() !== 'transient'"
-                          class="flex-1 text-xs font-medium py-2 px-3 rounded-lg border border-(--border-color) transition-colors focus:outline-none focus:ring-1 focus:ring-(--ring-color)">
-                    Transient (Recovers on 3rd attempt)
-                  </button>
-                  <button (click)="chaosBehavior.set('permanent')"
-                          [class.bg-[var(--text-accent)]]="chaosBehavior() === 'permanent'"
-                          [class.text-[var(--primary-cta-text)]]="chaosBehavior() === 'permanent'"
-                          [class.bg-[var(--button-bg)]]="chaosBehavior() !== 'permanent'"
-                          [class.hover:bg-(--button-bg-hover)]="chaosBehavior() !== 'permanent'"
-                          class="flex-1 text-xs font-medium py-2 px-3 rounded-lg border border-(--border-color) transition-colors focus:outline-none focus:ring-1 focus:ring-(--ring-color)">
-                    Permanent (Always fails)
-                  </button>
-                </div>
-              </div>
-            }
-          </div>
-        </div>
-      </details>
-      
-      <!-- Gemini Flash Model Selection -->
-      <div class="bg-(--card-bg) p-6 rounded-2xl border border-[var(--border-color)]">
+      <!-- Gemini Model Tier Selection -->
+      <div class="bg-(--card-bg) p-6 rounded-2xl border border-(--border-color)">
         <h3 class="text-(--text-accent) flex items-center gap-2 mb-2">
           <app-icon name="sparkles" [size]="20"></app-icon>
-          Gemini Flash Model Tier
+          {{ t('settings.model.title') }}
         </h3>
         <p class="text-sm text-(--text-color-muted) mb-4">
-          Select the Google Gemini Flash model tier for streaming insights, multi-agent debate, and care plans.
+          {{ t('settings.model.desc') }}
         </p>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          <!-- Gemini 3.7 Flash -->
+          <button (click)="updateModel('gemini-3.7-flash')"
+                  [class.bg-(--text-accent)]="userModel() === 'gemini-3.7-flash'"
+                  [class.text-(--primary-cta-text)]="userModel() === 'gemini-3.7-flash'"
+                  [class.bg-(--button-bg)]="userModel() !== 'gemini-3.7-flash'"
+                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemini-3.7-flash'"
+                  class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
+            <div>
+              <div class="font-bold text-sm flex items-center gap-1.5">
+                <span>Gemini 3.7 Flash</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">NEW</span>
+              </div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Cutting-edge speed with hybrid thinking & reasoning</div>
+            </div>
+            <span class="inline-block text-[10px] uppercase font-bold tracking-wider mt-3 px-2 py-0.5 rounded bg-black/20 text-current w-fit">Next-Gen</span>
+          </button>
+
+          <!-- Gemini 3.6 Flash -->
           <button (click)="updateModel('gemini-3.6-flash')"
-                  [class.bg-[var(--text-accent)]]="userModel() === 'gemini-3.6-flash'"
-                  [class.text-[var(--primary-cta-text)]]="userModel() === 'gemini-3.6-flash'"
-                  [class.bg-[var(--button-bg)]]="userModel() !== 'gemini-3.6-flash'"
+                  [class.bg-(--text-accent)]="userModel() === 'gemini-3.6-flash'"
+                  [class.text-(--primary-cta-text)]="userModel() === 'gemini-3.6-flash'"
+                  [class.bg-(--button-bg)]="userModel() !== 'gemini-3.6-flash'"
                   [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemini-3.6-flash'"
                   class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
             <div>
               <div class="font-bold text-sm">Gemini 3.6 Flash</div>
-              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Sub-second latency & highest reasoning accuracy</div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Sub-second latency & highest lateral consistency</div>
             </div>
-            <span class="inline-block text-[10px] uppercase font-bold tracking-wider mt-3 px-2 py-0.5 rounded bg-black/20 text-current w-fit">Recommended</span>
+            <span class="inline-block text-[10px] uppercase font-bold tracking-wider mt-3 px-2 py-0.5 rounded bg-black/20 text-current w-fit">Default</span>
           </button>
 
-          <button (click)="updateModel('gemini-3-flash')"
-                  [class.bg-[var(--text-accent)]]="userModel() === 'gemini-3-flash'"
-                  [class.text-[var(--primary-cta-text)]]="userModel() === 'gemini-3-flash'"
-                  [class.bg-[var(--button-bg)]]="userModel() !== 'gemini-3-flash'"
-                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemini-3-flash'"
+          <!-- Gemini 2.5 Pro -->
+          <button (click)="updateModel('gemini-2.5-pro')"
+                  [class.bg-(--text-accent)]="userModel() === 'gemini-2.5-pro'"
+                  [class.text-(--primary-cta-text)]="userModel() === 'gemini-2.5-pro'"
+                  [class.bg-(--button-bg)]="userModel() !== 'gemini-2.5-pro'"
+                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemini-2.5-pro'"
                   class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
             <div>
-              <div class="font-bold text-sm">Gemini 3 Flash</div>
-              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">High speed & balanced lateral context</div>
+              <div class="font-bold text-sm">Gemini 2.5 Pro</div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Deep analytical synthesis for complex clinical edge cases</div>
+            </div>
+            <span class="inline-block text-[10px] uppercase font-bold tracking-wider mt-3 px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 w-fit">Deep Reasoning</span>
+          </button>
+
+          <!-- Chrome Built-in AI (Gemini Nano on Device) -->
+          <button (click)="updateModel('on-device-nano')"
+                  [class.bg-(--text-accent)]="userModel() === 'on-device-nano'"
+                  [class.text-(--primary-cta-text)]="userModel() === 'on-device-nano'"
+                  [class.bg-(--button-bg)]="userModel() !== 'on-device-nano'"
+                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'on-device-nano'"
+                  class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
+            <div>
+              <div class="font-bold text-sm flex items-center gap-1.5">
+                <span>Chrome On-Device AI</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono">100% PRIVATE</span>
+              </div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Runs Gemini Nano locally on your device NPU/GPU via Chrome Prompt API. 0 data sent.</div>
+            </div>
+            <div class="flex items-center gap-1.5 mt-3">
+              @if (chromeAiAvailable()) {
+                <span class="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 w-fit">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Available
+                </span>
+              } @else {
+                <span class="inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 w-fit">Chrome 127+ API</span>
+              }
             </div>
           </button>
 
-          <button (click)="updateModel('gemini-2.5-flash')"
-                  [class.bg-[var(--text-accent)]]="userModel() === 'gemini-2.5-flash'"
-                  [class.text-[var(--primary-cta-text)]]="userModel() === 'gemini-2.5-flash'"
-                  [class.bg-[var(--button-bg)]]="userModel() !== 'gemini-2.5-flash'"
-                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemini-2.5-flash'"
+          <!-- Local Gemma on-device (Ollama) -->
+          <button (click)="updateModel('ollama:gemma2')"
+                  [class.bg-(--text-accent)]="userModel() === 'ollama:gemma2' || userModel().startsWith('ollama:')"
+                  [class.text-(--primary-cta-text)]="userModel() === 'ollama:gemma2' || userModel().startsWith('ollama:')"
+                  [class.bg-(--button-bg)]="userModel() !== 'ollama:gemma2' && !userModel().startsWith('ollama:')"
+                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'ollama:gemma2' && !userModel().startsWith('ollama:')"
                   class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
             <div>
-              <div class="font-bold text-sm">Gemini 2.5 Flash</div>
-              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Legacy Flash engine compatibility mode</div>
+              <div class="font-bold text-sm flex items-center gap-1.5">
+                <span>Local Gemma (Ollama)</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">LOCAL</span>
+              </div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Runs Gemma 2/3 on your local PC/Mac (localhost:11434) with zero server hops.</div>
+            </div>
+            <div class="flex items-center gap-1.5 mt-3">
+              @if (ollamaAvailable()) {
+                <span class="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 w-fit">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Connected
+                </span>
+              } @else {
+                <span class="inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-black/20 text-current w-fit">Ollama Daemon</span>
+              }
             </div>
           </button>
+
+          <!-- Gemma 2 27B (Google Cloud) -->
+          <button (click)="updateModel('gemma-2-27b-it')"
+                  [class.bg-(--text-accent)]="userModel() === 'gemma-2-27b-it'"
+                  [class.text-(--primary-cta-text)]="userModel() === 'gemma-2-27b-it'"
+                  [class.bg-(--button-bg)]="userModel() !== 'gemma-2-27b-it'"
+                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemma-2-27b-it'"
+                  class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
+            <div>
+              <div class="font-bold text-sm flex items-center gap-1.5">
+                <span>Gemma 2 27B</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono">OPEN</span>
+              </div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Open-weights research architecture hosted on Google AI Studio</div>
+            </div>
+            <span class="inline-block text-[10px] uppercase font-bold tracking-wider mt-3 px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 w-fit">Google Gemma</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Hyperparameter Fine-Tuning: Temperature & Reasoning Budget -->
+      <div class="bg-(--card-bg) p-6 rounded-2xl border border-(--border-color)">
+        <h3 class="text-(--text-accent) flex items-center gap-2 mb-2">
+          <app-icon name="activity" [size]="20"></app-icon>
+          {{ t('settings.temperature.title') }}
+        </h3>
+        <p class="text-sm text-(--text-color-muted) mb-4">
+          {{ t('settings.temperature.desc') }}
+        </p>
+
+        <!-- Temperature Slider -->
+        <div class="space-y-4 max-w-xl">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-(--text-color)">Generation Temperature: <span class="font-mono text-(--text-highlight)">{{ userTemperature() }}</span></span>
+            <div class="flex gap-2">
+              <button (click)="updateTemperature(0.2)" class="px-2.5 py-1 text-[11px] rounded-lg border border-(--border-color) hover:bg-white/5 transition-colors cursor-pointer" [class.border-emerald-500]="userTemperature() === 0.2">
+                0.2 Strict
+              </button>
+              <button (click)="updateTemperature(0.7)" class="px-2.5 py-1 text-[11px] rounded-lg border border-(--border-color) hover:bg-white/5 transition-colors cursor-pointer" [class.border-emerald-500]="userTemperature() === 0.7">
+                0.7 Balanced
+              </button>
+              <button (click)="updateTemperature(0.95)" class="px-2.5 py-1 text-[11px] rounded-lg border border-(--border-color) hover:bg-white/5 transition-colors cursor-pointer" [class.border-emerald-500]="userTemperature() === 0.95">
+                0.95 Creative
+              </button>
+            </div>
+          </div>
+          <input 
+            type="range" 
+            min="0" 
+            max="1" 
+            step="0.05" 
+            [value]="userTemperature()" 
+            (input)="updateTemperature(+$any($event.target).value)" 
+            class="w-full accent-(--text-accent) cursor-pointer"
+          />
+
+          <!-- Thinking / Reasoning Budget -->
+          <div class="pt-4 border-t border-(--border-color)/50">
+            <h4 class="text-xs font-semibold text-(--text-color) mb-1.5">{{ t('settings.thinking.title') }}</h4>
+            <p class="text-[11px] text-(--text-color-muted) mb-3">{{ t('settings.thinking.desc') }}</p>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button (click)="updateThinkingBudget(0)"
+                      [class.bg-(--text-accent)]="userThinkingBudget() === 0"
+                      [class.text-(--primary-cta-text)]="userThinkingBudget() === 0"
+                      [class.bg-(--button-bg)]="userThinkingBudget() !== 0"
+                      class="text-xs font-medium py-2 px-3 rounded-lg border border-(--border-color) transition-all cursor-pointer">
+                {{ t('settings.thinking.off') }}
+              </button>
+              <button (click)="updateThinkingBudget(1024)"
+                      [class.bg-(--text-accent)]="userThinkingBudget() === 1024"
+                      [class.text-(--primary-cta-text)]="userThinkingBudget() === 1024"
+                      [class.bg-(--button-bg)]="userThinkingBudget() !== 1024"
+                      class="text-xs font-medium py-2 px-3 rounded-lg border border-(--border-color) transition-all cursor-pointer">
+                {{ t('settings.thinking.low') }}
+              </button>
+              <button (click)="updateThinkingBudget(2048)"
+                      [class.bg-(--text-accent)]="userThinkingBudget() === 2048"
+                      [class.text-(--primary-cta-text)]="userThinkingBudget() === 2048"
+                      [class.bg-(--button-bg)]="userThinkingBudget() !== 2048"
+                      class="text-xs font-medium py-2 px-3 rounded-lg border border-(--border-color) transition-all cursor-pointer">
+                {{ t('settings.thinking.med') }}
+              </button>
+              <button (click)="updateThinkingBudget(4096)"
+                      [class.bg-(--text-accent)]="userThinkingBudget() === 4096"
+                      [class.text-(--primary-cta-text)]="userThinkingBudget() === 4096"
+                      [class.bg-(--button-bg)]="userThinkingBudget() !== 4096"
+                      class="text-xs font-medium py-2 px-3 rounded-lg border border-(--border-color) transition-all cursor-pointer">
+                {{ t('settings.thinking.high') }}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Multilingual & Portland Sister Cities Target Language -->
-      <div class="bg-(--card-bg) p-6 rounded-2xl border border-[var(--border-color)] mb-6">
+      <div class="bg-(--card-bg) p-6 rounded-2xl border border-(--border-color) mb-6">
         <h3 class="text-(--text-accent) flex items-center gap-2 mb-2">
           <app-icon name="globe" [size]="20"></app-icon>
-          Target Output Language & Portland Sister Cities
+          {{ t('settings.language.title') }}
         </h3>
         <p class="text-sm text-(--text-color-muted) mb-4">
-          Select native AI generation language for Creative Insights & Care Plans. Includes Portland, Oregon's official Sister Cities.
+          {{ t('settings.language.desc') }}
         </p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          <button (click)="updateLanguage('en')"
-                  [class.bg-[var(--text-accent)]]="userLanguage() === 'en'"
-                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'en'"
-                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'en'"
-                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'en'"
-                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
-            <span>🇺🇸 English</span>
-            <span class="opacity-70 text-[10px]">Default</span>
-          </button>
-          <button (click)="updateLanguage('ja')"
-                  [class.bg-[var(--text-accent)]]="userLanguage() === 'ja'"
-                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'ja'"
-                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'ja'"
-                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'ja'"
-                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
-            <span>🇯🇵 Japanese</span>
-            <span class="opacity-70 text-[10px]">Sapporo 🌸</span>
-          </button>
-          <button (click)="updateLanguage('es')"
-                  [class.bg-[var(--text-accent)]]="userLanguage() === 'es'"
-                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'es'"
-                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'es'"
-                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'es'"
-                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
-            <span>🇲🇽 Spanish</span>
-            <span class="opacity-70 text-[10px]">Guadalajara 🇲🇽</span>
-          </button>
-          <button (click)="updateLanguage('zh')"
-                  [class.bg-[var(--text-accent)]]="userLanguage() === 'zh'"
-                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'zh'"
-                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'zh'"
-                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'zh'"
-                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
-            <span>🇹🇼 Mandarin</span>
-            <span class="opacity-70 text-[10px]">Kaohsiung/Suzhou 🏮</span>
-          </button>
-          <button (click)="updateLanguage('ko')"
-                  [class.bg-[var(--text-accent)]]="userLanguage() === 'ko'"
-                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'ko'"
-                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'ko'"
-                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'ko'"
-                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
-            <span>🇰🇷 Korean</span>
-            <span class="opacity-70 text-[10px]">Ulsan 🇰🇷</span>
-          </button>
-          <button (click)="updateLanguage('it')"
-                  [class.bg-[var(--text-accent)]]="userLanguage() === 'it'"
-                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'it'"
-                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'it'"
-                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'it'"
-                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
-            <span>🇮🇹 Italian</span>
-            <span class="opacity-70 text-[10px]">Bologna 🏛️</span>
-          </button>
-          <button (click)="updateLanguage('he')"
-                  [class.bg-[var(--text-accent)]]="userLanguage() === 'he'"
-                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'he'"
-                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'he'"
-                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'he'"
-                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
-            <span>🇮🇱 Hebrew</span>
-            <span class="opacity-70 text-[10px]">Ashkelon 🕊️</span>
-          </button>
-          <button (click)="updateLanguage('ms')"
-                  [class.bg-[var(--text-accent)]]="userLanguage() === 'ms'"
-                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'ms'"
-                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'ms'"
-                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'ms'"
-                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
-            <span>🇲🇾 Malay</span>
-            <span class="opacity-70 text-[10px]">Kota Kinabalu 🌴</span>
-          </button>
-          <button (click)="updateLanguage('sn')"
-                  [class.bg-[var(--text-accent)]]="userLanguage() === 'sn'"
-                  [class.text-[var(--primary-cta-text)]]="userLanguage() === 'sn'"
-                  [class.bg-[var(--button-bg)]]="userLanguage() !== 'sn'"
-                  [class.hover:bg-(--button-bg-hover)]="userLanguage() !== 'sn'"
-                  class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
-            <span>🇿🇼 Shona</span>
-            <span class="opacity-70 text-[10px]">Mutare 🇿🇼</span>
-          </button>
+
+        <!-- Sister Cities Section -->
+        <div class="mb-4">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-(--text-highlight) block mb-2">Portland, Oregon Official Sister Cities 🌹</span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+            @for (lang of sisterCityLanguages; track lang.code) {
+              <button (click)="updateLanguage(lang.code)"
+                      [class.bg-(--text-accent)]="userLanguage() === lang.code"
+                      [class.text-(--primary-cta-text)]="userLanguage() === lang.code"
+                      [class.bg-(--button-bg)]="userLanguage() !== lang.code"
+                      [class.hover:bg-(--button-bg-hover)]="userLanguage() !== lang.code"
+                      class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
+                <span class="flex items-center gap-2">
+                  <span class="text-base">{{ lang.flag }}</span>
+                  <span>{{ lang.nativeName }}</span>
+                </span>
+                <span class="opacity-75 text-[10px]">{{ lang.cityContext }}</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Global Languages Section -->
+        <div class="pt-3 border-t border-(--border-color)/50">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-(--text-color-muted) block mb-2">Global Languages & Regions 🌐</span>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+            @for (lang of globalLanguages; track lang.code) {
+              <button (click)="updateLanguage(lang.code)"
+                      [class.bg-(--text-accent)]="userLanguage() === lang.code"
+                      [class.text-(--primary-cta-text)]="userLanguage() === lang.code"
+                      [class.bg-(--button-bg)]="userLanguage() !== lang.code"
+                      [class.hover:bg-(--button-bg-hover)]="userLanguage() !== lang.code"
+                      class="text-xs font-semibold p-3 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex items-center justify-between cursor-pointer">
+                <span class="flex items-center gap-2">
+                  <span class="text-base">{{ lang.flag }}</span>
+                  <span>{{ lang.nativeName }}</span>
+                </span>
+                <span class="opacity-75 text-[10px]">{{ lang.cityContext }}</span>
+              </button>
+            }
+          </div>
         </div>
       </div>
 
       <!-- Gemini API Key Settings -->
-      <div class="bg-(--card-bg) p-6 rounded-2xl border border-[var(--border-color)]">
+      <div class="bg-(--card-bg) p-6 rounded-2xl border border-(--border-color)">
         <h3 class="text-(--text-accent) flex items-center gap-2 mb-2">
           <app-icon name="key" [size]="20"></app-icon>
           Custom Gemini API Key
@@ -447,22 +454,25 @@ function setStoredModel(modelName: string): void {
         <app-lojong-cleansing></app-lojong-cleansing>
       </div>
 
-      <div class="text-center pt-8 border-t border-[var(--border-color)]">
-        <button (click)="back.emit()" class="bg-(--primary-cta-bg) text-(--primary-cta-text) font-bold py-3 px-8 min-h-[48px] rounded-lg shadow-lg hover:bg-(--primary-cta-hover-bg) transition-all flex items-center justify-center gap-2 mx-auto focus:outline-none focus:ring-2 focus:ring-(--ring-color) hover:scale-105 active:scale-95 mb-6">
+      <div class="text-center pt-8 border-t border-(--border-color)">
+        <button (click)="back.emit()" class="bg-(--primary-cta-bg) text-(--primary-cta-text) font-bold py-3 px-8 min-h-12 rounded-lg shadow-lg hover:bg-(--primary-cta-hover-bg) transition-all flex items-center justify-center gap-2 mx-auto focus:outline-none focus:ring-2 focus:ring-(--ring-color) hover:scale-105 active:scale-95 mb-6 cursor-pointer">
           <app-icon name="sparkles" [size]="20"></app-icon>
           Let's Get Started
         </button>
 
         <div class="text-xs text-(--text-color-muted) flex flex-wrap justify-center gap-x-4 gap-y-1 opacity-80 pt-4 border-t border-(--border-color) max-w-sm mx-auto">
           <a href="/terms" target="_blank" class="hover:text-(--text-accent) transition-colors">Terms & Conditions</a>
-          <span class="text-[var(--border-color)]">•</span>
+          <span class="text-(--border-color)">•</span>
           <a href="/privacy" target="_blank" class="hover:text-(--text-accent) transition-colors">Privacy Policy</a>
         </div>
       </div>
     </section>
   `
 })
-export class HelpComponent {
+export class HelpComponent implements OnInit {
+  public translationService = inject(TranslationService);
+  private geminiService = inject(GeminiService);
+
   appMode = input.required<'creative' | 'care'>();
   logoPath = input.required<string>();
   back = output<void>();
@@ -472,8 +482,33 @@ export class HelpComponent {
 
   userApiKey = signal(getStoredApiKey());
   userModel = signal(getStoredModel());
-  userLanguage = signal(getStoredLanguage());
+  userLanguage = signal(this.translationService.currentLang());
+  userTemperature = signal(getStoredTemperature());
+  userThinkingBudget = signal(getStoredThinkingBudget());
+
+  chromeAiAvailable = signal(false);
+  ollamaAvailable = signal(false);
+  ollamaModels = signal<string[]>([]);
   
+  // Categorized languages
+  sisterCityLanguages = this.translationService.supportedLanguages.filter(l => l.isSisterCity || l.code === 'en');
+  globalLanguages = this.translationService.supportedLanguages.filter(l => !l.isSisterCity && l.code !== 'en');
+
+  async ngOnInit() {
+    try {
+      const caps = await this.geminiService.checkOnDeviceCapabilities();
+      this.chromeAiAvailable.set(caps.chromeAiAvailable);
+      this.ollamaAvailable.set(caps.ollamaAvailable);
+      this.ollamaModels.set(caps.ollamaModels);
+    } catch {
+      // Ignore capability check failure
+    }
+  }
+
+  t(key: string): string {
+    return this.translationService.t(key);
+  }
+
   updateApiKey(val: string) {
     const trimmed = val.trim();
     this.userApiKey.set(trimmed);
@@ -491,15 +526,16 @@ export class HelpComponent {
 
   updateLanguage(val: string) {
     this.userLanguage.set(val);
-    setStoredLanguage(val);
+    this.translationService.setLanguage(val);
   }
-}
 
-function getStoredLanguage(): string {
-  return localStorage.getItem('spark_lang_val') || localStorage.getItem('user_target_language') || 'en';
-}
+  updateTemperature(val: number) {
+    this.userTemperature.set(val);
+    setStoredTemperature(val);
+  }
 
-function setStoredLanguage(val: string): void {
-  localStorage.setItem('spark_lang_val', val);
-  localStorage.setItem('user_target_language', val);
+  updateThinkingBudget(val: number) {
+    this.userThinkingBudget.set(val);
+    setStoredThinkingBudget(val);
+  }
 }

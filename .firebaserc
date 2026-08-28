@@ -1,5 +1,7 @@
 {
-  "projects": {},
+  "projects": {
+    "default": "insightspark-82c75"
+  },
   "targets": {},
   "etags": {}
 }

@@ -1,28 +1,20 @@
 import { Component, inject, signal, computed, OnDestroy, effect } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
-
-
 import { FormsModule } from '@angular/forms';
 import { SwUpdate, VersionReadyEvent, VersionEvent } from '@angular/service-worker';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { GeminiService } from './services/gemini.service';
 import { StorageService, Theme } from './services/storage.service';
+import { TranslationService, SUPPORTED_LANGUAGES_LIST, LanguageInfo } from './services/translation.service';
 import { PocketgullIntegrationService } from './services/pocketgull-integration.service';
-import { CreativeStrategy, InsightItem, InsightResult, SavedInsight, STRATEGIES, CarePlan, SavedCarePlan, StructuredProblem, CreativePlan, SavedCreativePlan } from './models/creative-types';
+import { CreativeStrategy, InsightItem, InsightResult, SavedInsight, STRATEGIES, CarePlan, SavedCarePlan, StructuredProblem, CreativePlan, SavedCreativePlan, CareRole } from './models/creative-types';
 import { AgenticResult, AgenticPhase, AGENTIC_PHASES } from './models/agent-types';
 import { IconComponent } from './components/ui/icon.component';
 import { HelpComponent } from './components/ui/help.component';
 import { GraphViewComponent } from './components/ui/graph-view.component';
-import { VitalsService } from './services/vitals.service';
 import { LojongCleansingComponent } from './components/ui/lojong-cleansing.component';
-import { VitalsTrendGraphComponent } from './components/ui/vitals-trend-graph.component';
-
-interface CareRole {
-  name: string;
-  gist: string;
-  icon: string;
-}
+import { SpeechService } from './services/speech.service';
 
 function getStoredApiKey(): string {
   let value = localStorage.getItem('spark_cfg_val');
@@ -109,23 +101,66 @@ const CARE_ROLES: CareRole[] = [
     icon: 'users',
     gist: 'Speak as a trusted best friend who knows when to be honest and when to just listen. Frame insights without clinical distance — use plain, real language. Think about what this person actually needs to hear, not just what\'s medically correct. Lead with empathy, meet them where they are, and make every suggestion feel like it comes from genuine care.' 
   },
+  { 
+    name: 'Positive Psychologist', 
+    icon: 'sparkles',
+    gist: 'Ground your perspective in Martin Seligman\'s UPenn Positive Psychology Center and PERMA+H framework. Focus on activating VIA character strengths (e.g. curiosity, zest, perseverance, kindness), cultivating positive emotion, discovering engagement and flow, deepening social relationships, instilling purpose and meaning, celebrating micro-masteries, and supporting physical vitality. Frame every insight as an asset-based catalyst rather than deficit remediation, using Learned Optimism (ABCDE reframing) to build enduring agency, resilience, and hope.' 
+  },
+  { 
+    name: 'Daughter', 
+    icon: 'smile', 
+    gist: 'Adopt the perspective of a loving daughter who brings spontaneous joy, artistic expression, tech fluency, and gentle wonder. Suggest creative co-activities, music, playfulness, and shared laughter that brighten daily routines and strengthen emotional bonds.' 
+  },
+  { 
+    name: 'Mother', 
+    icon: 'heart', 
+    gist: 'Adopt the perspective of a devoted mother who provides emotional grounding, nurturing care, and thoughtful day-to-day pacing. Focus on reducing cognitive overwhelm, creating comforting home spaces, and balancing health routines with compassion and sustainable self-care.' 
+  },
+  { 
+    name: 'Grandmother', 
+    icon: 'bookmark', 
+    gist: 'Adopt the perspective of a beloved grandmother and family matriarch with deep lived wisdom. Frame insights with warmth, family traditions, heritage stories, sensory comfort, and preserving dignity and grace across the seasons of life.' 
+  },
+  { 
+    name: 'Son', 
+    icon: 'zap', 
+    gist: 'Adopt the perspective of an energetic, caring son who brings active companionship, practical optimism, and hands-on help. Suggest engaging movement, playful challenges, and supportive check-ins that encourage motivation and physical vitality.' 
+  },
+  { 
+    name: 'Father', 
+    icon: 'shield-check', 
+    gist: 'Adopt the perspective of a steadfast father who offers dependable support, safe physical assistance, and practical problem-solving. Focus on building confidence, steady pacing, and providing reassuring, calm guidance through life challenges.' 
+  },
+  { 
+    name: 'Grandfather', 
+    icon: 'home', 
+    gist: 'Adopt the perspective of a wise grandfather and elder patriarch. Frame insights through patience, storytelling, craftsmanship or hands-on hobbies, and enduring values, offering perspective that calms anxiety and celebrates steady resilience.' 
+  },
+  { 
+    name: 'Kinship Coordinator', 
+    icon: 'users', 
+    gist: 'Adopt the role of an intergenerational kinship coordinator. Harmonize the care dynamics between children, parents, and grandparents into collaborative, shared routines where every generation feels valued, supported, and connected in a unified circle of care.' 
+  },
 ];
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconComponent, HelpComponent, GraphViewComponent, LojongCleansingComponent, VitalsTrendGraphComponent],
+  imports: [CommonModule, FormsModule, IconComponent, HelpComponent, GraphViewComponent, LojongCleansingComponent],
   templateUrl: './app.component.html',
 })
 export class AppComponent implements OnDestroy {
   private geminiService = inject(GeminiService);
-  // FIX: Explicitly type `location` to avoid type inference issues with the global `Location` type.
   private location: Location = inject(Location);
-  // FIX: Explicitly type `swUpdate` as `SwUpdate | null` because it's injected optionally.
   private swUpdate: SwUpdate | null = inject(SwUpdate, { optional: true });
   public storageService = inject(StorageService);
-  private vitalsService = inject(VitalsService);
+  public translationService = inject(TranslationService);
   public pocketgullService = inject(PocketgullIntegrationService);
+  public speechService = inject(SpeechService);
+
+  t(key: string): string {
+    return this.translationService.t(key);
+  }
 
   // View State
   currentView = signal<'generator' | 'saved' | 'help'>('generator');
@@ -138,19 +173,48 @@ export class AppComponent implements OnDestroy {
   userApiKey = signal<string>(getStoredApiKey());
   showKeyOverlay = computed(() => !this.userApiKey());
 
+  // On-Device AI Availability State
+  chromeAiAvailable = signal<boolean>(false);
+  ollamaAvailable = signal<boolean>(false);
+  ollamaModels = signal<string[]>([]);
+  onDeviceChecked = signal<boolean>(false);
+
   // ORCID Researcher Credentials
   orcidId = signal<string>(localStorage.getItem('user_orcid_id') || '');
   orcidName = signal<string>(localStorage.getItem('user_orcid_name') || '');
   orcidError = signal<string | null>(null);
   isOrcidConnecting = signal<boolean>(false);
 
+  // Care Roles State (combines built-in CARE_ROLES + user-defined custom roles)
+  careRoles = computed<CareRole[]>(() => [...CARE_ROLES, ...this.storageService.customRoles()]);
+  activeCareRoles = signal<Set<string>>(new Set());
 
+  // Custom Persona / Role Builder State
+  showCustomRoleModal = signal(false);
+  customRoleName = signal('');
+  customRoleGist = signal('');
+  customRoleIcon = signal('user-check');
+  customRoleCategory = signal<'clinical' | 'support' | 'creative'>('clinical');
+
+  // Translation State
+  showTranslateModal = signal(false);
+  translatingCardId = signal<string | null>(null);
+  isTranslatingPlan = signal(false);
+  translateTarget = signal<{
+    type: 'insight' | 'care-plan' | 'creative-plan';
+    item?: InsightItem;
+    plan?: CarePlan | CreativePlan;
+    problem?: string;
+  } | null>(null);
+  supportedLanguages = SUPPORTED_LANGUAGES_LIST;
 
   // Generator State
   problemInput = signal('');
   gistInput = signal('');
   uploadedImage = signal<{ mimeType: string; data: string; preview: string } | null>(null);
   availableStrategies = signal<CreativeStrategy[]>(STRATEGIES);
+  provocationStrategies = computed(() => this.availableStrategies().filter(s => s.category !== 'anchor'));
+  anchorStrategies = computed(() => this.availableStrategies().filter(s => s.category === 'anchor'));
   selectedStrategyIds = signal<Set<string>>(new Set());
   copiedId = signal<string | null>(null);
 
@@ -216,8 +280,6 @@ export class AppComponent implements OnDestroy {
   carePlan = signal<CarePlan | null>(null);
   isGeneratingCarePlan = signal(false);
   isCarePlanCopied = signal(false);
-  careRoles = signal<CareRole[]>(CARE_ROLES);
-  activeCareRoles = signal<Set<string>>(new Set());
 
   // Creative Action Plan State
   creativePlan = signal<CreativePlan | null>(null);
@@ -305,7 +367,7 @@ export class AppComponent implements OnDestroy {
       this.geminiService.simulatedFailureBehavior = this.chaosBehavior();
     });
 
-
+    this.initOnDeviceDetection();
   }
 
 
@@ -334,6 +396,127 @@ export class AppComponent implements OnDestroy {
     localStorage.removeItem('user_orcid_name');
     this.orcidId.set('');
     this.orcidName.set('');
+  }
+
+  exportDpoDataset() {
+    const items = this.storageService.savedItems();
+    if (!items || items.length === 0) return;
+    const jsonlContent = this.geminiService.exportDpoDataset(
+      items, 
+      this.orcidId() || undefined, 
+      this.orcidName() || undefined
+    );
+    const blob = new Blob([jsonlContent], { type: 'application/x-jsonlines;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `pivot_pulse_dpo_preferences_${new Date().toISOString().slice(0, 10)}.jsonl`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  speakInsight(text: string, id: string) {
+    const lang = this.translationService.currentLang();
+    this.speechService.speak(text, id, lang === 'en' ? 'en-US' : lang);
+  }
+
+  toggleVoiceInput() {
+    if (this.speechService.isListening()) {
+      this.speechService.stopListening();
+    } else {
+      const lang = this.translationService.currentLang();
+      this.speechService.startListening(
+        (transcript: string) => {
+          const current = this.problemInput();
+          this.problemInput.set(current ? `${current} ${transcript}` : transcript);
+        },
+        (err: string) => {
+          console.warn('Voice input notice:', err);
+        },
+        lang === 'en' ? 'en-US' : lang
+      );
+    }
+  }
+
+  printKinshipCirclePlan(plan: CarePlan | CreativePlan, problemTitle: string) {
+    const isCare = this.appMode() === 'care';
+    const printWindow = window.open('', '_blank', 'width=800,height=900');
+    if (!printWindow) return;
+
+    const sectionsHtml = isCare 
+      ? this.getCarePlanSections(plan as CarePlan).map(s => `
+          <div style="margin-bottom: 16px; padding: 14px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff;">
+            <h3 style="margin: 0 0 6px 0; color: #2d3748; font-size: 15px; font-weight: bold;">${s.title}</h3>
+            <ul style="margin: 0; padding-left: 18px; color: #4a5568; font-size: 13px; line-height: 1.6;">
+              ${s.items.map(item => `<li>${item}</li>`).join('')}
+            </ul>
+          </div>
+        `).join('')
+      : this.getCreativePlanSections(plan as CreativePlan).map(s => `
+          <div style="margin-bottom: 16px; padding: 14px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff;">
+            <h3 style="margin: 0 0 6px 0; color: #2d3748; font-size: 15px; font-weight: bold;">${s.title}</h3>
+            <ul style="margin: 0; padding-left: 18px; color: #4a5568; font-size: 13px; line-height: 1.6;">
+              ${s.items.map(item => `<li>${item}</li>`).join('')}
+            </ul>
+          </div>
+        `).join('');
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Family Kinship Circle Plan - ${problemTitle}</title>
+          <style>
+            @media print { body { padding: 0; } }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 25px; background: #fdfdfd; color: #1a202c; }
+            .header { text-align: center; border-bottom: 2px dashed #cbd5e0; padding-bottom: 15px; margin-bottom: 20px; }
+            .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; background: #fefcbf; color: #744210; font-size: 12px; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; }
+            .triad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+            .triad-card { border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; text-align: center; background: #f7fafc; }
+            .triad-card h4 { margin: 0 0 4px 0; font-size: 13px; color: #2b6cb0; font-weight: bold; }
+            .triad-card p { margin: 0; font-size: 11px; color: #718096; }
+            .footer { margin-top: 25px; text-align: center; font-size: 11px; color: #a0aec0; border-top: 1px solid #e2e8f0; padding-top: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="badge">🌹 Intergenerational Family Circle Plan</div>
+            <h1 style="margin: 4px 0 6px 0; font-size: 22px;">${problemTitle}</h1>
+            <p style="margin: 0; color: #718096; font-size: 12px;">Generated by Pivot & Pulse • Kinship Harmony</p>
+          </div>
+          
+          <div class="triad-grid">
+            <div class="triad-card">
+              <h4>👧👦 Youth & Kids</h4>
+              <p>Play, morning chart, music & discovery</p>
+            </div>
+            <div class="triad-card">
+              <h4>👩👨 Parents</h4>
+              <p>Pacing, coordination & 45m respite</p>
+            </div>
+            <div class="triad-card">
+              <h4>👵👴 Grandparents</h4>
+              <p>Heritage stories, garden rituals & dignity</p>
+            </div>
+          </div>
+
+          ${sectionsHtml}
+
+          <div class="footer">
+            <p>Pin to refrigerator or family corkboard • Zero-data retained on servers • Open sharing under CC BY-SA 4.0</p>
+          </div>
+          <script>
+            window.onload = function() { window.print(); };
+          </script>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
   }
 
   async handleOrcidCallback(code: string) {
@@ -379,18 +562,49 @@ export class AppComponent implements OnDestroy {
     this.userApiKey.set('');
   }
 
+  async initOnDeviceDetection() {
+    try {
+      const caps = await this.geminiService.checkOnDeviceCapabilities();
+      this.chromeAiAvailable.set(caps.chromeAiAvailable);
+      this.ollamaAvailable.set(caps.ollamaAvailable);
+      this.ollamaModels.set(caps.ollamaModels);
+      this.onDeviceChecked.set(true);
+    } catch {
+      this.onDeviceChecked.set(true);
+    }
+  }
+
+  useChromeOnDeviceAi() {
+    localStorage.setItem('spark_model_val', 'window.ai');
+    setStoredApiKey('chrome-on-device-builtin');
+    this.userApiKey.set('chrome-on-device-builtin');
+    this.activateDemoPresetIfEmpty();
+  }
+
+  useLocalOllama(model = 'gemma2') {
+    const chosenModel = this.ollamaModels().length > 0 ? this.ollamaModels()[0] : model;
+    localStorage.setItem('spark_model_val', `ollama:${chosenModel}`);
+    setStoredApiKey('local-ollama-active');
+    this.userApiKey.set('local-ollama-active');
+    this.activateDemoPresetIfEmpty();
+  }
+
+  private activateDemoPresetIfEmpty() {
+    if (!this.problemInput()) {
+      if (this.appMode() === 'creative') {
+        this.problemInput.set('Designing a self-sustaining municipal park that doubles as a flood barrier and a local agricultural hub.');
+        this.selectedStrategyIds.set(new Set(['butterfly', 'combinatorial', 'kinship-triad']));
+      } else {
+        this.problemInput.set('Improve daily movement and emotional connection for a 75-year-old grandmother recovering from a hip fracture who loves gardening.');
+        this.selectedStrategyIds.set(new Set(['what-if', 'butterfly', 'kinship-triad']));
+      }
+    }
+  }
+
   activateDemoMode() {
     setStoredApiKey('demo-key-active');
     this.userApiKey.set('demo-key-active');
-    
-    // Set presets based on current mode
-    if (this.appMode() === 'creative') {
-      this.problemInput.set('Designing a self-sustaining municipal park that doubles as a flood barrier and a local agricultural hub.');
-      this.selectedStrategyIds.set(new Set(['butterfly', 'combinatorial', 'first-principles']));
-    } else {
-      this.problemInput.set('Improve daily movement and emotional connection for a 75-year-old grandmother recovering from a hip fracture who loves gardening.');
-      this.selectedStrategyIds.set(new Set(['what-if', 'butterfly', 'first-principles']));
-    }
+    this.activateDemoPresetIfEmpty();
   }
 
   ngOnDestroy() {
@@ -416,29 +630,36 @@ export class AppComponent implements OnDestroy {
   }
   
   // Computed Signals
+  charCount = computed(() => this.problemInput().length);
+  maxCharLimit = 2000;
+
   piiWarning = computed(() => {
     const rawText = this.problemInput();
     if (!rawText) return null;
     const text = rawText.length > 2000 ? rawText.slice(0, 2000) : rawText;
 
-    const emailRegex = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}\b/g;
-    const phoneRegex = /(?:\+\d{1,3}[-.\s])?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/;
-    const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/;
+    const emailRegex = /(?:\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}\b|\b[a-zA-Z0-9._%+-]+\s*(?:\[at\]|\(at\)|@)\s*[a-zA-Z0-9.-]+\s*(?:\[dot\]|\(dot\)|\.)\s*[a-zA-Z]{2,10}\b)/gi;
+    const phoneRegex = /(?:\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/;
+    const ssnRegex = /\b\d{3}[-\s.]\d{2}[-\s.]\d{4}\b/;
     const ipRegex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
+    const dobRegex = /\b(?:DOB|Date of Birth|Birthdate)\s*[:=]\s*\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}\b/i;
+    const mrnRegex = /\b(?:MRN|Medical Record Number|Patient ID)\s*[:=]\s*[A-Z0-9-]+\b/i;
 
     const found: string[] = [];
     if (emailRegex.test(text)) found.push('email address');
     if (phoneRegex.test(text)) found.push('phone number');
     if (ssnRegex.test(text)) found.push('social security number');
     if (ipRegex.test(text)) found.push('IP address');
+    if (dobRegex.test(text)) found.push('date of birth');
+    if (mrnRegex.test(text)) found.push('medical record number');
 
     if (found.length > 0) {
-      return `Potential ${found.join(' and ')} detected. Under HIPAA guidelines, please de-identify your query before generating insights.`;
+      return `Potential ${found.join(', ')} detected. Under HIPAA & privacy guidelines, please de-identify your text before submitting.`;
     }
     return null;
   });
 
-  isGenerateDisabled = computed(() => this.problemInput().trim().length < 5 || this.isLoading() || !!this.piiWarning());
+  isGenerateDisabled = computed(() => this.problemInput().trim().length < 5 || this.isLoading() || !!this.piiWarning() || this.charCount() > this.maxCharLimit);
   selectedStrategiesCount = computed(() => this.selectedStrategyIds().size);
   
   problemInputAriaLabel = computed(() => {
@@ -762,7 +983,6 @@ export class AppComponent implements OnDestroy {
     this.isDeepAnalysis.set(false);
     this.isDebateCollapsed.set(true);
     this.geminiService.clearCache();
-    this.vitalsService.clearHistory();
   }
   
   editQuery = () => { 
@@ -987,6 +1207,211 @@ export class AppComponent implements OnDestroy {
       : content;
     return `${prefix}: "${truncatedContent}"`;
   }
+  // --- Custom Persona Builder Actions ---
+  openCustomRoleModal() {
+    this.customRoleName.set('');
+    this.customRoleGist.set('');
+    this.customRoleIcon.set('user-check');
+    this.customRoleCategory.set('clinical');
+    this.showCustomRoleModal.set(true);
+  }
+
+  closeCustomRoleModal() {
+    this.showCustomRoleModal.set(false);
+  }
+
+  saveCustomRole() {
+    const name = this.customRoleName().trim();
+    const gist = this.customRoleGist().trim();
+    if (!name || !gist) return;
+
+    const newRole: CareRole = {
+      name,
+      gist,
+      icon: this.customRoleIcon() || 'user-check',
+      isCustom: true,
+      category: this.customRoleCategory()
+    };
+    this.storageService.saveCustomRole(newRole);
+    this.closeCustomRoleModal();
+    this.setCareRole(newRole);
+  }
+
+  deleteCustomRole(role: CareRole, event?: Event) {
+    if (event) event.stopPropagation();
+    this.storageService.removeCustomRole(role.name);
+    const active = new Set(this.activeCareRoles());
+    if (active.has(role.name)) {
+      active.delete(role.name);
+      this.activeCareRoles.set(active);
+    }
+  }
+
+  // --- Translation Actions ---
+  openTranslateModal(type: 'insight' | 'care-plan' | 'creative-plan', item?: InsightItem, plan?: CarePlan | CreativePlan, problem?: string) {
+    this.translateTarget.set({ type, item, plan, problem });
+    this.showTranslateModal.set(true);
+  }
+
+  closeTranslateModal() {
+    this.showTranslateModal.set(false);
+    this.translateTarget.set(null);
+  }
+
+  async executeTranslation(targetLang: string) {
+    const target = this.translateTarget();
+    if (!target) return;
+
+    this.showTranslateModal.set(false);
+
+    if (target.type === 'insight' && target.item) {
+      this.translatingCardId.set(target.item.text);
+      try {
+        const res = await this.geminiService.translateContent(target.item.text, targetLang, 'insight');
+        if (res.translatedText) {
+          target.item.text = res.translatedText;
+        }
+      } catch (err) {
+        console.error('Translation error:', err);
+      } finally {
+        this.translatingCardId.set(null);
+      }
+    } else if (target.type === 'care-plan' && target.plan) {
+      this.isTranslatingPlan.set(true);
+      try {
+        const res = await this.geminiService.translateContent(target.plan as unknown as Record<string, unknown>, targetLang, 'care-plan');
+        if (res.translated) {
+          this.carePlan.set(res.translated as unknown as CarePlan);
+        }
+      } catch (err) {
+        console.error('Translation error:', err);
+      } finally {
+        this.isTranslatingPlan.set(false);
+      }
+    } else if (target.type === 'creative-plan' && target.plan) {
+      this.isTranslatingPlan.set(true);
+      try {
+        const res = await this.geminiService.translateContent(target.plan as unknown as Record<string, unknown>, targetLang, 'creative-plan');
+        if (res.translated) {
+          this.creativePlan.set(res.translated as unknown as CreativePlan);
+        }
+      } catch (err) {
+        console.error('Translation error:', err);
+      } finally {
+        this.isTranslatingPlan.set(false);
+      }
+    }
+  }
+
+  // --- FHIR & Document Export ---
+  downloadCarePlanFHIR(plan?: CarePlan, problem?: string) {
+    const p = plan || this.carePlan();
+    const prob = problem || this.problemInput();
+    if (!p) return;
+
+    const fhirBundle = {
+      resourceType: 'Bundle',
+      id: `careplan-bundle-${Date.now()}`,
+      type: 'collection',
+      timestamp: new Date().toISOString(),
+      entry: [
+        {
+          fullUrl: 'urn:uuid:condition-1',
+          resource: {
+            resourceType: 'Condition',
+            id: 'condition-1',
+            clinicalStatus: {
+              coding: [{ system: 'http://terminology.hl7.org/CodeSystem/condition-clinical', code: 'active', display: 'Active' }]
+            },
+            verificationStatus: {
+              coding: [{ system: 'http://terminology.hl7.org/CodeSystem/condition-ver-status', code: 'confirmed', display: 'Confirmed' }]
+            },
+            category: [{
+              coding: [{ system: 'http://terminology.hl7.org/CodeSystem/condition-category', code: 'health-concern', display: 'Health Concern' }]
+            }],
+            code: {
+              text: this.structuredProblem()?.condition || prob
+            },
+            subject: {
+              display: 'Anonymous Person (De-identified)'
+            }
+          }
+        },
+        {
+          fullUrl: 'urn:uuid:goal-1',
+          resource: {
+            resourceType: 'Goal',
+            id: 'goal-1',
+            lifecycleStatus: 'active',
+            description: {
+              text: p.personGoal || this.structuredProblem()?.goal || prob
+            },
+            subject: {
+              display: 'Anonymous Person (De-identified)'
+            }
+          }
+        },
+        {
+          fullUrl: 'urn:uuid:careplan-1',
+          resource: {
+            resourceType: 'CarePlan',
+            id: 'careplan-1',
+            status: 'active',
+            intent: 'plan',
+            title: this.structuredProblem()?.title || 'Person-Centered Care Plan',
+            description: 'Care strategy synthesized via Pivot & Pulse lateral thinking workbench.',
+            subject: {
+              display: 'Anonymous Person (De-identified)'
+            },
+            author: this.orcidId() ? {
+              display: `${this.orcidName()} (ORCID: https://orcid.org/${this.orcidId()})`
+            } : undefined,
+            addresses: [{ reference: 'urn:uuid:condition-1' }],
+            goal: [{ reference: 'urn:uuid:goal-1' }],
+            activity: p.keyInterventions.map((intervention) => ({
+              detail: {
+                kind: 'ServiceRequest',
+                status: 'not-started',
+                description: intervention,
+                doNotPerform: false
+              }
+            })),
+            note: [
+              ...p.monitoringPlan.map(m => ({ text: `[Monitoring]: ${m}` })),
+              ...p.guidanceAndEducation.map(g => ({ text: `[Education]: ${g}` })),
+              ...p.positiveAchievements.map(a => ({ text: `[Milestone/Achievement]: ${a}` })),
+              ...p.recommendations.map(r => ({ text: `[Recommendation]: ${r}` }))
+            ]
+          }
+        }
+      ]
+    };
+
+    const jsonStr = JSON.stringify(fhirBundle, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `careplan-${Date.now()}.fhir.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  downloadPlanMarkdown(type: 'care-plan' | 'creative-plan', plan: CarePlan | CreativePlan, problem?: string) {
+    const prob = problem || this.problemInput();
+    const content = type === 'care-plan'
+      ? this.formatCarePlanForClipboard(plan as CarePlan, prob)
+      : this.formatCreativePlanForClipboard(plan as CreativePlan, prob);
+
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${type}-${Date.now()}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   exportPlanToPocketgull(type: 'care-plan' | 'creative-plan', plan: CarePlan | CreativePlan) {
     this.pocketgullService.exportData(
       type === 'care-plan' ? 'EXPORT_CARE_PLAN' : 'EXPORT_CREATIVE_PLAN', 

@@ -1,6 +1,5 @@
 {
   "hosting": {
-    "site": "insightspark-82c75",
     "public": "dist",
     "ignore": [
       "firebase.json",

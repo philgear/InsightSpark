@@ -1,6 +1,6 @@
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert';
-import { GeminiService, ApiRetryError } from '../src/services/gemini.service.js';
+import { GeminiService, ApiRetryError } from '../src/services/gemini.service.ts';
 
 // Setup environment and mocks
 const originalFetch = globalThis.fetch;

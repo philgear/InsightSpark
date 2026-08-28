@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software in clinical or academic research, please cite it as below."
+authors:
+  - family-names: "Gear"
+    given-names: "Phil"
+title: "Pivot & Pulse (InsightSpark): A Lateral Thinking Workbench and Clinical Care Strategist"
+version: 1.0.0
+date-released: 2026-08-27
+url: "https://github.com/philgear/InsightSpark"
+repository-code: "https://github.com/philgear/InsightSpark"
+license: MIT
+keywords:
+  - lateral-thinking
+  - clinical-care-planning
+  - google-gemini
+  - d3-visualization
+  - angular
+  - hipaa-compliance

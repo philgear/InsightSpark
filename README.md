@@ -10,9 +10,12 @@
 [![Express](https://img.shields.io/badge/Express-v4.19.2-000000?logo=express&logoColor=white)](https://expressjs.com/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-latest-38BDF8?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![D3.js](https://img.shields.io/badge/D3.js-v7.9.0-F9A03F?logo=d3.js&logoColor=white)](https://d3js.org/)
-[![Gemini](https://img.shields.io/badge/Google_Gemini-v1.35.0-8E75C2?logo=google-gemini&logoColor=white)](https://deepmind.google/technologies/gemini/)
+[![Google Gemini](https://img.shields.io/badge/Google_Gemini-v1.35.0-8E75C2?logo=google-gemini&logoColor=white)](https://deepmind.google/technologies/gemini/)
+[![Gemma](https://img.shields.io/badge/Gemma_2-On--Device_%26_Local-4285F4?logo=google&logoColor=white)](https://ai.google.dev/gemma)
+[![FHIR R4](https://img.shields.io/badge/HL7_FHIR-R4_Bundle-E11D48?logo=hl7&logoColor=white)](https://hl7.org/fhir/R4/)
+[![DPO JSONL](https://img.shields.io/badge/DPO_Export-HuggingFace_TRL-F59E0B)](https://huggingface.co/docs/trl)
 
-An interactive lateral thinking workbench and medical care planner. **Pivot & Pulse** pairs [Edward de Bono's](https://en.wikipedia.org/wiki/Edward_de_Bono) lateral thinking strategies with advanced Google Gemini streaming, real-time D3 force-directed visualizations, and compliance-first clinical assistants. Learn more about his legacy at [debono.com](https://www.debono.com).
+An interactive lateral thinking workbench, positive psychology companion, and intergenerational care planner. **Pivot & Pulse** synthesizes [Edward de Bono's](https://en.wikipedia.org/wiki/Edward_de_Bono) lateral thinking provocations with [Dr. Martin Seligman's](https://en.wikipedia.org/wiki/Martin_Seligman) PERMA+H framework (as taught in the UPenn [Foundations of Positive Psychology Specialization on Coursera](https://www.coursera.org/specializations/positivepsychology)), multi-generational family kinship dynamics, on-device Gemini Nano/Gemma intelligence, and HIPAA/COPPA-compliant clinical workflows.
 
 [View App in Google AI Studio](https://ai.studio/apps/3eeb2b40-7093-4e40-b5a5-e1d2fbb75de7)
 
@@ -23,19 +26,38 @@ An interactive lateral thinking workbench and medical care planner. **Pivot & Pu
 </div>
 
 ### 1. Dual-Mode Thinking Workspaces
-*   **🎨 Creative Mode:** Solve complex issues, break writer's block, or draft conceptual plans using classic lateral thinking techniques (Butterfly, Combinatorial, First Principles).
-*   **🏥 Care Mode:** Generate holistic, patient-centered care strategies by shifting perspective across roles (e.g., Bedside Nurse, Systems Theorist, Patient Advocate, Family Member, or Best Friend).
+*   **🎨 Creative Mode:** Break through writer's block, deconstruct systemic bottlenecks, or prototype municipal/product architectures using lateral thinking techniques.
+*   **🏥 Care Mode:** Design asset-based, person-centered health strategies anchored in positive psychology (PERMA+H), character strengths, and caregiver respite.
 
-### 2. Live Visualization & Real-Time SSE Streaming
-*   **D3 Force-Directed Diagrams:** Convert structured insights into interactive, responsive network maps. Inspect connections, highlight nodes, and navigate conceptual dependencies.
-*   **Instant Streaming:** Leverages Server-Sent Events (SSE) from the Node.js backend. The client parses incomplete JSON fragments in real time via `partial-json`, displaying insight cards as they generate.
+### 2. Multi-Engine Intelligence: Cloud, Local & On-Device
+*   **⚡ Chrome Built-in AI (Gemini Nano):** Runs 100% locally on the user's device via `window.ai` Prompt API with **zero network requests and zero API keys**.
+*   **🦙 Local Gemma (Ollama):** Seamless local LLM execution via `localhost:11434` for complete offline data privacy.
+*   **☁️ Google Gemini Cloud:** Advanced reasoning powered by Gemini 2.5 Pro, Flash, and Gemma 2 27B.
+*   **🚀 Interactive Demo Mode:** Immediate offline preview with simulated streaming insights.
 
-### 3. Patient Sovereignty & Security
-*   **HIPAA De-identification scanner:** A clientside PII/PHI regex analyzer warns you if you enter email addresses, phone numbers, SSNs, or IP addresses before submitting queries to Gemini.
-*   **Local Storage Sovereignty:** All saved insights, care plans, and settings reside in the user's local browser profile (`localStorage`) via Angular signals. The Express server is entirely stateless.
+### 3. Two-Tier Ideation: Provocations & Grounding Counterbalances
+To prevent ungrounded or frictionless brainstorming, strategies are organized into two distinct shelves:
+*   **🌟 Divergent Provocations:** *What If, Redefine Constraints, Butterfly Effect, Combinatorial Evolution, Opposite Day, Future Vision, Child's Play, Alien Perspective, Nature's Wisdom, Superpower, Eliminate & Simplify, Random Object, First Principles, Root Cause (5 Whys).*
+*   **⚖️ Grounding Counterbalances & Kinship Anchors:**
+    *   🛡️ **FMEA (Risk Analysis) / Safety Net:** Failure mode pre-mortems, consequence ranking, and mitigation guardrails.
+    *   🌿 **Critical Path Method / Milestone Map:** Non-negotiable sequence dependencies and milestone timelines.
+    *   ✨ **VIA Strengths & Optimism / PERMA+H:** Positive psychology signature strength amplification and Learned Optimism reframing.
+    *   🌹 **Intergenerational Kinship / Family Kinship & Legacy:** Multi-generational family circles (Kids, Parents, Grandparents) and caregiver respite.
 
-### 4. ORCID Researcher Integration
-*   Connect your secure **ORCID ID** to authenticate your clinical or academic credentials, automatically appending attribution metadata to your exported care and action plans.
+### 4. 🌹 Intergenerational Kinship & Living Room Collaboration
+*   **7 Kinship Personas:** *Daughter (joy/tech), Mother (grounding/pacing), Grandmother (heritage/dignity), Son (action/vitality), Father (protection/safety), Grandfather (craftsmanship/patience), and Kinship Coordinator (harmony).*
+*   **🎙️ Living Room Voice Input & TTS Narration:** Native Web Speech API voice dictation for couch discussions and gentle Text-to-Speech audio read-aloud for kids and grandparents.
+*   **🖨️ "Family Kinship Circle" Refrigerator Plan:** Formats a clean, printable single-page dashboard with dedicated zones for Youth, Parents, and Grandparents.
+
+### 5. 📊 Direct Preference Optimization (DPO) Dataset Export
+*   Export saved insights and care plans into standard Hugging Face/TRL `.jsonl` preference pairs ($\mathbf{y_w}$ Preferred vs $\mathbf{y_l}$ Penalized).
+*   Enforces asset-based, hopeful, and empowering language over pathologizing or deficit-based narratives.
+*   Includes ORCID researcher attribution in the metadata header for academic provenance.
+
+### 6. 🌐 Multilingual & Sister Cities Intelligence
+*   Native real-time translation across **19 target locales**, including all **9 Portland Sister Cities** (Sapporo, Guadalajara, Ulsan, Suzhou, Ashkelon, Bratislava, Mutare, Bologna, Kota Kinabalu) with localized cultural nuances.
+
+---
 
 <div align="center">
   <img width="800" alt="Architecture Overview" src="docs/divider-architecture.png" />
@@ -43,83 +65,89 @@ An interactive lateral thinking workbench and medical care planner. **Pivot & Pu
 
 ```mermaid
 graph TD
-    Client["Angular SPA Client <br> (LocalStorage, D3 Graph, UI)"]
-    Proxy["Express.js Proxy <br> (Helmet, Rate Limiter, Morgan)"]
-    Gemini["Gemini API Service"]
+    Client["Angular SPA Client<br>(Signals, D3 Graph, Web Speech TTS/Voice)"]
+    
+    subgraph "Execution Pathways"
+        Nano["Chrome Built-in AI<br>(Gemini Nano via window.ai)"]
+        Local["Local Gemma<br>(Ollama on localhost:11434)"]
+        Proxy["Express.js Stateless Proxy<br>(Helmet, SSE Stream, PII Sanitizer)"]
+        Cloud["Google Gemini Cloud<br>(2.5 Pro / Flash / Gemma 27B)"]
+    end
 
-    Client -->|"HTTP Requests (CORS, Rate Limited)"| Proxy
-    Proxy -->|"Streamed API Calls (SSL / SSE)"| Gemini
+    Client -->|"Zero-Network On-Device"| Nano
+    Client -->|"Localhost API"| Local
+    Client -->|"Stateless SSE Stream"| Proxy
+    Proxy -->|"Ephemeral RAM Only"| Cloud
 ```
 
+*   **Frontend ([src](./src)):** Built on Angular with signals for reactive state, D3.js for force-directed conceptual graphs, Web Speech API for voice/audio, and Tailwind CSS for glassmorphic design.
+*   **Backend ([server.js](./server.js)):** A lightweight Express middleware proxy managing input sanitization, security headers (Helmet), Ollama bridges, and streaming Gemini SSE feeds with zero disk retention.
 
-*   **Frontend ([src](./src)):** Built on Angular with signals for state management, D3.js for rendering force-directed graphs, and Tailwind CSS for styling.
-*   **Backend ([server.js](./server.js)):** A lightweight Express middleware proxy managing API validation, input sanitization, security headers (Helmet), and streaming Gemini SSE feeds.
+---
 
 <div align="center">
   <img width="800" alt="Quick Start" src="docs/divider-quick-start.png" />
 </div>
 
 ### Prerequisites
-Make sure you have [Node.js](https://nodejs.org/) installed.
+Make sure you have [Node.js](https://nodejs.org/) (v18+) installed.
 
 ### 1. Clone & Install Dependencies
 ```bash
 npm install
 ```
 
-### 2. Set Up Environment Variables
-Create a `.env.local` file in the root directory (or update the existing one):
+### 2. Set Up Environment Variables (Optional for Cloud)
+Create a `.env.local` file in the root directory:
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
 ```
+*(Note: If using Chrome Built-in AI or Local Ollama, no cloud API key is needed!)*
 
 ### 3. Run Locally
-
-To spin up the developer server, run both backend proxy and frontend:
+To spin up both backend proxy and frontend:
 
 *   **Start Backend API Proxy:**
     ```bash
     npm start
     ```
 *   **Start Angular Client:**
-    In a separate terminal window, run:
     ```bash
     npm run dev
     ```
+
+---
 
 <div align="center">
   <img width="800" alt="For Researchers & Clinicians" src="docs/divider-researchers.png" />
 </div>
 
-### 1. Methodological Transparency
-*   **Prompt Adaptation:** The system leverages custom system instructions to morph general-purpose LLM outputs into structured clinical/creative strategies.
-*   **Strategies Mapping:** You can find the exact definitions and mapping of de Bono's creative strategies and clinical care mode strategies in [creative-types.ts](./src/models/creative-types.ts).
+### 1. IRB, HIPAA & COPPA Compliance Checklist
+If you are submitting an Institutional Review Board (IRB) proposal or deploying in a care setting:
+*   **Zero-Data Retention Backend:** The server proxy in [server.js](./server.js) is 100% stateless. No databases, logs of user prompts, or health queries are stored on disk.
+*   **Client-Side Privacy Enforcement:** A PII scanner operates strictly inside the browser before any network dispatch, guarding against inadvertent PHI exposure.
+*   **COPPA Kinship Mesh:** Language models are instructed with family-safe, non-pathologizing tone, with zero minor tracking.
+*   **Local Sovereignty:** All saved items reside exclusively in the participant's local browser `localStorage`.
 
-### 2. IRB & Data Privacy Checklist
-If you are submitting an Institutional Review Board (IRB) proposal to use this tool in a clinical/academic pilot:
-*   **Zero-Data Retention Backend:** The server proxy in [server.js](./server.js) is stateless. No databases, logs of user queries, or API history are kept.
-*   **Client-Side Privacy Enforcement:** A PII scanner operates strictly inside the browser client before any payload is dispatched, preventing inadvertent PHI transmissions under HIPAA guidelines.
-*   **Local Sovereignty:** Generated plans are stored under the browser's sandboxed `localStorage` profile, giving participants absolute ownership over their data.
+### 2. Provenance & ORCID Integration
+To ensure academic provenance, this application integrates with the ORCID public OAuth 2.0 API. Connecting your researcher record signs exported care plans, action plans, and DPO `.jsonl` preference datasets with your verified ORCID iD.
 
-### 3. Provenance & ORCID Integration
-To ensure academic provenance, this application integrates with the ORCID public API. Connecting your researcher record:
-1. Validates your academic credentials via OAuth 2.0.
-2. Appends your name and ORCID URI to exported markdown/clipboard plans to sign and trace academic contributions.
-
-### 4. How to Cite
+### 3. How to Cite
 If you use Pivot & Pulse (InsightSpark) in your research, please cite it as:
 ```text
 Gear, P. (2026). Pivot & Pulse (InsightSpark): A Lateral Thinking Workbench and Clinical Care Strategist. GitHub Repository. https://github.com/philgear/InsightSpark
 ```
+
+---
 
 <div align="center">
   <img width="800" alt="License & Attribution" src="docs/divider-license.png" />
 </div>
 
 - Core system designed by **Phil Gear**.
-- AI services powered by **Google Gemini**.
-- Methodologies inspired by **[Edward de Bono's](https://en.wikipedia.org/wiki/Edward_de_Bono) Lateral Thinking** (CC BY-SA 4.0).
-- Courses resources available at [debono.com](https://www.debono.com).
+- AI services powered by **Google Gemini** & **Google Gemma**.
+- Lateral Thinking methodologies inspired by **[Edward de Bono](https://en.wikipedia.org/wiki/Edward_de_Bono)** (resources available at [debono.com](https://www.debono.com)).
+- Positive Psychology & PERMA+H framework inspired by **[Dr. Martin E.P. Seligman](https://en.wikipedia.org/wiki/Martin_Seligman)** and the UPenn Positive Psychology Center — explore Dr. Seligman's official Coursera specialization: **[Foundations of Positive Psychology Specialization by Dr. Martin Seligman on Coursera](https://www.coursera.org/specializations/positivepsychology)** (and Course 1: *[Positive Psychology: Martin E. P. Seligman’s Visionary Science](https://www.coursera.org/learn/positive-psychology-visionary-science)*).
 
 ---
 

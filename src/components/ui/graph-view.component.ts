@@ -38,32 +38,32 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
       <!-- Filter Chips & Legend Bar -->
       <div class="absolute top-4 left-4 flex flex-wrap items-center gap-2 z-20">
         <button (click)="setFilter('all')" 
-                [class.bg-[var(--text-accent)]]="activeFilter() === 'all'"
-                [class.text-[var(--primary-cta-text)]]="activeFilter() === 'all'"
-                [class.bg-[var(--card-bg)]]="activeFilter() !== 'all'"
+                [class.bg-(--text-accent)]="activeFilter() === 'all'"
+                [class.text-(--primary-cta-text)]="activeFilter() === 'all'"
+                [class.bg-(--card-bg)]="activeFilter() !== 'all'"
                 class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-(--border-color) shadow-md transition-all focus:outline-none">
           All Nodes ({{ totalNodeCount() }})
         </button>
         <button (click)="setFilter('problem')"
-                [class.bg-[var(--text-accent)]]="activeFilter() === 'problem'"
-                [class.text-[var(--primary-cta-text)]]="activeFilter() === 'problem'"
-                [class.bg-[var(--card-bg)]]="activeFilter() !== 'problem'"
+                [class.bg-(--text-accent)]="activeFilter() === 'problem'"
+                [class.text-(--primary-cta-text)]="activeFilter() === 'problem'"
+                [class.bg-(--card-bg)]="activeFilter() !== 'problem'"
                 class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-(--border-color) shadow-md transition-all focus:outline-none flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-(--text-accent)"></span>
           Problem Root
         </button>
         <button (click)="setFilter('strategy')"
-                [class.bg-[var(--text-accent)]]="activeFilter() === 'strategy'"
-                [class.text-[var(--primary-cta-text)]]="activeFilter() === 'strategy'"
-                [class.bg-[var(--card-bg)]]="activeFilter() !== 'strategy'"
+                [class.bg-(--text-accent)]="activeFilter() === 'strategy'"
+                [class.text-(--primary-cta-text)]="activeFilter() === 'strategy'"
+                [class.bg-(--card-bg)]="activeFilter() !== 'strategy'"
                 class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-(--border-color) shadow-md transition-all focus:outline-none flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
           Strategies
         </button>
         <button (click)="setFilter('insight')"
-                [class.bg-[var(--text-accent)]]="activeFilter() === 'insight'"
-                [class.text-[var(--primary-cta-text)]]="activeFilter() === 'insight'"
-                [class.bg-[var(--card-bg)]]="activeFilter() !== 'insight'"
+                [class.bg-(--text-accent)]="activeFilter() === 'insight'"
+                [class.text-(--primary-cta-text)]="activeFilter() === 'insight'"
+                [class.bg-(--card-bg)]="activeFilter() !== 'insight'"
                 class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-(--border-color) shadow-md transition-all focus:outline-none flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-amber-400"></span>
           Insights

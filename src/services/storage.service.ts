@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { SavedItem } from '../models/creative-types';
+import { SavedItem, CareRole } from '../models/creative-types';
 
 export type Theme = 'light' | 'dark';
 
@@ -9,12 +9,15 @@ export type Theme = 'light' | 'dark';
 export class StorageService {
   private readonly ITEMS_STORAGE_KEY = 'spark_deck_saved';
   private readonly THEME_STORAGE_KEY = 'spark_deck_theme';
+  private readonly CUSTOM_ROLES_KEY = 'spark_custom_roles';
   
-  // The service holds the state in a private writable signal
+  // State signals
   private _savedItems = signal<SavedItem[]>(this.loadFromStorage());
+  private _customRoles = signal<CareRole[]>(this.loadCustomRoles());
 
-  // Expose a read-only signal to the rest of the app
+  // Read-only signals
   readonly savedItems = this._savedItems.asReadonly();
+  readonly customRoles = this._customRoles.asReadonly();
 
   private loadFromStorage(): SavedItem[] {
     try {
@@ -26,12 +29,20 @@ export class StorageService {
     }
   }
 
+  private loadCustomRoles(): CareRole[] {
+    try {
+      const data = localStorage.getItem(this.CUSTOM_ROLES_KEY);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      console.error('Error reading custom roles from localStorage', e);
+      return [];
+    }
+  }
+
   saveItem(item: SavedItem): void {
     try {
       this._savedItems.update(current => {
-        // Avoid duplicates check inside the update
         if (current.some(i => i.id === item.id)) return current;
-        
         const updated = [item, ...current];
         this.persist(updated);
         return updated;
@@ -53,6 +64,31 @@ export class StorageService {
     }
   }
 
+  saveCustomRole(role: CareRole): void {
+    try {
+      this._customRoles.update(current => {
+        const filtered = current.filter(r => r.name.toLowerCase() !== role.name.toLowerCase());
+        const updated = [role, ...filtered];
+        localStorage.setItem(this.CUSTOM_ROLES_KEY, JSON.stringify(updated));
+        return updated;
+      });
+    } catch (e) {
+      console.error('Error saving custom role', e);
+    }
+  }
+
+  removeCustomRole(roleName: string): void {
+    try {
+      this._customRoles.update(current => {
+        const updated = current.filter(r => r.name.toLowerCase() !== roleName.toLowerCase());
+        localStorage.setItem(this.CUSTOM_ROLES_KEY, JSON.stringify(updated));
+        return updated;
+      });
+    } catch (e) {
+      console.error('Error removing custom role', e);
+    }
+  }
+
   private persist(data: SavedItem[]) {
     localStorage.setItem(this.ITEMS_STORAGE_KEY, JSON.stringify(data));
   }
@@ -64,12 +100,10 @@ export class StorageService {
       return storedTheme;
     }
 
-    // If no theme is stored, respect the user's system preference
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
       return 'light';
     }
 
-    // Default to dark theme if nothing is set or value is invalid
     return 'dark';
   }
 

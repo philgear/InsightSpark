@@ -75,6 +75,12 @@ html {
   --strategy-superpower: var(--strategy-green);
   --strategy-simplify: var(--strategy-chocolate);
   --strategy-random: var(--strategy-thistle);
+  --strategy-first-principles: var(--strategy-green);
+  --strategy-root-cause: var(--strategy-purple);
+  --strategy-fmea: var(--strategy-green);
+  --strategy-critical-path: var(--strategy-thistle);
+  --strategy-perma-strengths: var(--strategy-green);
+  --strategy-kinship-triad: var(--strategy-chocolate);
 
   /* Icon Assignments */
   --strategy-icon-what-if: var(--icon-purple);
@@ -89,6 +95,12 @@ html {
   --strategy-icon-superpower: var(--icon-green);
   --strategy-icon-simplify: var(--icon-chocolate);
   --strategy-icon-random: var(--icon-thistle);
+  --strategy-icon-first-principles: var(--icon-green);
+  --strategy-icon-root-cause: var(--icon-purple);
+  --strategy-icon-fmea: var(--icon-green);
+  --strategy-icon-critical-path: var(--icon-thistle);
+  --strategy-icon-perma-strengths: var(--icon-green);
+  --strategy-icon-kinship-triad: var(--icon-chocolate);
 
   --logo-url: url('/assets/logo-dark.svg');
   accent-color: var(--text-accent);

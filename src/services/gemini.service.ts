@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CreativeStrategy, InsightResult, SavedInsight, CarePlan, StructuredProblem, CreativePlan } from '../models/creative-types';
+import { CreativeStrategy, InsightResult, SavedInsight, CarePlan, StructuredProblem, CreativePlan, SavedItem } from '../models/creative-types';
 import { StrategySelection, DebateEntry, RefinedInsight, AgenticResult, AgenticPhase } from '../models/agent-types';
 import { parse } from 'partial-json';
 
@@ -54,6 +54,14 @@ export class GeminiService {
     const userLang = localStorage.getItem('spark_lang_val') || localStorage.getItem('user_target_language');
     if (userLang) {
       authHeaders['x-target-language'] = userLang;
+    }
+    const userTemp = localStorage.getItem('spark_temp_val');
+    if (userTemp !== null && userTemp !== undefined && userTemp !== '') {
+      authHeaders['x-gemini-temperature'] = userTemp;
+    }
+    const userThinking = localStorage.getItem('spark_thinking_budget');
+    if (userThinking !== null && userThinking !== undefined && userThinking !== '') {
+      authHeaders['x-gemini-thinking-budget'] = userThinking;
     }
     return authHeaders;
   }
@@ -212,6 +220,32 @@ export class GeminiService {
   ): Promise<InsightResult[]> {
     try {
       const results = await this._withRetries(async () => {
+        const selectedModel = localStorage.getItem('spark_model_val') || localStorage.getItem('user_gemini_model');
+        
+        // On-device execution branch: Chrome Built-in AI (Gemini Nano)
+        if (selectedModel === 'on-device-nano' && typeof (window as any)?.ai?.languageModel?.create === 'function') {
+          try {
+            const systemPrompt = mode === 'care'
+              ? 'You are a compassionate, HIPAA-compliant care support partner. Provide creative, positive psychology insights for health goals in valid JSON format matching schema: [{"strategyName": string, "insights": [{"text": string, "influence": string}]}].'
+              : 'You are a creative thinking partner. Provide distinct actionable insights matching JSON schema: [{"strategyName": string, "insights": [{"text": string}]}].';
+            
+            const session = await (window as any).ai.languageModel.create({ systemPrompt });
+            const strategyList = strategies.map(s => `- Strategy: ${mode === 'care' ? (s.careModeName || s.name) : s.name}`).join('\n');
+            const promptText = `Problem: ${problem}\n\nStrategies:\n${strategyList}\n\nProvide 2 actionable insights per strategy. Output valid JSON array only.`;
+            
+            const fullResponse = await session.prompt(promptText);
+            session.destroy?.();
+            
+            const parsed = parse(fullResponse);
+            if (Array.isArray(parsed)) {
+              if (onUpdate) onUpdate(parsed);
+              return parsed;
+            }
+          } catch (nanoErr) {
+            console.warn('Chrome Built-in AI execution error, falling back to server pipeline:', nanoErr);
+          }
+        }
+
         const response = await fetch('/api/insights', {
           method: 'POST',
           headers: this.getAuthHeaders({
@@ -641,6 +675,16 @@ export class GeminiService {
             { text: "Identify the core resource needed: energy. Rather than importing solar panels, design the park’s geometry to direct wind flows into micro-turbine channels built directly into standard pedestrian archways." },
             { text: "Deconstruct the idea of a 'park.' It is primarily a land asset. Maximize asset utility by scheduling dual-use hours: educational classrooms by day, flood overflow retention zones during storm events." }
           ];
+        } else if (sId === 'perma-strengths') {
+          insights = [
+            { text: "Harness community signature strengths: invite local carpenters and artists to co-create sensory botanical pavilions, cultivating deep engagement, shared meaning, and pride." },
+            { text: "Apply Seligman's Learned Optimism: treat urban heat islands not as permanent climate defeats, but as temporary, local challenges solvable through micro-canopy interventions." }
+          ];
+        } else if (sId === 'kinship-triad') {
+          insights = [
+            { text: "Cross-generational co-design: pair elementary school children with retired master gardeners to design self-guided sensory walking trails, weaving youth wonder with elder horticultural knowledge." },
+            { text: "Create an oral history listening bench under shaded trellises, where visitors scan QR codes to hear stories recorded by neighborhood elders about the park's botanical heritage." }
+          ];
         }
       } else if (mode === 'care' && isDefaultCareQuery) {
         if (sId === 'what-if') {
@@ -657,6 +701,16 @@ export class GeminiService {
           insights = [
             { text: "Focus on the core sensory need: touch and smell. Prioritize planting highly fragrant herbs like lavender and rosemary at waist height, maximizing emotional comfort with minimal strain.", influence: "Engages cognitive memory triggers and provides visual delight without requiring forward flexion." },
             { text: "Redefine the physical stance. Allow all seed sorting and transplanting to take place at a standard table height with footrests, ensuring knee and hip angles remain safe.", influence: "Maintains optimal joint protection guidelines while preserving gardening participation." }
+          ];
+        } else if (sId === 'perma-strengths') {
+          insights = [
+            { text: "Activate the VIA Strength of 'Love of Learning': introduce heritage seed-saving journals so each day in the garden is experienced as intellectual curiosity and micro-mastery.", influence: "PERMA Accomplishment & Engagement: transforms rehabilitation into a meaningful cognitive pursuit." },
+            { text: "Foster PERMA Relationships: invite a grandchild or neighbor to plant companion flowers, creating positive emotional resonance and shared accomplishment.", influence: "PERMA Positive Emotion & Relationships: elevates mood and strengthens the social support ecosystem." }
+          ];
+        } else if (sId === 'kinship-triad') {
+          insights = [
+            { text: "Establish a 3-Generation Garden Circle: Granddaughter draws color markers and plays music, Grandmother shares heirloom planting wisdom at table height, and Mother receives 45 minutes of peaceful respite.", influence: "Distributes care joyfully across generations, preventing caregiver burnout while honoring elder dignity." },
+            { text: "Create a Heritage Seed Album: Grandson photographs and labels daily sprouting progress on a tablet while Grandfather demonstrates traditional wooden seed trays.", influence: "Connects generational curiosity and craftsmanship into a shared micro-mastery milestone." }
           ];
         }
       }
@@ -676,5 +730,153 @@ export class GeminiService {
         insights
       };
     });
+  }
+
+  /**
+   * Translates text or a structured object into the specified target language using Gemini.
+   */
+  async translateContent(
+    content: string | Record<string, unknown>,
+    targetLanguage: string,
+    contentType = 'general'
+  ): Promise<{ translatedText?: string; translated?: Record<string, unknown> }> {
+    return this._withRetries(async () => {
+      const response = await fetch('/api/translate', {
+        method: 'POST',
+        headers: this.getAuthHeaders({
+          'Content-Type': 'application/json'
+        }),
+        body: JSON.stringify({
+          content,
+          targetLanguage,
+          contentType
+        })
+      });
+
+      if (!response.ok) {
+        let errorMsg = `Server returned ${response.status} ${response.statusText}`;
+        try {
+          const errData = await response.json();
+          if (errData && errData.error) errorMsg = errData.error;
+        } catch {
+          // Ignore parsing error
+        }
+        throw new Error(errorMsg);
+      }
+
+      return response.json();
+    });
+  }
+
+  /**
+   * Exports saved items into a standardized DPO (Direct Preference Optimization) JSONL dataset format.
+   */
+  exportDpoDataset(savedItems: SavedItem[], orcidId?: string, orcidName?: string): string {
+    const lines: string[] = [];
+
+    // Header metadata record
+    const meta = {
+      _metadata: {
+        format: 'DPO_JSONL_PAIRWISE_PREFERENCES',
+        version: '1.0.0',
+        license: 'CC BY-SA 4.0',
+        creator: orcidName || 'Pivot & Pulse Researcher',
+        orcid: orcidId ? `https://orcid.org/${orcidId}` : 'https://orcid.org/0009-0008-1372-5381',
+        exportedAt: new Date().toISOString(),
+        alignmentFramework: 'UPenn PERMA+H & VIA Character Strengths'
+      }
+    };
+    lines.push(JSON.stringify(meta));
+
+    savedItems.forEach((item) => {
+      if (item.type === 'insight') {
+        const prompt = `[Goal/Problem]: ${item.problem}\n[Strategy]: ${item.strategyName}`;
+        const chosen = item.text;
+        const rejected = `Generic advice: Try harder and adhere to standard protocols without adapting your environment or activating signature strengths.`;
+
+        lines.push(JSON.stringify({
+          prompt,
+          chosen,
+          rejected,
+          strategy: item.strategyName,
+          type: 'insight'
+        }));
+      } else if (item.type === 'care-plan') {
+        const prompt = `[Clinical Support Challenge]: ${item.problem}\n[Task]: Synthesize a personalized, PERMA+H aligned Care Plan.`;
+        const chosen = JSON.stringify(item.plan, null, 2);
+        const rejected = JSON.stringify({
+          personGoal: "Patient must follow protocol",
+          keyInterventions: ["Take meds as ordered", "Do not miss appointments"],
+          monitoringPlan: ["Track vitals"],
+          guidanceAndEducation: ["Read standard brochure"],
+          positiveAchievements: ["None reported"],
+          recommendations: ["Return in 3 months"]
+        }, null, 2);
+
+        lines.push(JSON.stringify({
+          prompt,
+          chosen,
+          rejected,
+          type: 'care-plan'
+        }));
+      } else if (item.type === 'creative-plan') {
+        const prompt = `[Creative Challenge]: ${item.problem}\n[Task]: Synthesize an actionable Creative Plan.`;
+        const chosen = JSON.stringify(item.plan, null, 2);
+        const rejected = JSON.stringify({
+          conceptualGoal: "Solve problem",
+          criticalPath: ["Step 1", "Step 2"],
+          riskAssessment: ["High risk"],
+          requiredResources: ["Budget"],
+          milestones: ["Finish"],
+          nextSteps: ["Start working"]
+        }, null, 2);
+
+        lines.push(JSON.stringify({
+          prompt,
+          chosen,
+          rejected,
+          type: 'creative-plan'
+        }));
+      }
+    });
+
+    return lines.join('\n');
+  }
+
+  /**
+   * Checks on-device local AI availability (Chrome Prompt API & Local Ollama)
+   */
+  async checkOnDeviceCapabilities(): Promise<{
+    chromeAiAvailable: boolean;
+    ollamaAvailable: boolean;
+    ollamaModels: string[];
+  }> {
+    let chromeAiAvailable = false;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (typeof window !== 'undefined' && 'ai' in window && 'languageModel' in (window as any).ai) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const cap = await (window as any).ai.languageModel.capabilities?.();
+        chromeAiAvailable = cap && cap.available !== 'no';
+      }
+    } catch {
+      chromeAiAvailable = false;
+    }
+
+    let ollamaAvailable = false;
+    let ollamaModels: string[] = [];
+    try {
+      const res = await fetch('/api/local-llm/status');
+      if (res.ok) {
+        const data = await res.json();
+        ollamaAvailable = data.available;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ollamaModels = (data.models || []).map((m: any) => m.name || m);
+      }
+    } catch {
+      ollamaAvailable = false;
+    }
+
+    return { chromeAiAvailable, ollamaAvailable, ollamaModels };
   }
 }

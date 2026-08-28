@@ -1,4 +1,4 @@
-<div class="flex flex-col h-screen w-full overflow-hidden relative app-shell text-[var(--text-color)]"
+<div class="flex flex-col h-screen w-full overflow-hidden relative app-shell text-(--text-color)"
      [class.app-mode-care]="appMode() === 'care'"
      [class.app-mode-creative]="appMode() === 'creative'">
   
@@ -8,18 +8,18 @@
 
   @if (!showKeyOverlay()) {
   <!-- Header -->
-  <header class="flex-none bg-[var(--header-bg)] backdrop-blur-md border-b border-[var(--border-color)] p-4 z-20 shadow-lg relative non-printable">
+  <header class="flex-none bg-(--header-bg) backdrop-blur-md border-b border-(--border-color) p-4 z-20 shadow-lg relative non-printable">
     <div class="max-w-7xl mx-auto flex items-center relative z-10">
       
       <!-- Left: Logo & Brand -->
       <div class="flex-1 flex justify-start">
-        <button (click)="setView('generator'); reset()" class="flex items-center gap-2 text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-color)] focus:ring-[var(--ring-color)] rounded-lg p-1 -ml-1 transition-transform active:scale-95">
-          <div class="p-1 bg-white/10 backdrop-blur-md rounded-lg shadow-inner border border-[var(--border-accent)] overflow-hidden">
+        <button (click)="setView('generator'); reset()" class="flex items-center gap-2 text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-(--bg-color) focus:ring-(--ring-color) rounded-lg p-1 -ml-1 transition-transform active:scale-95">
+          <div class="p-1 bg-white/10 backdrop-blur-md rounded-lg shadow-inner border border-(--border-accent) overflow-hidden">
              <img [src]="logoPath()" alt="Pivot & Pulse Logo" class="h-10 w-10 object-contain transition-opacity duration-300" width="40" height="40">
           </div>
           <div class="flex flex-col justify-center">
-            <h1 class="font-serif leading-[0.9] tracking-[-0.05em] text-[var(--font-size-xl)] bg-clip-text text-transparent bg-linear-to-r from-[var(--text-color)] via-[var(--text-highlight)] to-[var(--text-accent)] py-1">Pivot & Pulse</h1>
-            <p class="text-[var(--font-size-sm)] text-[var(--text-color-muted)] hidden sm:block tracking-[-0.02em] leading-none uppercase opacity-70">A Fluid Thinking Partner</p>
+            <h1 class="font-serif leading-[0.9] tracking-tighter text-xl bg-clip-text text-transparent bg-linear-to-r from-(--text-color) via-(--text-highlight) to-(--text-accent) py-1">Pivot & Pulse</h1>
+            <p class="text-sm text-(--text-color-muted) hidden sm:block tracking-tight leading-none uppercase opacity-70">A Fluid Thinking Partner</p>
           </div>
         </button>
       </div>
@@ -53,7 +53,7 @@
                   aria-label="View saved insights">
             <app-icon name="bookmark" [size]="20" [class.fill-current]="currentView() === 'saved'"></app-icon>
             @if (savedCount() > 0) {
-              <span class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-[var(--text-accent)] text-[10px] font-bold text-white shadow-sm border border-[var(--bg-color)]">{{ savedCount() }}</span>
+              <span class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-(--text-accent) text-[10px] font-bold text-white shadow-sm border border-(--bg-color)">{{ savedCount() }}</span>
             }
           </button>
           
@@ -71,13 +71,13 @@
           </button>
 
           <!-- API Key Connected Status / Clear Key -->
-          <div class="flex items-center gap-2 border-l border-[var(--border-color)] pl-3">
+          <div class="flex items-center gap-2 border-l border-(--border-color) pl-3">
             <span class="text-xs text-emerald-500 font-medium hidden md:inline-flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1.5 rounded-full" title="Gemini API Key is stored locally">
               <app-icon name="check" [size]="14"></app-icon>
               Connected
             </span>
             <button (click)="clearApiKey()" 
-                    class="header-chip action-btn text-[var(--color-danger)] !p-2"
+                    class="header-chip action-btn text-(--color-danger) p-2!"
                     title="Change or Remove API Key"
                     aria-label="Remove Gemini API Key">
               <app-icon name="key" [size]="20"></app-icon>
@@ -85,18 +85,18 @@
           </div>
 
           <!-- ORCID Connected Status -->
-          <div class="flex items-center gap-2 border-l border-[var(--border-color)] pl-3">
+          <div class="flex items-center gap-2 border-l border-(--border-color) pl-3">
             @if (orcidId()) {
               <a [href]="'https://orcid.org/' + orcidId()" 
                  target="_blank" 
                  rel="noopener noreferrer"
-                 class="text-xs text-[var(--text-accent)] font-medium inline-flex items-center gap-1.5 bg-[var(--text-accent)]/10 border border-[var(--text-accent)]/20 px-3 py-1.5 rounded-full transition-all hover:bg-[var(--text-accent)]/20"
+                 class="text-xs text-(--text-accent) font-medium inline-flex items-center gap-1.5 bg-(--text-accent)/10 border border-(--text-accent)/20 px-3 py-1.5 rounded-full transition-all hover:bg-(--text-accent)/20"
                  [title]="'Authenticated as ' + orcidName() + ' (' + orcidId() + ')'">
                 <img src="assets/orcid.svg" alt="ORCID iD logo" class="h-3.5 w-3.5 select-none" width="14" height="14">
-                <span class="max-w-[120px] truncate">{{ orcidName() }}</span>
+                <span class="max-w-30 truncate">{{ orcidName() }}</span>
               </a>
               <button (click)="logoutOrcid()" 
-                      class="header-chip action-btn text-[var(--color-danger)] !p-2"
+                      class="header-chip action-btn text-(--color-danger) p-2!"
                       title="Disconnect ORCID"
                       aria-label="Disconnect ORCID">
                 <app-icon name="log-out" [size]="18"></app-icon>
@@ -104,7 +104,7 @@
             } @else {
               <button (click)="loginWithOrcid()" 
                       [disabled]="isOrcidConnecting()"
-                      class="text-xs text-[var(--text-color-muted)] hover:text-[var(--text-color)] font-medium inline-flex items-center gap-1.5 bg-white/5 border border-white/10 hover:bg-white/10 px-3 py-1.5 rounded-full transition-colors cursor-pointer"
+                      class="text-xs text-(--text-color-muted) hover:text-(--text-color) font-medium inline-flex items-center gap-1.5 bg-white/5 border border-white/10 hover:bg-white/10 px-3 py-1.5 rounded-full transition-colors cursor-pointer"
                       title="Connect ORCID iD">
                 <img src="assets/orcid.svg" alt="ORCID logo icon" class="h-3.5 w-3.5 opacity-60 select-none" width="14" height="14">
                 <span>{{ isOrcidConnecting() ? 'Connecting...' : 'Connect iD' }}</span>
@@ -118,10 +118,10 @@
   
   <!-- Update Available Banner -->
   @if (isUpdateAvailable()) {
-    <div role="status" class="bg-[var(--text-accent)] text-[var(--primary-cta-text)] p-3 flex justify-center items-center gap-4 non-printable">
+    <div role="status" class="bg-(--text-accent) text-(--primary-cta-text) p-3 flex justify-center items-center gap-4 non-printable">
       <p>A new version of Pivot & Pulse is available!</p>
-      <button (click)="reloadApp()" class="bg-[var(--card-bg)] text-[var(--text-accent)] font-bold py-2 px-4 min-h-[48px] min-w-[48px] rounded focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">Reload</button>
-      <button (click)="dismissUpdate()" class="absolute right-4 flex items-center justify-center min-w-[48px] min-h-[48px] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)] rounded-full" aria-label="Dismiss update notification">
+      <button (click)="reloadApp()" class="bg-(--card-bg) text-(--text-accent) font-bold py-2 px-4 min-h-12 min-w-12 rounded focus:outline-none focus:ring-2 focus:ring-(--ring-color)">Reload</button>
+      <button (click)="dismissUpdate()" class="absolute right-4 flex items-center justify-center min-w-12 min-h-12 focus:outline-none focus:ring-2 focus:ring-(--ring-color) rounded-full" aria-label="Dismiss update notification">
         <app-icon name="x" [size]="20"></app-icon>
       </button>
     </div>
@@ -143,13 +143,13 @@
         @case ('generator') {
           @if (error()) {
             <!-- Inline Error Banner -->
-            <div role="alert" class="max-w-4xl mx-auto mb-6 p-4 bg-[var(--color-danger)]/10 border border-[var(--color-danger)]/30 rounded-xl flex items-start gap-3 relative animate-in slide-in-from-top-2 duration-200 non-printable">
-              <app-icon name="alert-triangle" class="text-[var(--color-danger)] shrink-0 mt-0.5" [size]="20"></app-icon>
+            <div role="alert" class="max-w-4xl mx-auto mb-6 p-4 bg-(--color-danger)/10 border border-(--color-danger)/30 rounded-xl flex items-start gap-3 relative animate-in slide-in-from-top-2 duration-200 non-printable">
+              <app-icon name="alert-triangle" class="text-(--color-danger) shrink-0 mt-0.5" [size]="20"></app-icon>
               <div class="flex-1">
-                <h4 class="text-sm font-semibold text-[var(--color-danger)] mb-0.5 font-serif">Generation Error</h4>
-                <p class="text-sm/relaxed text-[var(--text-color)] pr-6">{{ error() }}</p>
+                <h4 class="text-sm font-semibold text-(--color-danger) mb-0.5 font-serif">Generation Error</h4>
+                <p class="text-sm/relaxed text-(--text-color) pr-6">{{ error() }}</p>
               </div>
-              <button (click)="error.set(null)" class="absolute right-3 top-3 text-[var(--text-color-muted)] hover:text-[var(--text-color)] focus:outline-none" aria-label="Dismiss error">
+              <button (click)="error.set(null)" class="absolute right-3 top-3 text-(--text-color-muted) hover:text-(--text-color) focus:outline-none" aria-label="Dismiss error">
                 <app-icon name="x" [size]="16"></app-icon>
               </button>
             </div>
@@ -162,9 +162,9 @@
               @defer (on idle) {
                 <app-lojong-cleansing class="w-full max-w-lg block"></app-lojong-cleansing>
               } @placeholder {
-                <div class="h-64 max-w-lg w-full bg-white/5 rounded-3xl animate-pulse flex flex-col items-center justify-center gap-4 border border-[var(--border-color)]">
+                <div class="h-64 max-w-lg w-full bg-white/5 rounded-3xl animate-pulse flex flex-col items-center justify-center gap-4 border border-(--border-color)">
                   <div class="h-16 w-16 rounded-full bg-white/10 animate-bounce"></div>
-                  <p class="text-xs text-[var(--text-color-muted)] font-mono uppercase tracking-widest">Preparing Focus Stream...</p>
+                  <p class="text-xs text-(--text-color-muted) font-mono uppercase tracking-widest">Preparing Focus Stream...</p>
                 </div>
               }
             </div>
@@ -174,21 +174,21 @@
               <!-- Results Header -->
               <header class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                 <div>
-                  <p class="text-sm font-medium text-[var(--text-accent)] uppercase tracking-wider">A new perspective for:</p>
-                  <h2 id="results-heading" class="mt-2 text-[var(--text-color)]">
+                  <p class="text-sm font-medium text-(--text-accent) uppercase tracking-wider">A new perspective for:</p>
+                  <h2 id="results-heading" class="mt-2 text-(--text-color)">
                     {{ problemInput() }}
                   </h2>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
-                   <button (click)="editQuery()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                   <button (click)="editQuery()" class="flex items-center justify-center gap-2 bg-(--button-bg) hover:bg-(--button-bg-hover) text-sm font-medium py-2 px-4 min-h-12 min-w-12 organic-button border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color)">
                     <app-icon name="edit" [size]="18"></app-icon>
                     <span>Edit Query</span>
                   </button>
-                   <div class="bg-[var(--button-bg)] border border-[var(--border-color)] rounded-full p-1 flex items-center text-sm font-medium">
-                    <button (click)="resultsViewMode.set('list')" [class.bg-[var(--card-bg)]]="resultsViewMode() === 'list'" class="flex items-center justify-center min-w-[48px] min-h-[48px] organic-button transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-pressed]="resultsViewMode() === 'list'" aria-label="Switch to list view">
+                   <div class="bg-(--button-bg) border border-(--border-color) rounded-full p-1 flex items-center text-sm font-medium">
+                    <button (click)="resultsViewMode.set('list')" [class.bg-(--card-bg)]="resultsViewMode() === 'list'" class="flex items-center justify-center min-w-12 min-h-12 organic-button transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color)" [attr.aria-pressed]="resultsViewMode() === 'list'" aria-label="Switch to list view">
                       <app-icon name="list" [size]="20"></app-icon>
                     </button>
-                    <button (click)="resultsViewMode.set('graph')" [class.bg-[var(--card-bg)]]="resultsViewMode() === 'graph'" class="flex items-center justify-center min-w-[48px] min-h-[48px] organic-button transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-pressed]="resultsViewMode() === 'graph'" aria-label="Switch to graph view">
+                    <button (click)="resultsViewMode.set('graph')" [class.bg-(--card-bg)]="resultsViewMode() === 'graph'" class="flex items-center justify-center min-w-12 min-h-12 organic-button transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color)" [attr.aria-pressed]="resultsViewMode() === 'graph'" aria-label="Switch to graph view">
                       <app-icon name="git-branch" [size]="20"></app-icon>
                     </button>
                   </div>
@@ -196,72 +196,72 @@
               </header>
 
               <!-- Responsible AI Safety Report Card -->
-              <div class="p-6 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-2xl shadow-xl backdrop-blur-md relative overflow-hidden animate-pop">
+              <div class="p-6 bg-(--card-bg) border border-(--border-color) rounded-2xl shadow-xl backdrop-blur-md relative overflow-hidden animate-pop">
                 <div class="absolute top-0 right-0 p-4 opacity-10">
-                  <app-icon name="shield" [size]="80" class="text-[var(--text-accent)]"></app-icon>
+                  <app-icon name="shield" [size]="80" class="text-(--text-accent)"></app-icon>
                 </div>
-                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--border-color)] pb-4 mb-4">
+                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-(--border-color) pb-4 mb-4">
                   <div class="flex items-center gap-3">
-                    <div class="p-2 bg-[var(--text-accent)]/10 rounded-xl text-[var(--text-accent)]">
+                    <div class="p-2 bg-(--text-accent)/10 rounded-xl text-(--text-accent)">
                       <app-icon name="shield-check" [size]="28"></app-icon>
                     </div>
                     <div>
-                      <h3 class="text-lg font-bold font-serif text-[var(--text-color)] tracking-tight">Responsible AI Safety Assessment</h3>
-                      <p class="text-xs text-[var(--text-color-muted)]">Verified guardrails & compliance checks for clinical decision support</p>
+                      <h3 class="text-lg font-bold font-serif text-(--text-color) tracking-tight">Responsible AI Safety Assessment</h3>
+                      <p class="text-xs text-(--text-color-muted)">Verified guardrails & compliance checks for clinical decision support</p>
                     </div>
                   </div>
-                  <div class="flex items-center gap-1.5 self-start md:self-auto px-3 py-1 bg-[var(--color-success)]/10 border border-[var(--color-success)]/30 rounded-full text-[var(--color-success)] text-xs font-semibold">
-                    <span class="h-2 w-2 rounded-full bg-[var(--color-success)] animate-pulse"></span>
+                  <div class="flex items-center gap-1.5 self-start md:self-auto px-3 py-1 bg-(--color-success)/10 border border-(--color-success)/30 rounded-full text-(--color-success) text-xs font-semibold">
+                    <span class="h-2 w-2 rounded-full bg-(--color-success) animate-pulse"></span>
                     Safe Session Active
                   </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <!-- Guardrail 1: PII Scan -->
-                  <div class="p-4 bg-[var(--card-bg-subtle)] border border-[var(--border-color)]/50 rounded-xl flex items-start gap-3 transition-all hover:bg-[var(--button-bg-hover)]">
-                    <app-icon name="eye" [size]="20" class="text-[var(--color-success)] shrink-0 mt-0.5"></app-icon>
+                  <div class="p-4 bg-(--card-bg-subtle) border border-(--border-color)/50 rounded-xl flex items-start gap-3 transition-all hover:bg-(--button-bg-hover)">
+                    <app-icon name="eye" [size]="20" class="text-(--color-success) shrink-0 mt-0.5"></app-icon>
                     <div>
-                      <h4 class="text-sm font-semibold text-[var(--text-color)] mb-1">Privacy Shield</h4>
-                      <p class="text-xs/relaxed text-[var(--text-color-muted)]">Real-time client & server PII filters verified. Zero patient-identifying data transmitted.</p>
+                      <h4 class="text-sm font-semibold text-(--text-color) mb-1">Privacy Shield</h4>
+                      <p class="text-xs/relaxed text-(--text-color-muted)">Real-time client & server PII filters verified. Zero patient-identifying data transmitted.</p>
                     </div>
                   </div>
 
                   <!-- Guardrail 2: Harm Filters -->
-                  <div class="p-4 bg-[var(--card-bg-subtle)] border border-[var(--border-color)]/50 rounded-xl flex items-start gap-3 transition-all hover:bg-[var(--button-bg-hover)]">
-                    <app-icon name="shield" [size]="20" class="text-[var(--color-success)] shrink-0 mt-0.5"></app-icon>
+                  <div class="p-4 bg-(--card-bg-subtle) border border-(--border-color)/50 rounded-xl flex items-start gap-3 transition-all hover:bg-(--button-bg-hover)">
+                    <app-icon name="shield" [size]="20" class="text-(--color-success) shrink-0 mt-0.5"></app-icon>
                     <div>
-                      <h4 class="text-sm font-semibold text-[var(--text-color)] mb-1">Harm Blockers</h4>
-                      <p class="text-xs/relaxed text-[var(--text-color-muted)]">Gemini safety settings active. Blocking harassment, hate, and dangerous content.</p>
+                      <h4 class="text-sm font-semibold text-(--text-color) mb-1">Harm Blockers</h4>
+                      <p class="text-xs/relaxed text-(--text-color-muted)">Gemini safety settings active. Blocking harassment, hate, and dangerous content.</p>
                     </div>
                   </div>
 
                   <!-- Guardrail 3: Clinical Disclaimer -->
-                  <div class="p-4 bg-[var(--card-bg-subtle)] border border-[var(--color-warning)]/30 rounded-xl flex items-start gap-3 transition-all hover:bg-[var(--button-bg-hover)]">
-                    <app-icon name="alert-triangle" [size]="20" class="text-[var(--color-warning)] shrink-0 mt-0.5"></app-icon>
+                  <div class="p-4 bg-(--card-bg-subtle) border border-(--color-warning)/30 rounded-xl flex items-start gap-3 transition-all hover:bg-(--button-bg-hover)">
+                    <app-icon name="alert-triangle" [size]="20" class="text-(--color-warning) shrink-0 mt-0.5"></app-icon>
                     <div>
-                      <h4 class="text-sm font-semibold text-[var(--color-warning)] mb-1">Human-in-the-Loop</h4>
-                      <p class="text-xs/relaxed text-[var(--text-color-muted)]">For decision support only. All generated recommendations must be clinically validated.</p>
+                      <h4 class="text-sm font-semibold text-(--color-warning) mb-1">Human-in-the-Loop</h4>
+                      <p class="text-xs/relaxed text-(--text-color-muted)">For decision support only. All generated recommendations must be clinically validated.</p>
                     </div>
                   </div>
 
                   <!-- Guardrail 4: Stateless -->
-                  <div class="p-4 bg-[var(--card-bg-subtle)] border border-[var(--border-color)]/50 rounded-xl flex items-start gap-3 transition-all hover:bg-[var(--button-bg-hover)]">
-                    <app-icon name="lock" [size]="20" class="text-[var(--color-success)] shrink-0 mt-0.5"></app-icon>
+                  <div class="p-4 bg-(--card-bg-subtle) border border-(--border-color)/50 rounded-xl flex items-start gap-3 transition-all hover:bg-(--button-bg-hover)">
+                    <app-icon name="lock" [size]="20" class="text-(--color-success) shrink-0 mt-0.5"></app-icon>
                     <div>
-                      <h4 class="text-sm font-semibold text-[var(--text-color)] mb-1">Stateless Session</h4>
-                      <p class="text-xs/relaxed text-[var(--text-color-muted)]">No disk writing or session caching. Completely ephemeral analysis environment.</p>
+                      <h4 class="text-sm font-semibold text-(--text-color) mb-1">Stateless Session</h4>
+                      <p class="text-xs/relaxed text-(--text-color-muted)">No disk writing or session caching. Completely ephemeral analysis environment.</p>
                     </div>
                   </div>
                 </div>
               </div>
               
               @if (structuredProblem(); as problem) {
-                <div class="bg-[var(--card-bg-subtle)] p-6 organic-shape">
-                  <h3 class="text-[var(--text-accent)]">{{problem.title}}</h3>
-                  <p><strong class="font-semibold text-[var(--text-color-muted)]">Condition:</strong> {{problem.condition}}</p>
-                  <p><strong class="font-semibold text-[var(--text-color-muted)]">Goal:</strong> {{problem.goal}}</p>
+                <div class="bg-(--card-bg-subtle) p-6 organic-shape">
+                  <h3 class="text-(--text-accent)">{{problem.title}}</h3>
+                  <p><strong class="font-semibold text-(--text-color-muted)">Condition:</strong> {{problem.condition}}</p>
+                  <p><strong class="font-semibold text-(--text-color-muted)">Goal:</strong> {{problem.goal}}</p>
                   <div>
-                    <strong class="font-semibold text-[var(--text-color-muted)]">Barriers:</strong>
+                    <strong class="font-semibold text-(--text-color-muted)">Barriers:</strong>
                     <ul class="list-disc pl-5 mt-1">
                       @for(barrier of problem.barriers; track barrier) {
                         <li>{{barrier}}</li>
@@ -276,10 +276,10 @@
                 @for (result of insightResults; track result.strategyName) {
                   <div class="p-5 organic-shape flex flex-col" [style.--strategy-color]="'var(--strategy-' + getStrategyId(result.strategyName) + ')'">
                     <header class="flex items-center gap-3 mb-4">
-                      <div class="w-10 h-10 rounded-lg bg-[var(--strategy-color)]/20 flex items-center justify-center text-[var(--strategy-color)]">
+                      <div class="w-10 h-10 rounded-lg bg-(--strategy-color)/20 flex items-center justify-center text-(--strategy-color)">
                         <app-icon [name]="getStrategyIcon(result.strategyName)" [size]="24"></app-icon>
                       </div>
-                      <h3 class="text-[var(--strategy-color)]">{{ result.strategyName }}</h3>
+                      <h3 class="text-(--strategy-color)">{{ result.strategyName }}</h3>
                     </header>
                     <div class="space-y-4 flex-1">
                       @for (insight of result.insights; track insight.text; let i = $index) {
@@ -287,20 +287,35 @@
                         <div class="insight-card-magical group relative">
                           <p class="text-base/relaxed">{{ insight.text }}</p>
                           @if (insight.influence) {
-                             <p class="text-sm text-[var(--text-color-muted)] mt-2 italic border-l-2 border-[var(--border-color)] pl-3">
+                             <p class="text-sm text-(--text-color-muted) mt-2 italic border-l-2 border-(--border-color) pl-3">
                               {{insight.influence}}
                             </p>
                           }
                           <div class="flex items-center gap-2 mt-3 opacity-0 group-hover:opacity-100 transition-opacity focus-within:opacity-100">
-                            <button (click)="copyToClipboard(insight.text, id)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-label]="formatAriaLabel('Copy insight', insight.text)">
+                            <button (click)="copyToClipboard(insight.text, id)" class="flex items-center justify-center min-w-12 min-h-12 rounded-full hover:bg-(--button-bg-hover) text-(--text-color-muted) focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer" [attr.aria-label]="formatAriaLabel('Copy insight', insight.text)">
                               @if (copiedId() === id) {
                                 <app-icon name="check" [size]="20" class="text-green-500"></app-icon>
                               } @else {
                                 <app-icon name="copy" [size]="20"></app-icon>
                               }
                             </button>
-                            <button (click)="toggleInsightSave(insight, result.strategyName)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-label]="formatAriaLabel(isInsightSaved(insight.text) ? 'Unsave insight' : 'Save insight', insight.text)">
-                               <app-icon name="bookmark" [size]="20" [class]="isInsightSaved(insight.text) ? 'fill-current text-[var(--text-highlight)]' : ''"></app-icon>
+                            <button (click)="speakInsight(insight.text, id)" 
+                                    class="flex items-center justify-center min-w-12 min-h-12 rounded-full hover:bg-(--button-bg-hover) text-(--text-color-muted) focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer" 
+                                    [attr.aria-label]="formatAriaLabel('Read insight aloud', insight.text)"
+                                    title="Read Aloud (Voice Narration)">
+                              <app-icon [name]="speechService.isSpeaking() && speechService.currentlySpeakingId() === id ? 'volume-x' : 'volume-2'" 
+                                        [size]="20"
+                                        [class]="speechService.isSpeaking() && speechService.currentlySpeakingId() === id ? 'text-(--text-accent) animate-pulse' : ''"></app-icon>
+                            </button>
+                            <button (click)="openTranslateModal('insight', insight)" title="Translate insight" class="flex items-center justify-center min-w-12 min-h-12 rounded-full hover:bg-(--button-bg-hover) text-(--text-color-muted) focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer" aria-label="Translate insight">
+                              @if (translatingCardId() === insight.text) {
+                                <app-icon name="loader" [size]="20" class="animate-spin text-(--text-accent)"></app-icon>
+                              } @else {
+                                <app-icon name="globe" [size]="20"></app-icon>
+                              }
+                            </button>
+                            <button (click)="toggleInsightSave(insight, result.strategyName)" class="flex items-center justify-center min-w-12 min-h-12 rounded-full hover:bg-(--button-bg-hover) text-(--text-color-muted) focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer" [attr.aria-label]="formatAriaLabel(isInsightSaved(insight.text) ? 'Unsave insight' : 'Save insight', insight.text)">
+                               <app-icon name="bookmark" [size]="20" [class]="isInsightSaved(insight.text) ? 'fill-current text-(--text-highlight)' : ''"></app-icon>
                             </button>
                           </div>
                         </div>
@@ -313,8 +328,8 @@
                 @defer (on viewport; prefetch on idle) {
                   <app-graph-view [results]="insightResults" [problem]="problemInput()" [strategies]="availableStrategies()"></app-graph-view>
                 } @placeholder {
-                  <div class="h-[600px] organic-shape bg-black/5 animate-pulse flex items-center justify-center">
-                    <p class="text-[var(--text-color-muted)] italic">Rendering strategy graph...</p>
+                  <div class="h-150 organic-shape bg-black/5 animate-pulse flex items-center justify-center">
+                    <p class="text-(--text-color-muted) italic">Rendering strategy graph...</p>
                   </div>
                 }
               }
@@ -322,8 +337,8 @@
               @if (appMode() === 'care' && savedInsightsForCurrentProblem().length > 0) {
                 <div class="text-center py-8">
                   <h3 class="mb-2">Synthesize a Care Plan</h3>
-                  <p class="text-[var(--text-color-muted)] mb-4">You've saved {{ savedInsightsForCurrentProblem().length }} insight(s) for this goal. Ready to build a plan?</p>
-                  <button (click)="generateCarePlan()" [disabled]="isGeneratingCarePlan()" class="font-bold py-3 px-6 min-h-[48px] min-w-[120px] organic-button swirling-surface shadow-lg transition-all flex items-center justify-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--primary-cta-bg)] text-[var(--primary-cta-text)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                  <p class="text-(--text-color-muted) mb-4">You've saved {{ savedInsightsForCurrentProblem().length }} insight(s) for this goal. Ready to build a plan?</p>
+                  <button (click)="generateCarePlan()" [disabled]="isGeneratingCarePlan()" class="font-bold py-3 px-6 min-h-12 min-w-30 organic-button swirling-surface shadow-lg transition-all flex items-center justify-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed bg-(--primary-cta-bg) text-(--primary-cta-text) focus:outline-none focus:ring-2 focus:ring-(--ring-color)">
                     @if(isGeneratingCarePlan()) {
                       <app-icon name="loader" [size]="20" class="animate-spin"></app-icon>
                       <span>Generating...</span>
@@ -338,19 +353,35 @@
               @if (carePlan(); as plan) {
                 <section class="mt-12 printable-section" id="care-plan-section" aria-labelledby="care-plan-heading">
                     <div class="p-6 md:p-8 organic-shape">
-                        <header class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6 border-b border-[var(--border-color)] pb-6">
+                        <header class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6 border-b border-(--border-color) pb-6">
                             <div>
-                                <h3 id="care-plan-heading" class="text-[var(--text-accent)]">Synthesized Care Plan</h3>
-                                <p class="text-[var(--text-color-muted)] mt-1">Based on your saved insights for: {{ problemInput() }}</p>
+                                <h3 id="care-plan-heading" class="text-(--text-accent)">Synthesized Care Plan</h3>
+                                <p class="text-(--text-color-muted) mt-1">Based on your saved insights for: {{ problemInput() }}</p>
                             </div>
                             <div class="flex items-center gap-2 flex-wrap non-printable">
                                 @if (pocketgullService.isEmbedded()) {
-                                    <button (click)="exportPlanToPocketgull('care-plan', plan)" class="flex items-center justify-center gap-2 bg-[var(--text-accent)] text-white hover:opacity-90 text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-opacity focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                                    <button (click)="exportPlanToPocketgull('care-plan', plan)" class="flex items-center justify-center gap-2 bg-(--text-accent) text-white hover:opacity-90 text-sm font-medium py-2 px-4 min-h-12 min-w-12 organic-button border border-(--border-color) transition-opacity focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
                                         <app-icon name="send" [size]="18"></app-icon>
                                         <span>Export to Pocketgull</span>
                                     </button>
                                 }
-                                <button (click)="saveCarePlan()" [disabled]="isCarePlanSaved()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                                <button (click)="downloadCarePlanFHIR(plan)" title="Download HL7 FHIR R4 JSON Bundle" class="flex items-center justify-center gap-1.5 bg-(--button-bg) hover:bg-(--button-bg-hover) text-sm font-medium py-2 px-3.5 min-h-12 organic-button border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
+                                    <app-icon name="code" [size]="18"></app-icon>
+                                    <span>FHIR JSON</span>
+                                </button>
+                                <button (click)="downloadPlanMarkdown('care-plan', plan)" title="Download Markdown Document" class="flex items-center justify-center gap-1.5 bg-(--button-bg) hover:bg-(--button-bg-hover) text-sm font-medium py-2 px-3.5 min-h-12 organic-button border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
+                                    <app-icon name="book" [size]="18"></app-icon>
+                                    <span>Markdown</span>
+                                </button>
+                                <button (click)="openTranslateModal('care-plan', undefined, plan)" title="Translate Care Plan" class="flex items-center justify-center gap-1.5 bg-(--button-bg) hover:bg-(--button-bg-hover) text-sm font-medium py-2 px-3.5 min-h-12 organic-button border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
+                                    @if (isTranslatingPlan()) {
+                                      <app-icon name="loader" [size]="18" class="animate-spin text-(--text-accent)"></app-icon>
+                                    } @else {
+                                      <app-icon name="globe" [size]="18"></app-icon>
+                                    }
+                                    <span>Translate</span>
+                                </button>
+                                <button (click)="saveCarePlan()" [disabled]="isCarePlanSaved()" class="flex items-center justify-center gap-2 bg-(--button-bg) hover:bg-(--button-bg-hover) text-sm font-medium py-2 px-4 min-h-12 min-w-12 organic-button border border-(--border-color) transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
                                     @if (isCarePlanSaved()) {
                                         <app-icon name="check" [size]="18"></app-icon>
                                         <span>Saved</span>
@@ -359,7 +390,7 @@
                                         <span>Save Plan</span>
                                     }
                                 </button>
-                                <button (click)="copyCarePlan()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                                <button (click)="copyCarePlan()" class="flex items-center justify-center gap-2 bg-(--button-bg) hover:bg-(--button-bg-hover) text-sm font-medium py-2 px-4 min-h-12 min-w-12 organic-button border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
                                     @if (isCarePlanCopied()) {
                                         <app-icon name="check" [size]="18" class="text-green-500"></app-icon>
                                         <span>Copied!</span>
@@ -368,9 +399,13 @@
                                         <span>Copy</span>
                                     }
                                 </button>
-                                <button (click)="printPlan()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                                <button (click)="printPlan()" class="flex items-center justify-center gap-2 bg-(--button-bg) hover:bg-(--button-bg-hover) text-sm font-medium py-2 px-4 min-h-12 min-w-12 organic-button border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
                                     <app-icon name="printer" [size]="18"></app-icon>
                                     <span>Print</span>
+                                </button>
+                                <button (click)="printKinshipCirclePlan(plan, problemInput())" class="flex items-center justify-center gap-1.5 bg-(--button-bg) hover:bg-(--button-bg-hover) text-sm font-medium py-2 px-3.5 min-h-12 organic-button border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer" title="Print Living Room / Family Refrigerator Plan">
+                                    <app-icon name="users" [size]="18" class="text-(--text-accent)"></app-icon>
+                                    <span>Family Circle</span>
                                 </button>
                             </div>
                         </header>
@@ -378,10 +413,10 @@
                             @for (section of getCarePlanSections(plan); track section.id) {
                                 <div>
                                     <h4 class="flex items-center gap-3 mb-2">
-                                        <app-icon [name]="section.icon" [size]="20" class="text-[var(--text-accent)]"></app-icon>
+                                        <app-icon [name]="section.icon" [size]="20" class="text-(--text-accent)"></app-icon>
                                         {{ section.title }}
                                     </h4>
-                                    <ul class="list-disc pl-10 space-y-1 text-[var(--text-color-muted)]">
+                                    <ul class="list-disc pl-10 space-y-1 text-(--text-color-muted)">
                                         @for (item of section.items; track item) {
                                             <li>{{ item }}</li>
                                         }
@@ -396,8 +431,8 @@
               @if (appMode() === 'creative' && savedInsightsForCurrentProblem().length > 0) {
                 <div class="text-center py-8">
                   <h3 class="mb-2 font-serif text-2xl">Synthesize Action Plan (Vertical Thinking)</h3>
-                  <p class="text-[var(--text-color-muted)] mb-4">You've saved {{ savedInsightsForCurrentProblem().length }} insight(s) for this challenge. Ready to structure them into an action plan?</p>
-                  <button (click)="generateCreativePlan()" [disabled]="isGeneratingCreativePlan()" class="font-bold py-3 px-6 min-h-[48px] min-w-[120px] organic-button swirling-surface shadow-lg transition-all flex items-center justify-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--primary-cta-bg)] text-[var(--primary-cta-text)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                  <p class="text-(--text-color-muted) mb-4">You've saved {{ savedInsightsForCurrentProblem().length }} insight(s) for this challenge. Ready to structure them into an action plan?</p>
+                  <button (click)="generateCreativePlan()" [disabled]="isGeneratingCreativePlan()" class="font-bold py-3 px-6 min-h-12 min-w-30 organic-button swirling-surface shadow-lg transition-all flex items-center justify-center gap-2 mx-auto disabled:opacity-50 disabled:cursor-not-allowed bg-(--primary-cta-bg) text-(--primary-cta-text) focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
                     @if(isGeneratingCreativePlan()) {
                       <app-icon name="loader" [size]="20" class="animate-spin"></app-icon>
                       <span>Generating...</span>
@@ -412,19 +447,31 @@
               @if (creativePlan(); as plan) {
                 <section class="mt-12 printable-section" id="creative-plan-section" aria-labelledby="creative-plan-heading">
                     <div class="p-6 md:p-8 organic-shape">
-                        <header class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6 border-b border-[var(--border-color)] pb-6">
+                        <header class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6 border-b border-(--border-color) pb-6">
                             <div>
-                                <h3 id="creative-plan-heading" class="text-[var(--text-accent)] font-serif text-3xl">Creative Action Plan</h3>
-                                <p class="text-[var(--text-color-muted)] mt-1">Based on your saved insights for: {{ problemInput() }}</p>
+                                <h3 id="creative-plan-heading" class="text-(--text-accent) font-serif text-3xl">Creative Action Plan</h3>
+                                <p class="text-(--text-color-muted) mt-1">Based on your saved insights for: {{ problemInput() }}</p>
                             </div>
                             <div class="flex items-center gap-2 flex-wrap non-printable">
                                 @if (pocketgullService.isEmbedded()) {
-                                    <button (click)="exportPlanToPocketgull('creative-plan', plan)" class="flex items-center justify-center gap-2 bg-[var(--text-accent)] text-white hover:opacity-90 text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-opacity focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                                    <button (click)="exportPlanToPocketgull('creative-plan', plan)" class="flex items-center justify-center gap-2 bg-(--text-accent) text-white hover:opacity-90 text-sm font-medium py-2 px-4 min-h-12 min-w-12 organic-button border border-(--border-color) transition-opacity focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
                                         <app-icon name="send" [size]="18"></app-icon>
                                         <span>Export to Pocketgull</span>
                                     </button>
                                 }
-                                <button (click)="saveCreativePlan()" [disabled]="isCreativePlanSaved()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                                <button (click)="downloadPlanMarkdown('creative-plan', plan)" title="Download Markdown Document" class="flex items-center justify-center gap-1.5 bg-(--button-bg) hover:bg-(--button-bg-hover) text-sm font-medium py-2 px-3.5 min-h-12 organic-button border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
+                                    <app-icon name="book" [size]="18"></app-icon>
+                                    <span>Markdown</span>
+                                </button>
+                                <button (click)="openTranslateModal('creative-plan', undefined, plan)" title="Translate Action Plan" class="flex items-center justify-center gap-1.5 bg-(--button-bg) hover:bg-(--button-bg-hover) text-sm font-medium py-2 px-3.5 min-h-12 organic-button border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
+                                    @if (isTranslatingPlan()) {
+                                      <app-icon name="loader" [size]="18" class="animate-spin text-(--text-accent)"></app-icon>
+                                    } @else {
+                                      <app-icon name="globe" [size]="18"></app-icon>
+                                    }
+                                    <span>Translate</span>
+                                </button>
+                                <button (click)="saveCreativePlan()" [disabled]="isCreativePlanSaved()" class="flex items-center justify-center gap-2 bg-(--button-bg) hover:bg-(--button-bg-hover) text-sm font-medium py-2 px-4 min-h-12 min-w-12 organic-button border border-(--border-color) transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
                                     @if (isCreativePlanSaved()) {
                                         <app-icon name="check" [size]="18"></app-icon>
                                         <span>Saved</span>
@@ -433,7 +480,7 @@
                                         <span>Save Plan</span>
                                     }
                                 </button>
-                                <button (click)="copyCreativePlan()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                                <button (click)="copyCreativePlan()" class="flex items-center justify-center gap-2 bg-(--button-bg) hover:bg-(--button-bg-hover) text-sm font-medium py-2 px-4 min-h-12 min-w-12 organic-button border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
                                     @if (isCreativePlanCopied()) {
                                         <app-icon name="check" [size]="18" class="text-green-500"></app-icon>
                                         <span>Copied!</span>
@@ -442,9 +489,13 @@
                                         <span>Copy</span>
                                     }
                                 </button>
-                                <button (click)="printPlan()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                                <button (click)="printPlan()" class="flex items-center justify-center gap-2 bg-(--button-bg) hover:bg-(--button-bg-hover) text-sm font-medium py-2 px-4 min-h-12 min-w-12 organic-button border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
                                     <app-icon name="printer" [size]="18"></app-icon>
                                     <span>Print</span>
+                                </button>
+                                <button (click)="printKinshipCirclePlan(plan, problemInput())" class="flex items-center justify-center gap-1.5 bg-(--button-bg) hover:bg-(--button-bg-hover) text-sm font-medium py-2 px-3.5 min-h-12 organic-button border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer" title="Print Family Action Plan">
+                                    <app-icon name="users" [size]="18" class="text-(--text-accent)"></app-icon>
+                                    <span>Family Circle</span>
                                 </button>
                             </div>
                         </header>
@@ -452,13 +503,13 @@
                             @for (section of getCreativePlanSections(plan); track section.id) {
                                 <div>
                                     <h4 class="flex items-center gap-3 mb-2 font-serif text-xl">
-                                        <app-icon [name]="section.icon" [size]="20" class="text-[var(--text-accent)]"></app-icon>
+                                        <app-icon [name]="section.icon" [size]="20" class="text-(--text-accent)"></app-icon>
                                         {{ section.title }}
                                     </h4>
                                     @if (section.title === 'Conceptual Goal') {
-                                        <p class="pl-10 text-[var(--text-color)]">{{ section.items[0] }}</p>
+                                        <p class="pl-10 text-(--text-color)">{{ section.items[0] }}</p>
                                     } @else {
-                                        <ul class="list-disc pl-10 space-y-1 text-[var(--text-color-muted)]">
+                                        <ul class="list-disc pl-10 space-y-1 text-(--text-color-muted)">
                                             @for (item of section.items; track item) {
                                                 <li>{{ item }}</li>
                                             }
@@ -470,14 +521,6 @@
                     </div>
                 </section>
               }
-              
-              @if (appMode() === 'care') {
-                @defer (on viewport) {
-                  <app-vitals-trend-graph></app-vitals-trend-graph>
-                } @placeholder {
-                  <div class="h-64 animate-pulse bg-white/5 rounded-3xl mt-8"></div>
-                }
-              }
             </section>
           }
  @else {
@@ -487,59 +530,77 @@
 
                 <!-- Step 1: Main Input -->
                 <div class="step-pour" [class.active-step]="problemInput().length > 5">
-                  <textarea #problemTextarea
-                    id="problem-input"
-                    name="problem-input"
-                    [ngModel]="problemInput()"
-                    (ngModelChange)="problemInput.set($event)"
-                    [placeholder]="appMode() === 'creative' ? 'Describe your challenge, idea, or question...' : 'Describe a de-identified health goal or support challenge...'"
-                    class="w-full p-4 text-base bg-[var(--card-bg)] border border-[var(--border-color-strong)] rounded-xl focus:ring-2 focus:ring-[var(--ring-color)] focus:outline-none transition-all resize-none shadow-lg"
-                    [attr.aria-label]="problemInputAriaLabel()"
-                    autocomplete="off">
-                  </textarea>
-
-                  <!-- Multimodal Image Attachment -->
-                  <div class="mt-2.5 flex items-center gap-3">
-                    <input #imageInput type="file" accept="image/*" (change)="onImageSelected($event)" class="hidden">
-                    
-                    @if (!uploadedImage()) {
-                      <button (click)="imageInput.click()" 
-                              type="button" 
-                              class="text-xs font-semibold py-2 px-3 rounded-lg border border-[var(--border-color)] bg-[var(--card-bg)] hover:bg-[var(--button-bg-hover)] text-[var(--text-color)] transition-all flex items-center gap-2 cursor-pointer shadow-sm">
-                        <app-icon name="image" [size]="16" class="text-[var(--text-accent)]"></app-icon>
-                        <span>Attach Diagram / Image</span>
-                      </button>
-                    } @else {
-                      <div class="flex items-center gap-3 p-2 px-3 bg-[var(--card-bg-subtle)] border border-[var(--border-color)] rounded-xl">
-                        <img [src]="uploadedImage()?.preview" alt="Attachment Preview" class="h-10 w-10 object-cover rounded-lg border border-[var(--border-color)] shrink-0">
-                        <div class="flex-1 min-w-0">
-                          <div class="text-xs font-bold text-[var(--text-color)] truncate">Multimodal Diagram Attached</div>
-                          <div class="text-[11px] text-[var(--text-color-muted)]">Gemini Flash Visual Context</div>
-                        </div>
-                        <button (click)="removeUploadedImage()" type="button" class="p-1 text-[var(--text-color-muted)] hover:text-[var(--text-color)] transition-colors focus:outline-none cursor-pointer" aria-label="Remove image attachment">
-                          <app-icon name="x" [size]="16"></app-icon>
-                        </button>
-                      </div>
-                    }
+                  <div class="relative">
+                    <textarea #problemTextarea
+                      id="problem-input"
+                      name="problem-input"
+                      [ngModel]="problemInput()"
+                      (ngModelChange)="problemInput.set($event)"
+                      maxlength="2000"
+                      rows="4"
+                      [placeholder]="appMode() === 'creative' ? 'Describe your challenge, idea, or question...' : 'Describe a de-identified health goal or support challenge...'"
+                      class="w-full p-4 text-base bg-(--card-bg) border rounded-xl focus:ring-2 focus:ring-(--ring-color) focus:outline-none transition-all resize-y shadow-lg"
+                      [class.border-(--border-color-strong)]="!piiWarning()"
+                      [class.border-amber-500]="!!piiWarning()"
+                      [class.focus:ring-amber-500]="!!piiWarning()"
+                      [attr.aria-label]="problemInputAriaLabel()"
+                      autocomplete="off">
+                    </textarea>
                   </div>
 
-                  <div class="flex justify-between items-center text-sm text-[var(--text-color-subtle)] mt-1 px-1">
+                  <!-- Voice Dictation & Containment Status Bar -->
+                  <div class="mt-2.5 flex items-center justify-between gap-3 flex-wrap">
+                    <div class="flex items-center gap-2">
+                      <button (click)="toggleVoiceInput()" 
+                              type="button" 
+                              [class.bg-red-500/20]="speechService.isListening()"
+                              [class.text-red-300]="speechService.isListening()"
+                              [class.border-red-500/50]="speechService.isListening()"
+                              class="text-xs font-semibold py-2 px-3 rounded-lg border border-(--border-color) bg-(--card-bg) hover:bg-(--button-bg-hover) text-(--text-color) transition-all flex items-center gap-2 cursor-pointer shadow-sm">
+                        <app-icon name="mic" [size]="16" [class]="speechService.isListening() ? 'text-red-400 animate-pulse' : 'text-(--text-accent)'"></app-icon>
+                        <span>{{ speechService.isListening() ? 'Listening (Speak now)...' : 'Voice Input' }}</span>
+                      </button>
+
+                      <!-- Live Privacy & Containment Badge -->
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono border"
+                            [class.bg-emerald-500/10]="!piiWarning() && charCount() > 0"
+                            [class.border-emerald-500/30]="!piiWarning() && charCount() > 0"
+                            [class.text-emerald-400]="!piiWarning() && charCount() > 0"
+                            [class.bg-black/20]="charCount() === 0"
+                            [class.border-white/10]="charCount() === 0"
+                            [class.text-(--text-color-muted)]="charCount() === 0"
+                            [class.bg-amber-500/15]="!!piiWarning()"
+                            [class.border-amber-500/40]="!!piiWarning()"
+                            [class.text-amber-300]="!!piiWarning()">
+                        <app-icon [name]="piiWarning() ? 'alert-triangle' : 'shield-check'" [size]="13"></app-icon>
+                        <span>{{ piiWarning() ? 'PII Detected (Blocked)' : (charCount() > 0 ? 'Safe & De-Identified' : 'Contained & Private') }}</span>
+                      </span>
+                    </div>
+
+                    <!-- Character Containment Counter -->
+                    <div class="font-mono text-xs text-(--text-color-muted) flex items-center gap-1">
+                      <span [class.text-amber-400]="charCount() > 1800" [class.font-bold]="charCount() > 1800">{{ charCount() }}</span>
+                      <span>/</span>
+                      <span>{{ maxCharLimit }}</span>
+                    </div>
+                  </div>
+
+                  <div class="flex justify-between items-center text-sm text-(--text-color-subtle) mt-1.5 px-1">
                     <span class="text-[11px] flex items-wrap items-center gap-1.5 opacity-75 hover:opacity-100 transition-opacity">
-                      <app-icon name="key" [size]="12" class="text-[var(--text-accent)]"></app-icon>
-                      <span>Ideas open-shared under CC BY-SA 4.0 | A GearArts Project built by <a href="https://orcid.org/0009-0008-1372-5381" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--text-accent)] transition-colors inline-flex items-center gap-0.5 font-semibold"><img src="assets/orcid.svg" alt="ORCID iD" class="h-3 w-3 inline select-none" width="12" height="12">Phil Gear</a></span>
+                      <app-icon name="key" [size]="12" class="text-(--text-accent)"></app-icon>
+                      <span>Ideas open-shared under CC BY-SA 4.0 | A GearArts Project built by <a href="https://orcid.org/0009-0008-1372-5381" target="_blank" rel="noopener noreferrer" class="hover:text-(--text-accent) transition-colors inline-flex items-center gap-0.5 font-semibold"><img src="assets/orcid.svg" alt="ORCID iD" class="h-3 w-3 inline select-none" width="12" height="12">Phil Gear</a></span>
                       @if (orcidId()) {
-                        <span class="text-[var(--border-color)]">|</span>
-                        <span>Documented by Researcher: <a [href]="'https://orcid.org/' + orcidId()" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--text-accent)] transition-colors inline-flex items-center gap-0.5 font-semibold"><img src="assets/orcid.svg" alt="ORCID iD" class="h-3 w-3 inline select-none" width="12" height="12">{{ orcidName() }}</a></span>
+                        <span class="text-(--border-color)">|</span>
+                        <span>Documented by Researcher: <a [href]="'https://orcid.org/' + orcidId()" target="_blank" rel="noopener noreferrer" class="hover:text-(--text-accent) transition-colors inline-flex items-center gap-0.5 font-semibold"><img src="assets/orcid.svg" alt="ORCID iD" class="h-3 w-3 inline select-none" width="12" height="12">{{ orcidName() }}</a></span>
                       }
                     </span>
-                    <span>{{ problemInput().length }} / 1000</span>
                   </div>
                   @if (piiWarning(); as warning) {
-                    <div role="alert" class="mt-3 p-4 rounded-xl border flex items-start gap-3 bg-[var(--card-bg)] border-[var(--color-warning)] text-[var(--color-warning)] animate-fade-in" style="background: rgba(212, 164, 76, 0.05);">
-                      <app-icon name="alert-triangle" [size]="20" class="shrink-0 mt-0.5" style="color: var(--color-warning);"></app-icon>
+                    <div role="alert" class="mt-3 p-4 rounded-xl border flex items-start gap-3 bg-(--card-bg) border-amber-500/50 text-amber-300 animate-fade-in" style="background: rgba(212, 164, 76, 0.08);">
+                      <app-icon name="alert-triangle" [size]="20" class="shrink-0 mt-0.5 text-amber-400"></app-icon>
                       <div class="flex-1">
-                        <h4 class="font-bold text-xs uppercase tracking-wide mb-1" style="color: var(--color-warning);">Privacy Warning</h4>
-                        <p class="text-sm/relaxed text-[var(--text-color)]">{{ warning }}</p>
+                        <h4 class="font-bold text-xs uppercase tracking-wide mb-1 text-amber-400">HIPAA & Privacy Guardrail</h4>
+                        <p class="text-sm/relaxed text-(--text-color)">{{ warning }}</p>
                       </div>
                     </div>
                   }
@@ -553,33 +614,47 @@
                 @if (appMode() === 'care') {
                   <!-- Step 2: Persona Selector -->
                   <div class="step-pour" [class.active-step]="activeCareRoles().size > 0">
-                    <div class="step-section bg-[var(--card-bg)] p-6 rounded-2xl border border-[var(--border-color)] shadow-2xl inset-shadow-sm backdrop-blur-sm relative overflow-hidden">
+                    <div class="step-section bg-(--card-bg) p-6 rounded-2xl border border-(--border-color) shadow-2xl inset-shadow-sm backdrop-blur-sm relative overflow-hidden">
                       <div class="space-y-4">
                         <div>
-                          <h2 class="text-[var(--text-accent)] flex items-center gap-2 mb-2 text-[var(--font-size-2xl)]">
+                          <h2 class="text-(--text-accent) flex items-center gap-2 mb-2 text-2xl font-serif">
                             <app-icon name="user-check" [size]="20"></app-icon>
                             Adopt a Persona
                           </h2>
-                          <p class="text-sm text-[var(--text-color-muted)]">Select a care role to guide the AI's perspective and tone.</p>
+                          <p class="text-sm text-(--text-color-muted)">Select a care role to guide the AI's perspective and tone.</p>
                         </div>
-                        <div class="flex flex-wrap gap-2">
+                        <div class="flex flex-wrap items-center gap-2">
                           @for (role of careRoles(); track role.name) {
-                            <button (click)="setCareRole(role)"
-                                    [class.bg-[var(--text-accent)]]="activeCareRoles().has(role.name)"
-                                    [class.text-[var(--primary-cta-text)]]="activeCareRoles().has(role.name)"
-                                    [class.bg-[var(--button-bg)]]="!activeCareRoles().has(role.name)"
-                                    [class.hover:bg-[var(--button-bg-hover)]]="!activeCareRoles().has(role.name)"
-                                    class="flex items-center justify-center gap-2 text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] rounded-lg border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
-                              <app-icon [name]="role.icon" [size]="18"></app-icon>
-                              <span>{{ role.name }}</span>
-                            </button>
+                            <div class="relative group/role">
+                              <button (click)="setCareRole(role)"
+                                      [class.bg-(--text-accent)]="activeCareRoles().has(role.name)"
+                                      [class.text-(--primary-cta-text)]="activeCareRoles().has(role.name)"
+                                      [class.bg-(--button-bg)]="!activeCareRoles().has(role.name)"
+                                      [class.hover:bg-(--button-bg-hover)]="!activeCareRoles().has(role.name)"
+                                      class="flex items-center justify-center gap-2 text-sm font-medium py-2 px-4 min-h-12 min-w-12 rounded-lg border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
+                                <app-icon [name]="role.icon" [size]="18"></app-icon>
+                                <span>{{ role.name }}</span>
+                                @if (role.isCustom) {
+                                  <span class="text-[10px] uppercase font-mono px-1 py-0.5 rounded bg-amber-500/20 text-amber-300">Custom</span>
+                                }
+                              </button>
+                              @if (role.isCustom) {
+                                <button (click)="deleteCustomRole(role, $event)" title="Delete custom role" class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center text-xs opacity-0 group-hover/role:opacity-100 transition-opacity shadow focus:opacity-100 cursor-pointer">
+                                  &times;
+                                </button>
+                              }
+                            </div>
                           }
+                          <button (click)="openCustomRoleModal()" class="flex items-center justify-center gap-1.5 text-xs font-semibold py-2 px-3.5 min-h-12 rounded-lg border border-dashed border-(--text-accent) text-(--text-accent) hover:bg-(--text-accent)/10 transition-colors cursor-pointer">
+                            <app-icon name="plus" [size]="16" fallback="sparkles"></app-icon>
+                            <span>+ Custom Role</span>
+                          </button>
                         </div>
                         @if (gistInput() && activeCareRoles().size > 0) {
                           <div class="relative">
-                            <p class="text-xs text-[var(--text-color-muted)] mb-1">Combined persona guidance — edit freely before generating.</p>
-                            <textarea id="gist-input" name="gist-input" [ngModel]="gistInput()" (ngModelChange)="gistInput.set($event)" class="w-full h-28 p-3 text-sm bg-[var(--card-bg-subtle)] border border-[var(--border-color)] rounded-lg focus:ring-2 focus:ring-[var(--ring-color)] focus:outline-none transition-all resize-y" aria-label="Persona guiding principle" autocomplete="off"></textarea>
-                            <button (click)="clearActiveRole()" class="absolute top-6 right-2 flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" aria-label="Clear persona">
+                            <p class="text-xs text-(--text-color-muted) mb-1">Combined persona guidance — edit freely before generating.</p>
+                            <textarea id="gist-input" name="gist-input" [ngModel]="gistInput()" (ngModelChange)="gistInput.set($event)" class="w-full h-28 p-3 text-sm bg-(--card-bg-subtle) border border-(--border-color) rounded-lg focus:ring-2 focus:ring-(--ring-color) focus:outline-none transition-all resize-y" aria-label="Persona guiding principle" autocomplete="off"></textarea>
+                            <button (click)="clearActiveRole()" class="absolute top-6 right-2 flex items-center justify-center min-w-12 min-h-12 rounded-full hover:bg-(--button-bg) text-(--text-color-muted) focus:outline-none focus:ring-2 focus:ring-(--ring-color)" aria-label="Clear persona">
                               <app-icon name="x" [size]="20"></app-icon>
                             </button>
                           </div>
@@ -596,43 +671,80 @@
 
                 <!-- Step 4: Strategy Selection -->
                 <div class="step-pour" [class.active-step]="selectedStrategiesCount() > 0">
-                <div class="step-section bg-[var(--card-bg)] p-6 rounded-2xl border border-[var(--border-color)] shadow-2xl inset-shadow-sm backdrop-blur-sm relative overflow-hidden">
+                <div class="step-section bg-(--card-bg) p-6 rounded-2xl border border-(--border-color) shadow-2xl inset-shadow-sm backdrop-blur-sm relative overflow-hidden">
                   <div class="space-y-4">
                     <div>
                       <div class="flex items-center justify-between">
-                        <h2 class="text-[var(--text-accent)] flex items-center gap-2 mb-2 text-[var(--font-size-2xl)]">
+                        <h2 class="text-(--text-accent) flex items-center gap-2 mb-2 text-2xl font-serif">
                           <app-icon [name]="appMode() === 'care' ? 'clipboard-list' : 'sparkles'" [size]="20"></app-icon>
                           {{ appMode() === 'care' ? 'Select Care Approaches' : 'Pick Your Provocations' }}
                         </h2>
                         <div class="flex items-center gap-2 text-sm">
-                          <button (click)="selectAllStrategies()" class="hover:underline text-[var(--text-color-muted)] min-h-[48px] min-w-[48px] px-2 focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)] rounded">Select All</button>
-                          <span class="text-[var(--text-color-subtle)]">|</span>
-                          <button (click)="clearSelection()" class="hover:underline text-[var(--text-color-muted)] min-h-[48px] min-w-[48px] px-2 focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)] rounded">Clear</button>
+                          <button (click)="selectAllStrategies()" class="hover:underline text-(--text-color-muted) min-h-12 min-w-12 px-2 focus:outline-none focus:ring-2 focus:ring-(--ring-color) rounded">Select All</button>
+                          <span class="text-(--text-color-subtle)">|</span>
+                          <button (click)="clearSelection()" class="hover:underline text-(--text-color-muted) min-h-12 min-w-12 px-2 focus:outline-none focus:ring-2 focus:ring-(--ring-color) rounded">Clear</button>
                         </div>
                       </div>
-                      <p class="text-sm text-[var(--text-color-muted)]">{{ appMode() === 'care' ? 'Select a few approaches, or leave blank for a curated mix.' : 'Each one shifts the field differently. Choose a few, or let chance decide.' }}</p>
+                      <p class="text-sm text-(--text-color-muted)">{{ appMode() === 'care' ? 'Select a few approaches, or leave blank for a curated mix.' : 'Each one shifts the field differently. Choose a few, or let chance decide.' }}</p>
                     </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                      @for (strategy of availableStrategies(); track strategy.id) {
-                        <button (click)="toggleStrategy(strategy.id)"
-                                class="strategy-button group/strategy"
-                                [class.selected]="isStrategySelected(strategy.id)"
-                                [attr.aria-pressed]="isStrategySelected(strategy.id)"
-                                [style.--strategy-icon-color]="'var(--strategy-icon-' + strategy.id + ')'">
-                          <div class="flex items-center gap-2 mb-1">
-                            <app-icon [name]="strategy.icon" [size]="18"
-                                      class="shrink-0 strategy-icon"
-                                      [class.text-[var(--strategy-icon-color)]]="isStrategySelected(strategy.id)"></app-icon>
-                            <span class="text-sm font-semibold leading-tight">{{ appMode() === 'care' ? strategy.careModeName : strategy.name }}</span>
-                          </div>
-                          <p class="hidden sm:block text-xs text-[var(--text-color-muted)] leading-snug">
-                            {{ appMode() === 'care' ? strategy.careModeDescription : strategy.description }}
-                          </p>
-                        </button>
-                      }
+                    <!-- Section A: Creative Provocations -->
+                    <div>
+                      <div class="text-xs font-bold uppercase tracking-wider text-(--text-color-muted) mb-2.5 flex items-center gap-1.5">
+                        <app-icon name="sparkles" [size]="14" class="text-(--text-accent)"></app-icon>
+                        <span>{{ appMode() === 'care' ? 'Exploratory & Divergent Perspectives' : 'Divergent Provocations & Perspective Shifts' }}</span>
+                      </div>
+                      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        @for (strategy of provocationStrategies(); track strategy.id) {
+                          <button (click)="toggleStrategy(strategy.id)"
+                                  class="strategy-button group/strategy"
+                                  [class.selected]="isStrategySelected(strategy.id)"
+                                  [attr.aria-pressed]="isStrategySelected(strategy.id)"
+                                  [style.--strategy-icon-color]="'var(--strategy-icon-' + strategy.id + ')'">
+                            <div class="flex items-center gap-2 mb-1">
+                              <app-icon [name]="strategy.icon" [size]="18"
+                                        class="shrink-0 strategy-icon"
+                                        [class.text-(--strategy-icon-color)]="isStrategySelected(strategy.id)"></app-icon>
+                              <span class="text-sm font-semibold leading-tight">{{ appMode() === 'care' ? strategy.careModeName : strategy.name }}</span>
+                            </div>
+                            <p class="hidden sm:block text-xs text-(--text-color-muted) leading-snug">
+                              {{ appMode() === 'care' ? strategy.careModeDescription : strategy.description }}
+                            </p>
+                          </button>
+                        }
+                      </div>
                     </div>
+
+                    <!-- Section B: Grounding Counterbalances & Kinship Anchors -->
+                    <div class="pt-2 border-t border-(--border-color)">
+                      <div class="text-xs font-bold uppercase tracking-wider text-(--text-accent) mb-1.5 flex items-center gap-1.5">
+                        <app-icon name="shield-check" [size]="14" class="text-(--text-accent)"></app-icon>
+                        <span>{{ appMode() === 'care' ? 'Rigorous Anchors & Family Kinship (Counterbalance)' : 'Systems Rigor & Kinship Anchors (Counterbalance)' }}</span>
+                      </div>
+                      <p class="text-xs text-(--text-color-muted) mb-3">Ground divergent brainstorming with critical sequence dependencies, failure safeguards, character strengths, and family care dynamics.</p>
+                      
+                      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                        @for (strategy of anchorStrategies(); track strategy.id) {
+                          <button (click)="toggleStrategy(strategy.id)"
+                                  class="strategy-button group/strategy border-2"
+                                  [class.selected]="isStrategySelected(strategy.id)"
+                                  [attr.aria-pressed]="isStrategySelected(strategy.id)"
+                                  [style.--strategy-icon-color]="'var(--strategy-icon-' + strategy.id + ')'">
+                            <div class="flex items-center gap-2 mb-1">
+                              <app-icon [name]="strategy.icon" [size]="18"
+                                        class="shrink-0 strategy-icon"
+                                        [class.text-(--strategy-icon-color)]="isStrategySelected(strategy.id)"></app-icon>
+                              <span class="text-sm font-bold leading-tight text-(--text-color)">{{ appMode() === 'care' ? strategy.careModeName : strategy.name }}</span>
+                            </div>
+                            <p class="text-xs text-(--text-color-muted) leading-snug">
+                              {{ appMode() === 'care' ? strategy.careModeDescription : strategy.description }}
+                            </p>
+                          </button>
+                        }
+                      </div>
+                    </div>
+
                     @if (selectedStrategiesCount() > 0) {
-                      <p class="text-center text-sm text-[var(--text-color-muted)] pt-2">{{ selectedStrategiesCount() }} selected</p>
+                      <p class="text-center text-sm text-(--text-color-muted) pt-2">{{ selectedStrategiesCount() }} strategy(ies) selected</p>
                     }
                   </div>
                 </div>
@@ -647,7 +759,7 @@
                 <div>
                   <button (click)="generateInsights()"
                           [disabled]="isGenerateDisabled()"
-                          class="generate-button w-full font-bold text-lg py-5 px-8 min-h-[48px] rounded-xl shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                          class="generate-button w-full font-bold text-lg py-5 px-8 min-h-12 rounded-xl shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-(--ring-color)">
                     <app-icon [name]="generateButtonIcon()" [size]="22"></app-icon>
                     <span>{{ generateButtonText() }}</span>
                   </button>
@@ -661,15 +773,15 @@
           <section class="animate-pop space-y-6">
             <header class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <h2 class="text-transparent bg-clip-text bg-linear-to-r from-[var(--text-highlight)] to-[var(--text-accent)]">Your Spark Deck</h2>
-                <p class="text-[var(--text-color-muted)] mt-1">{{ savedCount() }} saved item(s)</p>
+                <h2 class="text-transparent bg-clip-text bg-linear-to-r from-(--text-highlight) to-(--text-accent)">Your Spark Deck</h2>
+                <p class="text-(--text-color-muted) mt-1">{{ savedCount() }} saved item(s)</p>
               </div>
               
               @if (savedCount() > 0) {
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-1 max-w-2xl">
                   <!-- Search Input -->
                   <div class="relative flex-1">
-                    <app-icon name="search" [size]="18" class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-color-muted)]"></app-icon>
+                    <app-icon name="search" [size]="18" class="absolute left-3 top-1/2 -translate-y-1/2 text-(--text-color-muted)"></app-icon>
                     <input 
                       id="search-saved"
                       name="search-saved"
@@ -677,20 +789,20 @@
                       [ngModel]="searchQuery()" 
                       (ngModelChange)="searchQuery.set($event)"
                       placeholder="Search insights, problems, or plans..."
-                      class="w-full pl-10 pr-4 py-2 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-full focus:ring-2 focus:ring-[var(--ring-color)] focus:outline-none transition-all text-sm"
+                      class="w-full pl-10 pr-4 py-2 bg-(--card-bg) border border-(--border-color) rounded-full focus:ring-2 focus:ring-(--ring-color) focus:outline-none transition-all text-sm"
                       aria-label="Search saved items"
                       autocomplete="off"
                     >
                     @if (searchQuery()) {
-                      <button (click)="searchQuery.set('')" class="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-color-muted)] hover:text-[var(--text-color)] focus:outline-none" aria-label="Clear search">
+                      <button (click)="searchQuery.set('')" class="absolute right-3 top-1/2 -translate-y-1/2 text-(--text-color-muted) hover:text-(--text-color) focus:outline-none" aria-label="Clear search">
                         <app-icon name="x" [size]="16"></app-icon>
                       </button>
                     }
                   </div>
 
                   <div class="flex items-center gap-2">
-                    <span class="text-sm text-[var(--text-color-muted)] whitespace-nowrap">Sort by:</span>
-                    <button (click)="toggleSort()" class="flex items-center justify-center gap-2 bg-[var(--button-bg)] hover:bg-[var(--button-bg-hover)] text-sm font-medium py-2 px-4 min-h-[48px] min-w-[48px] organic-button border border-[var(--border-color)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
+                    <span class="text-sm text-(--text-color-muted) whitespace-nowrap">Sort by:</span>
+                    <button (click)="toggleSort()" class="flex items-center justify-center gap-2 bg-(--button-bg) hover:bg-(--button-bg-hover) text-sm font-medium py-2 px-4 min-h-12 min-w-12 organic-button border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color)">
                       @if (sortOrder() === 'newest') {
                         <app-icon name="arrow-down" [size]="18"></app-icon>
                         <span>Newest</span>
@@ -699,25 +811,32 @@
                         <span>Oldest</span>
                       }
                     </button>
+
+                    <button (click)="exportDpoDataset()" 
+                            class="flex items-center justify-center gap-1.5 bg-(--button-bg) hover:bg-(--button-bg-hover) text-xs font-semibold py-2 px-3 min-h-12 organic-button border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color)"
+                            title="Export pairwise DPO preference dataset for fine-tuning open models (Gemma/Llama)">
+                      <app-icon name="download" [size]="16"></app-icon>
+                      <span>Export DPO (.jsonl)</span>
+                    </button>
                   </div>
                 </div>
               }
             </header>
             
             @if (savedCount() === 0) {
-              <div class="text-center py-20 bg-[var(--card-bg-subtle)] organic-shape">
+              <div class="text-center py-20 bg-(--card-bg-subtle) organic-shape">
                 <div class="mb-6 opacity-10">
                   <img [src]="logoPath()" alt="" class="h-20 w-auto mx-auto grayscale">
                 </div>
                 <h3 class="font-serif">Your Spark Deck is Empty</h3>
-                <p class="text-[var(--text-color-muted)] mt-2 italic">Generate insights to fill your deck</p>
+                <p class="text-(--text-color-muted) mt-2 italic">Generate insights to fill your deck</p>
               </div>
             } @else if (filteredSavedItems().length === 0) {
-              <div class="text-center py-20 bg-[var(--card-bg-subtle)] organic-shape">
-                <app-icon name="search" [size]="48" class="text-[var(--text-color-muted)] mx-auto mb-4"></app-icon>
+              <div class="text-center py-20 bg-(--card-bg-subtle) organic-shape">
+                <app-icon name="search" [size]="48" class="text-(--text-color-muted) mx-auto mb-4"></app-icon>
                 <h3 class="font-serif">No matches found</h3>
-                <p class="text-[var(--text-color-muted)] mt-2">Try adjusting your search query to find what you're looking for.</p>
-                <button (click)="searchQuery.set('')" class="mt-4 text-[var(--text-accent)] hover:underline focus:outline-none">Clear search</button>
+                <p class="text-(--text-color-muted) mt-2">Try adjusting your search query to find what you're looking for.</p>
+                <button (click)="searchQuery.set('')" class="mt-4 text-(--text-accent) hover:underline focus:outline-none">Clear search</button>
               </div>
             } @else {
               <div class="space-y-4">
@@ -725,18 +844,18 @@
                   @switch (item.type) {
                     @case ('insight') {
                       <div class="p-4 organic-shape flex items-start gap-4" [style.--strategy-color]="'var(--strategy-' + getStrategyId(item.strategyName) + ')'">
-                          <div class="w-10 h-10 rounded-lg bg-[var(--strategy-color)]/20 flex items-center justify-center text-[var(--strategy-color)] shrink-0 mt-1">
+                          <div class="w-10 h-10 rounded-lg bg-(--strategy-color)/20 flex items-center justify-center text-(--strategy-color) shrink-0 mt-1">
                             <app-icon [name]="getStrategyIcon(item.strategyName)" [size]="24"></app-icon>
                           </div>
                           <div class="flex-1">
                             <p class="text-base/relaxed">{{ item.text }}</p>
-                            <div class="text-sm text-[var(--text-color-muted)] mt-2 flex items-center flex-wrap gap-x-4 gap-y-1">
+                            <div class="text-sm text-(--text-color-muted) mt-2 flex items-center flex-wrap gap-x-4 gap-y-1">
                               <span>Saved: <strong class="font-semibold">{{ formatDate(item.timestamp) }}</strong></span>
-                              <span>From: <strong class="font-semibold truncate max-w-[200px]">{{ item.problem }}</strong></span>
+                              <span>From: <strong class="font-semibold truncate max-w-50">{{ item.problem }}</strong></span>
                               <span>Strategy: <strong class="font-semibold">{{ item.strategyName }}</strong></span>
                             </div>
                           </div>
-                          <button (click)="deleteItem(item.id)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-label]="formatAriaLabel('Delete saved insight', item.text)">
+                          <button (click)="deleteItem(item.id)" class="flex items-center justify-center min-w-12 min-h-12 rounded-full hover:bg-(--button-bg-hover) text-(--text-color-muted) focus:outline-none focus:ring-2 focus:ring-(--ring-color)" [attr.aria-label]="formatAriaLabel('Delete saved insight', item.text)">
                             <app-icon name="trash" [size]="20"></app-icon>
                           </button>
                       </div>
@@ -745,38 +864,38 @@
                       @let id = 'saved-care-plan-' + item.problem;
                       <div class="p-4 organic-shape">
                         <div class="flex items-start gap-4">
-                          <div class="w-10 h-10 rounded-lg bg-[var(--text-accent)]/20 flex items-center justify-center text-[var(--text-accent)] shrink-0 mt-1">
+                          <div class="w-10 h-10 rounded-lg bg-(--text-accent)/20 flex items-center justify-center text-(--text-accent) shrink-0 mt-1">
                             <app-icon name="heart-pulse" [size]="24"></app-icon>
                           </div>
                           <div class="flex-1">
                             <h3 class="font-serif">Care Plan for: {{ item.problem }}</h3>
-                            <div class="text-sm text-[var(--text-color-muted)] mt-1">Saved: <strong class="font-semibold">{{ formatDate(item.timestamp) }}</strong></div>
+                            <div class="text-sm text-(--text-color-muted) mt-1">Saved: <strong class="font-semibold">{{ formatDate(item.timestamp) }}</strong></div>
                           </div>
                           <div class="flex items-center gap-1">
-                            <button (click)="copyCarePlan(item.plan, item.problem)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" aria-label="Copy saved care plan">
+                            <button (click)="copyCarePlan(item.plan, item.problem)" class="flex items-center justify-center min-w-12 min-h-12 rounded-full hover:bg-(--button-bg-hover) text-(--text-color-muted) focus:outline-none focus:ring-2 focus:ring-(--ring-color)" aria-label="Copy saved care plan">
                                 @if (copiedId() === id) {
                                     <app-icon name="check" [size]="20" class="text-green-500"></app-icon>
                                 } @else {
                                     <app-icon name="copy" [size]="20"></app-icon>
                                 }
                             </button>
-                            <button (click)="deleteItem(item.id)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-label]="formatAriaLabel('Delete saved care plan for', item.problem)">
+                            <button (click)="deleteItem(item.id)" class="flex items-center justify-center min-w-12 min-h-12 rounded-full hover:bg-(--button-bg-hover) text-(--text-color-muted) focus:outline-none focus:ring-2 focus:ring-(--ring-color)" [attr.aria-label]="formatAriaLabel('Delete saved care plan for', item.problem)">
                                 <app-icon name="trash" [size]="20"></app-icon>
                             </button>
-                            <button (click)="toggleCollapse(item.id)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-expanded]="!isCollapsed(item.id)" [attr.aria-label]="isCollapsed(item.id) ? 'Expand care plan' : 'Collapse care plan'">
+                            <button (click)="toggleCollapse(item.id)" class="flex items-center justify-center min-w-12 min-h-12 rounded-full hover:bg-(--button-bg-hover) text-(--text-color-muted) focus:outline-none focus:ring-2 focus:ring-(--ring-color)" [attr.aria-expanded]="!isCollapsed(item.id)" [attr.aria-label]="isCollapsed(item.id) ? 'Expand care plan' : 'Collapse care plan'">
                               <app-icon [name]="isCollapsed(item.id) ? 'chevron-down' : 'chevron-up'" [size]="20"></app-icon>
                             </button>
                           </div>
                         </div>
                         @if (!isCollapsed(item.id)) {
-                          <div class="mt-4 pt-4 border-t border-[var(--border-color)] space-y-4 pl-14">
+                          <div class="mt-4 pt-4 border-t border-(--border-color) space-y-4 pl-14">
                             @for (section of getCarePlanSections(item.plan); track section.id) {
                               <div>
                                   <h5 class="flex items-center gap-2 mb-1">
-                                      <app-icon [name]="section.icon" [size]="16" class="text-[var(--text-color-muted)]"></app-icon>
+                                      <app-icon [name]="section.icon" [size]="16" class="text-(--text-color-muted)"></app-icon>
                                       {{ section.title }}
                                   </h5>
-                                  <ul class="list-disc pl-8 text-sm space-y-1 text-[var(--text-color-muted)]">
+                                  <ul class="list-disc pl-8 text-sm space-y-1 text-(--text-color-muted)">
                                       @for (planItem of section.items; track planItem) {
                                           <li>{{ planItem }}</li>
                                       }
@@ -791,41 +910,41 @@
                       @let id = 'saved-creative-plan-' + item.problem;
                       <div class="p-4 organic-shape">
                         <div class="flex items-start gap-4">
-                          <div class="w-10 h-10 rounded-lg bg-[var(--text-accent)]/20 flex items-center justify-center text-[var(--text-accent)] shrink-0 mt-1">
+                          <div class="w-10 h-10 rounded-lg bg-(--text-accent)/20 flex items-center justify-center text-(--text-accent) shrink-0 mt-1">
                             <app-icon name="git-branch" [size]="24"></app-icon>
                           </div>
                           <div class="flex-1">
                             <h3 class="font-serif">Creative Action Plan for: {{ item.problem }}</h3>
-                            <div class="text-sm text-[var(--text-color-muted)] mt-1">Saved: <strong class="font-semibold">{{ formatDate(item.timestamp) }}</strong></div>
+                            <div class="text-sm text-(--text-color-muted) mt-1">Saved: <strong class="font-semibold">{{ formatDate(item.timestamp) }}</strong></div>
                           </div>
                           <div class="flex items-center gap-1">
-                            <button (click)="copyCreativePlan(item.plan, item.problem)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" aria-label="Copy saved action plan">
+                            <button (click)="copyCreativePlan(item.plan, item.problem)" class="flex items-center justify-center min-w-12 min-h-12 rounded-full hover:bg-(--button-bg-hover) text-(--text-color-muted) focus:outline-none focus:ring-2 focus:ring-(--ring-color)" aria-label="Copy saved action plan">
                                 @if (copiedId() === id) {
                                     <app-icon name="check" [size]="20" class="text-green-500"></app-icon>
                                 } @else {
                                     <app-icon name="copy" [size]="20"></app-icon>
                                 }
                             </button>
-                            <button (click)="deleteItem(item.id)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-label]="formatAriaLabel('Delete saved action plan for', item.problem)">
+                            <button (click)="deleteItem(item.id)" class="flex items-center justify-center min-w-12 min-h-12 rounded-full hover:bg-(--button-bg-hover) text-(--text-color-muted) focus:outline-none focus:ring-2 focus:ring-(--ring-color)" [attr.aria-label]="formatAriaLabel('Delete saved action plan for', item.problem)">
                                 <app-icon name="trash" [size]="20"></app-icon>
                             </button>
-                            <button (click)="toggleCollapse(item.id)" class="flex items-center justify-center min-w-[48px] min-h-[48px] rounded-full hover:bg-[var(--button-bg-hover)] text-[var(--text-color-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]" [attr.aria-expanded]="!isCollapsed(item.id)" [attr.aria-label]="isCollapsed(item.id) ? 'Expand action plan' : 'Collapse action plan'">
+                            <button (click)="toggleCollapse(item.id)" class="flex items-center justify-center min-w-12 min-h-12 rounded-full hover:bg-(--button-bg-hover) text-(--text-color-muted) focus:outline-none focus:ring-2 focus:ring-(--ring-color)" [attr.aria-expanded]="!isCollapsed(item.id)" [attr.aria-label]="isCollapsed(item.id) ? 'Expand action plan' : 'Collapse action plan'">
                               <app-icon [name]="isCollapsed(item.id) ? 'chevron-down' : 'chevron-up'" [size]="20"></app-icon>
                             </button>
                           </div>
                         </div>
                         @if (!isCollapsed(item.id)) {
-                          <div class="mt-4 pt-4 border-t border-[var(--border-color)] space-y-4 pl-14">
+                          <div class="mt-4 pt-4 border-t border-(--border-color) space-y-4 pl-14">
                             @for (section of getCreativePlanSections(item.plan); track section.id) {
                               <div>
                                   <h5 class="flex items-center gap-2 mb-1">
-                                      <app-icon [name]="section.icon" [size]="16" class="text-[var(--text-color-muted)]"></app-icon>
+                                      <app-icon [name]="section.icon" [size]="16" class="text-(--text-color-muted)"></app-icon>
                                       {{ section.title }}
                                   </h5>
                                   @if (section.title === 'Conceptual Goal') {
-                                      <p class="pl-8 text-sm text-[var(--text-color)]">{{ section.items[0] }}</p>
+                                      <p class="pl-8 text-sm text-(--text-color)">{{ section.items[0] }}</p>
                                   } @else {
-                                      <ul class="list-disc pl-8 text-sm space-y-1 text-[var(--text-color-muted)]">
+                                      <ul class="list-disc pl-8 text-sm space-y-1 text-(--text-color-muted)">
                                           @for (planItem of section.items; track planItem) {
                                               <li>{{ planItem }}</li>
                                           }
@@ -851,58 +970,93 @@
                       [(chaosBehavior)]="chaosBehavior"
                       (back)="setView('generator')"></app-help>
           } @placeholder {
-            <div class="h-screen bg-[var(--bg-color)] animate-pulse"></div>
+            <div class="h-screen bg-(--bg-color) animate-pulse"></div>
           }
         }
       }
     </div>
   </main>
   } @else {
-    <!-- Glassmorphic Gemini API Key Setup Overlay -->
+    <!-- Glassmorphic Gemini & On-Device AI Setup Overlay -->
     <main class="flex-1 flex items-center justify-center p-4 z-20 relative non-printable animate-pop">
-      <div class="max-w-md w-full bg-white/5 backdrop-blur-xl border border-[var(--border-color)] rounded-2xl p-8 shadow-2xl flex flex-col items-center text-center">
+      <div class="max-w-lg w-full bg-white/5 backdrop-blur-xl border border-(--border-color) rounded-3xl p-8 shadow-2xl flex flex-col items-center text-center">
         
         <!-- Premium Brand Icon / Logo -->
-        <div class="p-3 bg-white/10 backdrop-blur-md rounded-2xl shadow-inner border border-[var(--border-accent)] overflow-hidden mb-6">
+        <div class="p-3 bg-white/10 backdrop-blur-md rounded-2xl shadow-inner border border-(--border-accent) overflow-hidden mb-5">
            <img [src]="logoPath()" alt="Pivot & Pulse Logo" class="h-16 w-16 object-contain" width="64" height="64">
         </div>
         
-        <h2 class="font-serif text-[var(--font-size-3xl)] mb-2 tracking-tight">Pivot & Pulse</h2>
-        <p class="text-[var(--font-size-base)] text-[var(--text-color-muted)] mb-6 max-w-sm">
-          Welcome to your fluid thinking partner. To generate insights, please enter your Gemini API Key.
+        <h2 class="font-serif text-3xl mb-1.5 tracking-tight">Pivot & Pulse</h2>
+        <p class="text-sm text-(--text-color-muted) mb-5 max-w-md">
+          Welcome to your fluid thinking partner for creative innovation & intergenerational care strategy. Choose how you'd like to power your session:
         </p>
 
-        <div class="w-full flex flex-col gap-4">
+        <!-- On-Device AI Quick-Launch Card (If Detected) -->
+        @if (chromeAiAvailable()) {
+          <div class="w-full mb-4 p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-left flex items-center justify-between gap-3">
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>Chrome Built-in AI Detected</span>
+              </div>
+              <div class="text-[11px] text-(--text-color-muted) truncate">Gemini Nano on-device • 100% Private • Zero API Key</div>
+            </div>
+            <button (click)="useChromeOnDeviceAi()" 
+                    class="py-2 px-3.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-md shrink-0 cursor-pointer">
+              Launch On-Device
+            </button>
+          </div>
+        }
+
+        @if (ollamaAvailable()) {
+          <div class="w-full mb-4 p-3.5 bg-cyan-500/10 border border-cyan-500/30 rounded-2xl text-left flex items-center justify-between gap-3">
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-bold text-cyan-400 flex items-center gap-1.5">
+                <span class="h-2 w-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                <span>Local Ollama Detected (localhost:11434)</span>
+              </div>
+              <div class="text-[11px] text-(--text-color-muted) truncate">{{ ollamaModels().join(', ') || 'Gemma 2' }} • Offline execution</div>
+            </div>
+            <button (click)="useLocalOllama()" 
+                    class="py-2 px-3.5 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white transition-all shadow-md shrink-0 cursor-pointer">
+              Launch Local Gemma
+            </button>
+          </div>
+        }
+
+        <div class="w-full flex flex-col gap-3.5">
+          <!-- Gemini Cloud API Key Input -->
           <div class="relative w-full">
             <input #apiKeyInput 
                    type="password" 
                    placeholder="Enter Gemini API Key (AI_...)" 
-                   class="w-full bg-black/20 border border-[var(--border-color)] rounded-xl py-3 px-4 text-center focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)] text-[var(--text-color)] placeholder-[var(--text-color-muted)] transition-all font-mono"
+                   class="w-full bg-black/20 border border-(--border-color) rounded-xl py-3 px-4 text-center focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-(--text-color) placeholder-(--text-color-muted) transition-all font-mono text-sm"
                    (keyup.enter)="saveApiKey(apiKeyInput.value)">
           </div>
 
           <button (click)="saveApiKey(apiKeyInput.value)" 
-                  class="w-full py-3 px-6 rounded-xl font-bold bg-[var(--text-accent)] text-[var(--setup-btn-text)] hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-[var(--text-accent)]/20 focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
-            Save & Get Started
+                  class="w-full py-3 px-6 rounded-xl font-bold bg-(--text-accent) text-(--setup-btn-text) hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-(--text-accent)/20 focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
+            Save & Connect Gemini Cloud
           </button>
-                <button (click)="activateDemoMode()" 
-                  class="w-full py-3 px-6 rounded-xl font-semibold bg-white/5 border border-white/10 text-[var(--text-color)] hover:bg-white/10 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-[var(--ring-color)]">
-            Try a Demo (No Key Required)
+
+          <button (click)="activateDemoMode()" 
+                  class="w-full py-2.5 px-6 rounded-xl font-semibold bg-white/5 border border-white/10 text-(--text-color) hover:bg-white/10 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer text-sm">
+            Try Demo Mode (Instant Preview)
           </button>
 
           <!-- ORCID Sign-in / Badge on Setup Card -->
-          <div class="border-t border-white/10 pt-4 mt-2 flex flex-col items-center w-full">
+          <div class="border-t border-white/10 pt-3.5 mt-1 flex flex-col items-center w-full">
             @if (orcidId()) {
-              <div class="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl px-4 py-3 w-full">
+              <div class="flex items-center justify-between bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 w-full">
                 <div class="flex items-center gap-2 text-left">
                   <img src="assets/orcid.svg" alt="ORCID iD icon logo" class="h-5 w-5" width="20" height="20">
                   <div class="text-xs">
-                    <div class="font-bold text-[var(--text-color)]">{{ orcidName() }}</div>
-                    <div class="text-[var(--text-color-muted)] font-mono">{{ orcidId() }}</div>
+                    <div class="font-bold text-(--text-color)">{{ orcidName() }}</div>
+                    <div class="text-(--text-color-muted) font-mono">{{ orcidId() }}</div>
                   </div>
                 </div>
                 <button (click)="logoutOrcid()" 
-                        class="text-xs text-[var(--color-danger)] hover:underline ml-2" 
+                        class="text-xs text-(--color-danger) hover:underline ml-2 cursor-pointer" 
                         title="Disconnect ORCID">
                   Disconnect
                 </button>
@@ -910,30 +1064,178 @@
             } @else {
               <button (click)="loginWithOrcid()" 
                       [disabled]="isOrcidConnecting()"
-                      class="w-full py-3 px-6 rounded-xl font-semibold border border-[#a6d13d]/40 text-[#a6d13d] bg-[#a6d13d]/5 hover:bg-[#a6d13d]/10 active:scale-95 transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-[#a6d13d] cursor-pointer">
-                <img src="assets/orcid.svg" alt="ORCID iD icon logo placeholder" class="h-5 w-5" width="20" height="20">
-                <span>{{ isOrcidConnecting() ? 'Connecting ORCID...' : 'Connect your ORCID iD' }}</span>
+                      class="w-full py-2.5 px-6 rounded-xl font-semibold border border-[#a6d13d]/40 text-[#a6d13d] bg-[#a6d13d]/5 hover:bg-[#a6d13d]/10 active:scale-95 transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-[#a6d13d] cursor-pointer text-xs">
+                <img src="assets/orcid.svg" alt="ORCID iD icon logo placeholder" class="h-4 w-4" width="16" height="16">
+                <span>{{ isOrcidConnecting() ? 'Connecting ORCID...' : 'Connect Researcher ORCID iD' }}</span>
               </button>
             }
             @if (orcidError(); as err) {
-              <div class="mt-2 text-xs text-[var(--color-danger)] text-left w-full">{{ err }}</div>
+              <div class="mt-2 text-xs text-(--color-danger) text-left w-full">{{ err }}</div>
             }
           </div>
         </div>
 
-        <div class="mt-6 text-[var(--font-size-sm)] text-[var(--text-color-muted)]">
+        <!-- Free API Key Help Text -->
+        <div class="mt-4 text-xs text-(--text-color-muted)">
           Need a key? Get one for free at 
-          <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" class="text-[var(--text-accent)] hover:underline font-semibold">
+          <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" class="text-(--text-accent) hover:underline font-semibold">
             Google AI Studio (ai.dev)
           </a>.
         </div>
 
-        <div class="mt-6 text-xs text-[var(--text-color-muted)] flex flex-wrap justify-center gap-x-4 gap-y-1 opacity-80 border-t border-[var(--border-color)] pt-4 w-full">
-          <a href="/terms" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--text-accent)] transition-colors">Terms & Conditions</a>
-          <span class="text-[var(--border-color)]">•</span>
-          <a href="/privacy" target="_blank" rel="noopener noreferrer" class="hover:text-[var(--text-accent)] transition-colors">Privacy Policy</a>
+        <!-- Privacy & Safety Micro-Badges -->
+        <div class="mt-4 grid grid-cols-2 gap-2 text-left w-full pt-3 border-t border-(--border-color)">
+          <div class="p-2 rounded-lg bg-white/5 border border-white/5 flex items-start gap-1.5">
+            <app-icon name="shield-check" [size]="14" class="text-emerald-400 shrink-0 mt-0.5"></app-icon>
+            <div class="text-[11px] text-(--text-color-muted) leading-tight">
+              <strong class="text-(--text-color) font-semibold block">HIPAA Compliant</strong>
+              Ephemeral RAM streams, zero disk storage
+            </div>
+          </div>
+          <div class="p-2 rounded-lg bg-white/5 border border-white/5 flex items-start gap-1.5">
+            <app-icon name="users" [size]="14" class="text-blue-400 shrink-0 mt-0.5"></app-icon>
+            <div class="text-[11px] text-(--text-color-muted) leading-tight">
+              <strong class="text-(--text-color) font-semibold block">COPPA Kinship</strong>
+              Child & elder safe, zero PII tracking
+            </div>
+          </div>
+        </div>
+
+        <!-- Terms & Privacy Links -->
+        <div class="mt-4 text-xs text-(--text-color-muted) flex flex-wrap justify-center gap-x-4 gap-y-1 opacity-80 pt-2 w-full">
+          <a href="/terms" target="_blank" rel="noopener noreferrer" class="hover:text-(--text-accent) transition-colors">Terms & Conditions</a>
+          <span class="text-(--border-color)">•</span>
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" class="hover:text-(--text-accent) transition-colors">Privacy Policy</a>
+          <span class="text-(--border-color)">•</span>
+          <span class="text-[11px]">CC BY-SA 4.0 Open Science</span>
         </div>
       </div>
     </main>
+  }
+
+  <!-- ========================================== -->
+  <!-- MODAL: Custom Persona / Care Role Builder -->
+  <!-- ========================================== -->
+  @if (showCustomRoleModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" role="dialog" aria-modal="true" aria-labelledby="custom-role-title">
+      <div class="bg-(--card-bg) border border-(--border-color) rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-5 overflow-hidden">
+        <div class="flex items-center justify-between border-b border-(--border-color) pb-3">
+          <div class="flex items-center gap-2 text-(--text-accent)">
+            <app-icon name="user-check" [size]="22"></app-icon>
+            <h3 id="custom-role-title" class="font-bold text-lg">Custom Persona Builder</h3>
+          </div>
+          <button (click)="closeCustomRoleModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-(--text-color-muted) hover:bg-(--button-bg-hover) cursor-pointer" aria-label="Close modal">
+            <app-icon name="x" [size]="18"></app-icon>
+          </button>
+        </div>
+
+        <div class="space-y-4 text-sm">
+          <div>
+            <label for="custom-role-name" class="block font-semibold mb-1 text-(--text-color)">Persona / Role Name</label>
+            <input id="custom-role-name" type="text" [ngModel]="customRoleName()" (ngModelChange)="customRoleName.set($event)" placeholder="e.g., Hospice Chaplain, Pharmacist, Grandchild" class="w-full p-2.5 bg-(--card-bg-subtle) border border-(--border-color) rounded-lg focus:ring-2 focus:ring-(--ring-color) focus:outline-none text-(--text-color)">
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label for="custom-role-category" class="block font-semibold mb-1 text-(--text-color)">Category</label>
+              <select id="custom-role-category" [ngModel]="customRoleCategory()" (ngModelChange)="customRoleCategory.set($event)" class="w-full p-2.5 bg-(--card-bg-subtle) border border-(--border-color) rounded-lg focus:ring-2 focus:ring-(--ring-color) focus:outline-none text-(--text-color)">
+                <option value="clinical">Clinical</option>
+                <option value="support">Supportive / Social</option>
+                <option value="creative">Creative / Lateral</option>
+              </select>
+            </div>
+            <div>
+              <label for="custom-role-icon" class="block font-semibold mb-1 text-(--text-color)">Icon</label>
+              <select id="custom-role-icon" [ngModel]="customRoleIcon()" (ngModelChange)="customRoleIcon.set($event)" class="w-full p-2.5 bg-(--card-bg-subtle) border border-(--border-color) rounded-lg focus:ring-2 focus:ring-(--ring-color) focus:outline-none text-(--text-color)">
+                <option value="user-check">User Check</option>
+                <option value="heart">Heart</option>
+                <option value="shield-check">Shield</option>
+                <option value="smile">Smile</option>
+                <option value="activity">Activity</option>
+                <option value="clipboard-list">Clipboard</option>
+                <option value="users">Users</option>
+                <option value="home">Home</option>
+                <option value="sparkles">Sparkles</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label for="custom-role-gist" class="block font-semibold mb-1 text-(--text-color)">Guiding Lens / Perspective Instructions</label>
+            <textarea id="custom-role-gist" [ngModel]="customRoleGist()" (ngModelChange)="customRoleGist.set($event)" rows="4" placeholder="How should this persona analyze situations? What do they prioritize, what tone do they take, and what unique aspects do they notice?" class="w-full p-3 bg-(--card-bg-subtle) border border-(--border-color) rounded-lg focus:ring-2 focus:ring-(--ring-color) focus:outline-none text-(--text-color) resize-y"></textarea>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 border-t border-(--border-color) pt-4">
+          <button (click)="closeCustomRoleModal()" class="py-2 px-4 rounded-lg border border-(--border-color) hover:bg-(--button-bg-hover) text-sm font-medium cursor-pointer">
+            Cancel
+          </button>
+          <button (click)="saveCustomRole()" [disabled]="!customRoleName().trim() || !customRoleGist().trim()" class="py-2 px-5 rounded-lg bg-(--text-accent) text-white hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed text-sm font-semibold cursor-pointer">
+            Save Persona
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ========================================== -->
+  <!-- MODAL: On-Demand Language Translator       -->
+  <!-- ========================================== -->
+  @if (showTranslateModal()) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" role="dialog" aria-modal="true" aria-labelledby="translate-modal-title">
+      <div class="bg-(--card-bg) border border-(--border-color) rounded-2xl shadow-2xl max-w-xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-center justify-between border-b border-(--border-color) pb-3">
+          <div class="flex items-center gap-2 text-(--text-accent)">
+            <app-icon name="globe" [size]="22"></app-icon>
+            <h3 id="translate-modal-title" class="font-bold text-lg">Translate to Language</h3>
+          </div>
+          <button (click)="closeTranslateModal()" class="w-8 h-8 rounded-full flex items-center justify-center text-(--text-color-muted) hover:bg-(--button-bg-hover) cursor-pointer" aria-label="Close modal">
+            <app-icon name="x" [size]="18"></app-icon>
+          </button>
+        </div>
+
+        <p class="text-xs text-(--text-color-muted)">
+          Select target language. Translation is scanned for PII/PHI and executed in real time via Gemini.
+        </p>
+
+        <div class="space-y-3">
+          <div class="text-xs font-semibold uppercase tracking-wider text-(--text-accent)">Portland Sister Cities</div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            @for (lang of supportedLanguages; track lang.code) {
+              @if (lang.isSisterCity) {
+                <button (click)="executeTranslation(lang.code)" class="flex items-center gap-2 p-2.5 rounded-lg border border-(--border-color) bg-(--card-bg-subtle) hover:border-(--text-accent) hover:bg-(--text-accent)/10 text-left transition-all cursor-pointer group">
+                  <span class="text-lg">{{ lang.flag }}</span>
+                  <div class="overflow-hidden">
+                    <div class="text-xs font-semibold truncate group-hover:text-(--text-accent)">{{ lang.name }}</div>
+                    <div class="text-[10px] text-(--text-color-muted) truncate">{{ lang.cityContext }}</div>
+                  </div>
+                </button>
+              }
+            }
+          </div>
+
+          <div class="text-xs font-semibold uppercase tracking-wider text-(--text-accent) pt-2">Global Languages</div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            @for (lang of supportedLanguages; track lang.code) {
+              @if (!lang.isSisterCity) {
+                <button (click)="executeTranslation(lang.code)" class="flex items-center gap-2 p-2.5 rounded-lg border border-(--border-color) bg-(--card-bg-subtle) hover:border-(--text-accent) hover:bg-(--text-accent)/10 text-left transition-all cursor-pointer group">
+                  <span class="text-lg">{{ lang.flag }}</span>
+                  <div class="overflow-hidden">
+                    <div class="text-xs font-semibold truncate group-hover:text-(--text-accent)">{{ lang.name }}</div>
+                    <div class="text-[10px] text-(--text-color-muted) truncate">{{ lang.nativeName }}</div>
+                  </div>
+                </button>
+              }
+            }
+          </div>
+        </div>
+
+        <div class="flex justify-end border-t border-(--border-color) pt-3">
+          <button (click)="closeTranslateModal()" class="py-2 px-4 rounded-lg border border-(--border-color) hover:bg-(--button-bg-hover) text-xs font-medium cursor-pointer">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
   }
 </div>
