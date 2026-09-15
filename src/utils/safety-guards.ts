@@ -35,19 +35,19 @@ export function scanForAcuteTriage(rawText: string | null | undefined): AcuteTri
     return {
       isEmergency: true,
       type: 'crisis',
-      reason: 'Mental Health & Crisis Support Indicator Detected',
+      reason: 'Caregiver Support & 988 Lifeline Available',
       hotline: '988',
       phoneUrl: 'tel:988',
-      actionTitle: 'Call or Text 988 (Suicide & Crisis Lifeline)',
-      guidance: 'If you or someone you know is struggling or in distress, help is available. Free, confidential support is available 24/7 via the 988 Suicide & Crisis Lifeline.'
+      actionTitle: 'Call or Text 988 (Confidential Lifeline)',
+      guidance: 'Caregiving and life challenges can be deeply overwhelming. You do not have to carry this alone. Free, confidential support and caregiver respite guidance is available 24/7 via the 988 Suicide & Crisis Lifeline.'
     };
   }
 
   // Check 2: Acute Medical Emergency (911)
   if (STROKE_REGEX.test(text) || CARDIAC_RESP_REGEX.test(text) || TRAUMA_POISON_REGEX.test(text)) {
-    let specificReason = 'Signs of an acute, life-threatening medical emergency';
-    if (STROKE_REGEX.test(text)) specificReason = 'Signs of potential acute stroke (FAST indicators)';
-    else if (CARDIAC_RESP_REGEX.test(text)) specificReason = 'Signs of potential acute cardiac or respiratory distress';
+    let specificReason = 'Signs that could indicate an urgent medical situation';
+    if (STROKE_REGEX.test(text)) specificReason = 'Noticed signs of potential stroke (FAST indicators)';
+    else if (CARDIAC_RESP_REGEX.test(text)) specificReason = 'Noticed signs of potential acute cardiac or respiratory distress';
 
     return {
       isEmergency: true,
@@ -55,8 +55,8 @@ export function scanForAcuteTriage(rawText: string | null | undefined): AcuteTri
       reason: specificReason,
       hotline: '911',
       phoneUrl: 'tel:911',
-      actionTitle: 'Call 911 Immediately',
-      guidance: 'This description indicates an acute emergency requiring immediate emergency medical evaluation. AI tools are NOT equipped for emergency diagnosis or treatment. Please call 911 or proceed to the nearest Emergency Department immediately.'
+      actionTitle: 'Call 911 for Urgent Help',
+      guidance: 'If someone is experiencing sudden symptoms right now, please call 911 or reach emergency medical care immediately. If this note describes a past event, ongoing rehabilitation, or recovery care, you can safely continue.'
     };
   }
 
@@ -106,7 +106,7 @@ export function scanForPII(rawText: string | null | undefined): string[] {
 export function getClientPiiWarning(rawText: string | null | undefined): string | null {
   const found = scanForPII(rawText);
   if (found.length > 0) {
-    return `Potential ${found.map(f => f.toLowerCase()).join(', ')} detected. Under HIPAA Safe Harbor & privacy guidelines, please de-identify your text before submitting.`;
+    return `To protect family privacy, please tidy detected personal details (${found.map(f => f.toLowerCase()).join(', ')}) before continuing.`;
   }
   return null;
 }

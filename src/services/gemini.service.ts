@@ -63,6 +63,9 @@ export class GeminiService {
     if (userThinking !== null && userThinking !== undefined && userThinking !== '') {
       authHeaders['x-gemini-thinking-budget'] = userThinking;
     }
+    if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('spark_triage_acknowledged') === 'true') {
+      authHeaders['x-triage-acknowledged'] = 'true';
+    }
     return authHeaders;
   }
 

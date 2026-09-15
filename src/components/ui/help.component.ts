@@ -111,7 +111,7 @@ function setStoredThinkingBudget(budget: number): void {
 
         @if (showChangelog()) {
           <div class="mt-4 pt-4 border-t border-(--border-color)/40 space-y-4 text-xs animate-in fade-in duration-200">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
               <div class="p-3 bg-black/20 rounded-xl border border-white/5 space-y-1">
                 <div class="font-bold text-(--text-accent) flex items-center gap-1.5">
                   <app-icon name="shield-check" [size]="14"></app-icon>
@@ -139,6 +139,16 @@ function setStoredThinkingBudget(budget: number): void {
                 </div>
                 <p class="text-(--text-color-muted) leading-relaxed">
                   Export pairwise preference datasets for Hugging Face TRL with ORCID provenance (<a href="https://orcid.org/0009-0008-1372-5381" target="_blank" class="underline hover:text-(--text-highlight)">Phil Gear</a>) plus 5-phase multi-agent dialectical synthesis closure.
+                </p>
+              </div>
+
+              <div class="p-3 bg-black/20 rounded-xl border border-white/5 space-y-1">
+                <div class="font-bold text-emerald-400 flex items-center gap-1.5">
+                  <app-icon name="leaf" [size]="14"></app-icon>
+                  <span>Chill & Dignity-First UX</span>
+                </div>
+                <p class="text-(--text-color-muted) leading-relaxed">
+                  Calm presence with zero alarm sirens, ongoing recovery acknowledgement override, and one-click <strong>"✨ Tidy details for me"</strong> privacy protection.
                 </p>
               </div>
             </div>

@@ -36,12 +36,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Embedded metadata with ORCID researcher attribution ([`0009-0008-1372-5381`](https://orcid.org/0009-0008-1372-5381)).
 - **In-App "What's New in v2.1" Showcase**:
   - Interactive release notes card directly accessible in the website Settings & Guide view (`app-help`).
-- **ClinicalTriageGuard (Acute Red Flag & Crisis Interceptor)**:
+- **Dignity-First & Non-Alarmist Safety Companion (Chill UX)**:
+  - **Calm Presence over Crisis Strobe**: Replaced harsh crimson borders, warning sirens (`🚨`), and punitive terminology (`BLOCKED`, `INTERCEPT`) with warm, earth-toned sage, slate, and amber accents (`Quiet & Private 🌿`, `Privacy Shield 🛡️`).
+  - **Ongoing Recovery & User Autonomy Override**: Distinguishes active emergencies from historical recovery reflections (e.g. past stroke or cardiac rehabilitation) via a one-click acknowledgement (*"This is for ongoing recovery, continue →"*), honoring user agency and bypassing blocks without 400 errors.
+  - **Empowering One-Click Privacy Tidying**: Replaced scolding PII warnings with a compassionate helper flow: a single tap on *"✨ Tidy details for me"* deterministically replaces sensitive contact details with anonymized placeholders (`[phone]`, `[street address]`, `[email]`).
+  - **Compassionate Respite Framing for 988**: Elevated the 988 Suicide & Crisis Lifeline as unconditional emotional support and caregiver respite guidance (*"You don't have to carry this alone"*).
+- **ClinicalTriageGuard (Acute Medical & Crisis Guidance)**:
   - Deterministic pre-flight scanner for acute stroke symptoms (FAST), cardiac/respiratory distress, and psychiatric crisis distress.
-  - Instantly short-circuits generation and surfaces high-visibility emergency actions: tap-to-call **911** for acute medical emergencies and **988 Suicide & Crisis Lifeline** for mental health distress.
+  - Surfaces high-visibility, calm emergency actions: tap-to-call **911** for acute medical emergencies and **988 Suicide & Crisis Lifeline** for caregiver distress.
 - **HipaaSafeHarborGuard (Deep PII/PHI De-Identification & Auto-Scrubbing)**:
   - Expanded regex coverage to Dates of Birth (DOB), Medical Record Numbers (MRN), and Street Addresses across client and server.
-  - Added one-click **"Auto-Scrub Details"** action in the client UI to sanitize sensitive data into safe placeholders (`[dob]`, `[mrn]`, `[street address]`) without manual retyping.
+  - Sanitizes sensitive data into safe placeholders (`[date of birth]`, `[mrn]`, `[street address]`) without requiring manual retyping.
 
 ### Changed
 - Expanded `STRATEGY_MAP` in `server.js` and `STRATEGIES` in `src/models/creative-types.ts` from 18 to 24 models.
@@ -56,29 +61,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.0.0] - 2026-08-20
+## [2.0.0] - 2026-06-10
 
 ### Added
-- **Multi-Engine Intelligence Architecture**:
-  - **Chrome Built-in AI**: On-device Gemini Nano execution via `window.ai` Prompt API with zero network calls and 100% privacy.
+- **Evolution to Pivot & Pulse**:
+  - Rebranded from Insight Spark to **Pivot & Pulse (InsightSpark)**.
+- **Multi-Agent Dialectical Debate Architecture**:
+  - 5-phase structured debate pipeline: strategy selection, multi-perspective debate, and synthesis action bridge.
+- **ORCID Researcher Authentication**:
+  - Secure OAuth integration attributing research and community care plans directly to researcher ORCID records ([`0009-0008-1372-5381`](https://orcid.org/0009-0008-1372-5381)).
+- **Confidential Multi-Engine Intelligence Ladder**:
+  - **Chrome Built-in AI**: Zero-network on-device Gemini Nano execution via `window.ai` Prompt API.
   - **Local Gemma (Ollama)**: Localhost bridge (`localhost:11434`) supporting `gemma2`, `gemma3`, and `gemma4`.
   - **Google Gemini Cloud**: Advanced reasoning with Gemini 2.5 Pro and Gemini Flash.
 - **Two-Tier Shelf Ideation**:
   - Separated creative provocations from grounding counterbalances (FMEA, Critical Path, PERMA+H, Intergenerational Kinship).
 - **Intergenerational Kinship Roles**:
-  - Added multi-generational family perspectives: Daughter, Mother, Grandmother, Son, Father, Grandfather, and Kinship Coordinator.
+  - Multi-generational family perspectives: Daughter, Mother, Grandmother, Son, Father, Grandfather, and Kinship Coordinator.
 - **Web Speech Living Room Audio**:
-  - Browser-native voice dictation and Text-to-Speech playback for multi-generational couch collaboration.
+  - Native voice dictation and synthesized Text-to-Speech playback for living room couch collaboration.
 - **Multilingual & Portland Sister Cities Support**:
   - 19 localized target languages including all 9 Portland official Sister Cities.
 
 ---
 
-## [1.0.0] - 2026-06-01
+## [1.5.0] - 2026-05-04
 
 ### Added
-- Initial release of **Pivot & Pulse (InsightSpark)**.
-- Angular standalone component architecture with Reactive Signals.
-- D3.js force-directed concept graph visualization.
-- Positive psychology (PERMA+H) goal structuring.
-- Creative lateral thinking provocation generator.
+- **Google Cloud & Production Containerization**:
+  - Provisioned dedicated Google Cloud project `insightspark-82c75` (Number: `828814350875`).
+  - Containerized production deployment via Dockerfile and Google Cloud Run (`insight-spark` in `us-west1`).
+  - Configured Firebase Hosting with custom caching headers and reverse-proxy rewrites.
+  - Added stateless Express 5 streaming middleware proxy (`server.js`) ensuring zero disk retention of prompts or PII.
+
+---
+
+## [1.0.0] - 2026-02-12
+
+### Added
+- **Initial Genesis of Insight Spark (Google AI Studio Origin)**:
+  - Conceived in **Google AI Studio** inspired by a thrift store copy of Edward de Bono's lateral thinking book:
+    *"I often go into thrift stores to read their books. I discovered this one on the shelf, bought it, and flipped through it..."* — Phil Gear.
+  - 3,257-line initial standalone architecture across 34 core files:
+    - Angular Standalone component architecture with modern Zoneless Change Detection (`provideZonelessChangeDetection`).
+    - The original 14 lateral thinking strategies grounded in de Bono's divergent provocations.
+    - D3.js force-directed concept graph with real-time physics and node repulsion (`graph-view.component.ts`).
+    - Gemini AI integration service with pre-flight PII data masking (`gemini.service.ts`).
+    - Generative Paul Klee Bauhaus color palette engine (`klee-palette.service.ts`).
+    - Medical data card and vitals trend visualizer (`medical-data-card.component.ts`, `vitals-trend-graph.component.ts`).
+    - Progressive Web App (PWA) manifest and service worker configuration.

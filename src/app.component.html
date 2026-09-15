@@ -586,16 +586,16 @@
                       id="problem-input"
                       name="problem-input"
                       [ngModel]="problemInput()"
-                      (ngModelChange)="problemInput.set($event)"
+                      (ngModelChange)="updateProblemInput($event)"
                       maxlength="2000"
                       rows="4"
                       [placeholder]="appMode() === 'creative' ? 'Describe your challenge, idea, or question...' : 'Describe a de-identified health goal or support challenge...'"
                       class="w-full p-4 text-base bg-(--card-bg) border rounded-xl focus:ring-2 focus:ring-(--ring-color) focus:outline-none transition-all resize-y shadow-lg"
-                      [class.border-(--border-color-strong)]="!piiWarning() && !acuteTriageAlert()"
-                      [class.border-red-500]="!!acuteTriageAlert()"
-                      [class.focus:ring-red-500]="!!acuteTriageAlert()"
-                      [class.border-amber-500]="!acuteTriageAlert() && !!piiWarning()"
-                      [class.focus:ring-amber-500]="!acuteTriageAlert() && !!piiWarning()"
+                      [class.border-(--border-color-strong)]="!piiWarning() && (!acuteTriageAlert() || triageAcknowledged())"
+                      [class.border-amber-500/60]="!triageAcknowledged() && !!acuteTriageAlert()"
+                      [class.focus:ring-amber-500/50]="!triageAcknowledged() && !!acuteTriageAlert()"
+                      [class.border-amber-500/60]="!acuteTriageAlert() && !!piiWarning()"
+                      [class.focus:ring-amber-500/50]="!acuteTriageAlert() && !!piiWarning()"
                       [attr.aria-label]="problemInputAriaLabel()"
                       autocomplete="off">
                     </textarea>
@@ -614,21 +614,18 @@
                       </button>
 
                       <!-- Live Privacy & Containment Badge -->
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono border"
-                            [class.bg-red-500/20]="!!acuteTriageAlert()"
-                            [class.border-red-500/40]="!!acuteTriageAlert()"
-                            [class.text-red-300]="!!acuteTriageAlert()"
-                            [class.bg-emerald-500/10]="!piiWarning() && !acuteTriageAlert() && charCount() > 0"
-                            [class.border-emerald-500/30]="!piiWarning() && !acuteTriageAlert() && charCount() > 0"
-                            [class.text-emerald-400]="!piiWarning() && !acuteTriageAlert() && charCount() > 0"
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono border transition-all"
+                            [class.bg-emerald-500/10]="(!piiWarning() && !acuteTriageAlert() && charCount() > 0) || (triageAcknowledged() && !piiWarning())"
+                            [class.border-emerald-500/30]="(!piiWarning() && !acuteTriageAlert() && charCount() > 0) || (triageAcknowledged() && !piiWarning())"
+                            [class.text-emerald-400]="(!piiWarning() && !acuteTriageAlert() && charCount() > 0) || (triageAcknowledged() && !piiWarning())"
                             [class.bg-black/20]="charCount() === 0"
                             [class.border-white/10]="charCount() === 0"
                             [class.text-(--text-color-muted)]="charCount() === 0"
-                            [class.bg-amber-500/15]="!acuteTriageAlert() && !!piiWarning()"
-                            [class.border-amber-500/40]="!acuteTriageAlert() && !!piiWarning()"
-                            [class.text-amber-300]="!acuteTriageAlert() && !!piiWarning()">
-                        <app-icon [name]="acuteTriageAlert() ? 'alert-triangle' : (piiWarning() ? 'alert-triangle' : 'shield-check')" [size]="13"></app-icon>
-                        <span>{{ acuteTriageAlert() ? 'Emergency Intercept' : (piiWarning() ? 'PII Detected (Blocked)' : (charCount() > 0 ? 'Safe & De-Identified' : 'Contained & Private')) }}</span>
+                            [class.bg-amber-500/15]="!!piiWarning() || (!!acuteTriageAlert() && !triageAcknowledged())"
+                            [class.border-amber-500/40]="!!piiWarning() || (!!acuteTriageAlert() && !triageAcknowledged())"
+                            [class.text-amber-300]="!!piiWarning() || (!!acuteTriageAlert() && !triageAcknowledged())">
+                        <app-icon [name]="(!!acuteTriageAlert() && !triageAcknowledged()) ? 'shield' : (piiWarning() ? 'shield' : 'shield-check')" [size]="13"></app-icon>
+                        <span>{{ (!!acuteTriageAlert() && !triageAcknowledged()) ? 'Safety Check Needed' : (triageAcknowledged() && !piiWarning() ? 'Ongoing Recovery Care 🌿' : (piiWarning() ? 'Privacy Shield (Tidy available)' : (charCount() > 0 ? 'Quiet & Private 🌿' : 'Contained & Private 🌿'))) }}</span>
                       </span>
                     </div>
 
@@ -651,54 +648,71 @@
                     </span>
                   </div>
 
-                  <!-- Acute Triage Emergency Intercept Banner -->
+                  <!-- Acute Triage Emergency & Ongoing Recovery Banner -->
                   @if (acuteTriageAlert(); as triage) {
-                    <div role="alert" class="mt-3 p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in"
-                         [class.border-red-500]="triage.type === 'medical'"
-                         [class.bg-red-950/40]="triage.type === 'medical'"
-                         [class.border-purple-500]="triage.type === 'crisis'"
-                         [class.bg-purple-950/40]="triage.type === 'crisis'">
-                      <div class="flex items-start gap-3">
-                        <app-icon name="alert-triangle" [size]="22" class="shrink-0 mt-0.5" [class.text-red-400]="triage.type === 'medical'" [class.text-purple-400]="triage.type === 'crisis'"></app-icon>
-                        <div>
-                          <div class="flex items-center gap-2 flex-wrap">
-                            <span class="font-bold text-[11px] uppercase tracking-wider px-2 py-0.5 rounded text-white font-mono"
-                                  [class.bg-red-600]="triage.type === 'medical'"
-                                  [class.bg-purple-600]="triage.type === 'crisis'">
-                              {{ triage.type === 'medical' ? '🚨 Acute Medical Emergency' : '💜 988 Crisis Lifeline' }}
-                            </span>
-                            <span class="font-bold text-xs text-(--text-color)">{{ triage.reason }}</span>
+                    @if (!triageAcknowledged()) {
+                      <div role="alert" class="mt-3 p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in bg-stone-900/60 border-amber-500/40 text-stone-200">
+                        <div class="flex items-start gap-3">
+                          <app-icon [name]="triage.type === 'crisis' ? 'heart' : 'shield'" [size]="22" class="shrink-0 mt-0.5 text-amber-400"></app-icon>
+                          <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                              <span class="font-bold text-[11px] uppercase tracking-wider px-2 py-0.5 rounded font-mono border"
+                                    [class.bg-amber-500/20]="triage.type === 'medical'"
+                                    [class.border-amber-500/40]="triage.type === 'medical'"
+                                    [class.text-amber-300]="triage.type === 'medical'"
+                                    [class.bg-purple-500/20]="triage.type === 'crisis'"
+                                    [class.border-purple-500/40]="triage.type === 'crisis'"
+                                    [class.text-purple-300]="triage.type === 'crisis'">
+                                {{ triage.type === 'medical' ? 'Urgent Medical Check' : 'Caregiver Respite & Support' }}
+                              </span>
+                              <span class="font-semibold text-xs text-(--text-color)">{{ triage.reason }}</span>
+                            </div>
+                            <p class="text-xs/relaxed text-(--text-color-muted) mt-1.5">{{ triage.guidance }}</p>
                           </div>
-                          <p class="text-xs/relaxed text-(--text-color)/90 mt-1.5">{{ triage.guidance }}</p>
+                        </div>
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
+                          <a [href]="triage.phoneUrl"
+                             class="px-3.5 py-2 rounded-xl font-medium text-xs text-white shadow-md flex items-center justify-center gap-1.5 transition-all hover:opacity-90 active:scale-95 cursor-pointer text-center"
+                             [class.bg-amber-700]="triage.type === 'medical'"
+                             [class.bg-purple-700]="triage.type === 'crisis'">
+                            <app-icon name="phone" [size]="14"></app-icon>
+                            <span>{{ triage.actionTitle }}</span>
+                          </a>
+                          <button (click)="dismissTriage()"
+                                  type="button"
+                                  class="px-3 py-2 rounded-xl font-medium text-xs text-(--text-color) hover:text-(--text-accent) bg-(--card-bg) hover:bg-(--button-bg-hover) border border-(--border-color) transition-all cursor-pointer text-center">
+                            <span>This is for ongoing recovery, continue →</span>
+                          </button>
                         </div>
                       </div>
-                      <a [href]="triage.phoneUrl"
-                         class="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white shadow-lg flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shrink-0 cursor-pointer text-center"
-                         [class.bg-red-600]="triage.type === 'medical'"
-                         [class.hover:bg-red-500]="triage.type === 'medical'"
-                         [class.bg-purple-600]="triage.type === 'crisis'"
-                         [class.hover:bg-purple-500]="triage.type === 'crisis'">
-                        <app-icon name="phone" [size]="16"></app-icon>
-                        <span>{{ triage.actionTitle }}</span>
-                      </a>
-                    </div>
+                    } @else {
+                      <div class="mt-2.5 px-3.5 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center justify-between gap-2 animate-fade-in font-mono">
+                        <div class="flex items-center gap-2">
+                          <app-icon name="leaf" [size]="14" class="text-emerald-400"></app-icon>
+                          <span>Noted: ongoing recovery & rehabilitation support</span>
+                        </div>
+                        <button (click)="resetTriage()" type="button" class="text-[11px] underline text-emerald-400/80 hover:text-emerald-200 cursor-pointer">
+                          Reset check
+                        </button>
+                      </div>
+                    }
                   }
 
-                  <!-- HIPAA Safe Harbor Guardrail Banner -->
+                  <!-- Gentle Privacy Check Banner -->
                   @if (!acuteTriageAlert() && piiWarning(); as warning) {
-                    <div role="alert" class="mt-3 p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-(--card-bg) border-amber-500/50 text-amber-300 animate-fade-in" style="background: rgba(212, 164, 76, 0.08);">
+                    <div role="alert" class="mt-3 p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-(--card-bg) border-amber-500/40 text-stone-200 animate-fade-in" style="background: rgba(212, 164, 76, 0.06);">
                       <div class="flex items-start gap-3 flex-1">
-                        <app-icon name="alert-triangle" [size]="20" class="shrink-0 mt-0.5 text-amber-400"></app-icon>
+                        <app-icon name="shield" [size]="20" class="shrink-0 mt-0.5 text-amber-400"></app-icon>
                         <div class="flex-1">
-                          <h4 class="font-bold text-xs uppercase tracking-wide mb-1 text-amber-400">HIPAA Safe Harbor Guardrail</h4>
-                          <p class="text-sm/relaxed text-(--text-color)">{{ warning }}</p>
+                          <h4 class="font-semibold text-xs uppercase tracking-wide mb-1 text-amber-400">A Gentle Privacy Check</h4>
+                          <p class="text-xs/relaxed text-(--text-color-muted)">{{ warning }}</p>
                         </div>
                       </div>
                       <button (click)="autoDeIdentify()"
                               type="button"
-                              class="px-3.5 py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-semibold shrink-0 transition-all cursor-pointer flex items-center justify-center gap-1.5 self-start sm:self-auto">
+                              class="px-3.5 py-2 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-medium shrink-0 transition-all cursor-pointer flex items-center justify-center gap-1.5 self-start sm:self-auto shadow-sm">
                         <app-icon name="sparkles" [size]="14"></app-icon>
-                        <span>Auto-Scrub Details</span>
+                        <span>✨ Tidy details for me</span>
                       </button>
                     </div>
                   }

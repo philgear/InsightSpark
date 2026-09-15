@@ -637,13 +637,36 @@ export class AppComponent implements OnDestroy {
   charCount = computed(() => this.problemInput().length);
   maxCharLimit = 2000;
 
+  triageAcknowledged = signal(false);
+
+  dismissTriage() {
+    this.triageAcknowledged.set(true);
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('spark_triage_acknowledged', 'true');
+    }
+  }
+
+  resetTriage() {
+    this.triageAcknowledged.set(false);
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem('spark_triage_acknowledged');
+    }
+  }
+
+  updateProblemInput(val: string) {
+    this.problemInput.set(val);
+    if (!val.trim()) {
+      this.resetTriage();
+    }
+  }
+
   acuteTriageAlert = computed<AcuteTriageAlert | null>(() => scanForAcuteTriage(this.problemInput()));
   piiWarning = computed<string | null>(() => getClientPiiWarning(this.problemInput()));
 
   isGenerateDisabled = computed(() => 
     this.problemInput().trim().length < 5 || 
     this.isLoading() || 
-    !!this.acuteTriageAlert() || 
+    (!!this.acuteTriageAlert() && !this.triageAcknowledged()) || 
     !!this.piiWarning() || 
     this.charCount() > this.maxCharLimit
   );
@@ -963,6 +986,7 @@ export class AppComponent implements OnDestroy {
   reset = () => {
     this.insights.set(null);
     this.problemInput.set('');
+    this.resetTriage();
     this.gistInput.set('');
     this.clearSelection();
     this.carePlan.set(null);

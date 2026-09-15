@@ -206,11 +206,11 @@ function scanForAcuteTriage(text) {
     return {
       isEmergency: true,
       type: 'crisis',
-      reason: 'Mental Health & Crisis Support Indicator Detected',
+      reason: 'Caregiver Support & 988 Lifeline Available',
       hotline: '988',
       phoneUrl: 'tel:988',
-      actionTitle: 'Call or Text 988 (Suicide & Crisis Lifeline)',
-      guidance: 'Free, confidential support is available 24/7 via the 988 Suicide & Crisis Lifeline.'
+      actionTitle: 'Call or Text 988 (Confidential Lifeline)',
+      guidance: 'Caregiving and life challenges can be deeply overwhelming. You do not have to carry this alone. Free, confidential support and caregiver respite guidance is available 24/7 via the 988 Suicide & Crisis Lifeline.'
     };
   }
 
@@ -219,9 +219,9 @@ function scanForAcuteTriage(text) {
   const traumaPoisonRegex = /\b(?:profuse\s+bleeding|severe\s+burn|swallowed\s+poison|suspected\s+overdose)\b/i;
 
   if (strokeRegex.test(input) || cardiacRespRegex.test(input) || traumaPoisonRegex.test(input)) {
-    let specificReason = 'Signs of an acute, life-threatening medical emergency';
-    if (strokeRegex.test(input)) specificReason = 'Signs of potential acute stroke (FAST indicators)';
-    else if (cardiacRespRegex.test(input)) specificReason = 'Signs of potential acute cardiac or respiratory distress';
+    let specificReason = 'Signs that could indicate an urgent medical situation';
+    if (strokeRegex.test(input)) specificReason = 'Noticed signs of potential stroke (FAST indicators)';
+    else if (cardiacRespRegex.test(input)) specificReason = 'Noticed signs of potential acute cardiac or respiratory distress';
 
     return {
       isEmergency: true,
@@ -229,8 +229,8 @@ function scanForAcuteTriage(text) {
       reason: specificReason,
       hotline: '911',
       phoneUrl: 'tel:911',
-      actionTitle: 'Call 911 Immediately',
-      guidance: 'This description indicates an acute emergency. AI tools are NOT equipped for emergency triage. Call 911 or proceed to the nearest Emergency Department immediately.'
+      actionTitle: 'Call 911 for Urgent Help',
+      guidance: 'If someone is experiencing sudden symptoms right now, please call 911 or reach emergency medical care immediately. If this note describes a past event, ongoing rehabilitation, or recovery care, you can safely continue.'
     };
   }
 
@@ -263,13 +263,16 @@ function scanForPII(text) {
 }
 
 // Pre-flight safety interceptor for acute medical and crisis distress
-function checkPreFlightSafety(text) {
+function checkPreFlightSafety(text, req = null) {
+  if (req && (req.body?.triageAcknowledged === true || req.headers?.['x-triage-acknowledged'] === 'true')) {
+    return null;
+  }
   const triageAlert = scanForAcuteTriage(text);
   if (triageAlert) {
     return {
       status: 400,
       json: {
-        error: `Acute Triage Intercept: ${triageAlert.reason}. Please contact emergency services (${triageAlert.hotline}) immediately.`,
+        error: `Safety Note: ${triageAlert.reason}. If this is an active emergency, please reach out to ${triageAlert.hotline}. If this is for ongoing recovery or past care, you can acknowledge to proceed.`,
         triageAlert
       }
     };
@@ -467,12 +470,12 @@ app.post('/api/structure', [
     }
     const { problem } = req.body;
 
-    const safetyCheck = checkPreFlightSafety(problem);
+    const safetyCheck = checkPreFlightSafety(problem, req);
     if (safetyCheck) return res.status(safetyCheck.status).json(safetyCheck.json);
 
     const piiFound = scanForPII(problem);
     if (piiFound.length > 0) {
-      return res.status(400).json({ error: `Security Check Blocked: Potential personally identifiable information (PII) detected (${piiFound.join(', ')}). Under HIPAA guidelines, please de-identify your health goals before generating insights.` });
+      return res.status(400).json({ error: `Privacy Note: Identified potential personal details (${piiFound.join(', ')}). To protect privacy, please tidy these details or use the one-click tidy button.` });
     }
     
     const schema = {
@@ -554,7 +557,7 @@ app.post('/api/insights', [
     }
     const { problem, strategies, mode, gist, healthSnapshot } = req.body;
 
-    const safetyCheck = checkPreFlightSafety(problem) || checkPreFlightSafety(gist) || checkPreFlightSafety(healthSnapshot);
+    const safetyCheck = checkPreFlightSafety(problem, req) || checkPreFlightSafety(gist, req) || checkPreFlightSafety(healthSnapshot, req);
     if (safetyCheck) return res.status(safetyCheck.status).json(safetyCheck.json);
 
     const piiFound = [
@@ -563,7 +566,7 @@ app.post('/api/insights', [
       ...scanForPII(healthSnapshot || '')
     ];
     if (piiFound.length > 0) {
-      return res.status(400).json({ error: `Security Check Blocked: Potential personally identifiable information (PII) detected (${[...new Set(piiFound)].join(', ')}). Under HIPAA guidelines, please de-identify your inputs before generating insights.` });
+      return res.status(400).json({ error: `Privacy Note: Identified potential personal details (${[...new Set(piiFound)].join(', ')}). To protect privacy, please tidy these details before generating insights.` });
     }
     
     const insightsSchema = {
@@ -692,7 +695,7 @@ app.post('/api/care-plan', [
     }
     const { problem, insights } = req.body;
 
-    const safetyCheck = checkPreFlightSafety(problem);
+    const safetyCheck = checkPreFlightSafety(problem, req);
     if (safetyCheck) return res.status(safetyCheck.status).json(safetyCheck.json);
 
     const piiFound = [
@@ -700,7 +703,7 @@ app.post('/api/care-plan', [
       ...insights.flatMap(i => scanForPII(i.text || ''))
     ];
     if (piiFound.length > 0) {
-      return res.status(400).json({ error: `Security Check Blocked: Potential personally identifiable information (PII) detected (${[...new Set(piiFound)].join(', ')}). Under HIPAA guidelines, please de-identify your inputs before generating a care plan.` });
+      return res.status(400).json({ error: `Privacy Note: Identified potential personal details (${[...new Set(piiFound)].join(', ')}). To protect privacy, please tidy these details before generating a care plan.` });
     }
     
     const carePlanSchema = {
@@ -777,7 +780,7 @@ app.post('/api/creative-plan', [
     }
     const { problem, insights } = req.body;
 
-    const safetyCheck = checkPreFlightSafety(problem);
+    const safetyCheck = checkPreFlightSafety(problem, req);
     if (safetyCheck) return res.status(safetyCheck.status).json(safetyCheck.json);
 
     const piiFound = [
@@ -785,7 +788,7 @@ app.post('/api/creative-plan', [
       ...insights.flatMap(i => scanForPII(i.text || ''))
     ];
     if (piiFound.length > 0) {
-      return res.status(400).json({ error: `Security Check Blocked: Potential personally identifying information (PII) detected (${[...new Set(piiFound)].join(', ')}). Please de-identify your inputs before generating an action plan.` });
+      return res.status(400).json({ error: `Privacy Note: Identified potential personal details (${[...new Set(piiFound)].join(', ')}). Please tidy these details before generating an action plan.` });
     }
     
     const creativePlanSchema = {
@@ -968,11 +971,11 @@ app.post('/api/agent/select', [
     if (!genAI) return res.status(500).json({ error: 'Gemini API is not configured.' });
 
     const { problem, mode } = req.body;
-    const safetyCheck = checkPreFlightSafety(problem);
+    const safetyCheck = checkPreFlightSafety(problem, req);
     if (safetyCheck) return res.status(safetyCheck.status).json(safetyCheck.json);
 
     const piiFound = scanForPII(problem);
-    if (piiFound.length > 0) return res.status(400).json({ error: `PII detected: ${piiFound.join(', ')}` });
+    if (piiFound.length > 0) return res.status(400).json({ error: `Privacy Note: Identified personal details (${piiFound.join(', ')}). Please tidy details before proceeding.` });
 
     const strategyList = Object.entries(STRATEGY_MAP)
       .map(([id, s]) => `- ${id}: "${s.name}" — ${s.persona}`)
@@ -1203,11 +1206,11 @@ app.post('/api/agent/pipeline', [
     if (!genAI) return res.status(500).json({ error: 'Gemini API is not configured.' });
 
     const { problem, mode, gist } = req.body;
-    const safetyCheck = checkPreFlightSafety(problem) || checkPreFlightSafety(gist);
+    const safetyCheck = checkPreFlightSafety(problem, req) || checkPreFlightSafety(gist, req);
     if (safetyCheck) return res.status(safetyCheck.status).json(safetyCheck.json);
 
     const piiFound = scanForPII(problem);
-    if (piiFound.length > 0) return res.status(400).json({ error: `PII detected: ${piiFound.join(', ')}` });
+    if (piiFound.length > 0) return res.status(400).json({ error: `Privacy Note: Identified personal details (${piiFound.join(', ')}). Please tidy details before proceeding.` });
 
     // SSE headers
     res.setHeader('Content-Type', 'text/event-stream');
@@ -1423,11 +1426,11 @@ app.post('/api/agent/:strategyId', [
     if (!genAI) return res.status(500).json({ error: 'Gemini API is not configured.' });
 
     const { problem, mode } = req.body;
-    const safetyCheck = checkPreFlightSafety(problem);
+    const safetyCheck = checkPreFlightSafety(problem, req);
     if (safetyCheck) return res.status(safetyCheck.status).json(safetyCheck.json);
 
     const piiFound = scanForPII(problem);
-    if (piiFound.length > 0) return res.status(400).json({ error: `PII detected: ${piiFound.join(', ')}` });
+    if (piiFound.length > 0) return res.status(400).json({ error: `Privacy Note: Identified personal details (${piiFound.join(', ')}). Please tidy details before proceeding.` });
 
     const schema = {
       type: Type.OBJECT,

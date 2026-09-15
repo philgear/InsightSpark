@@ -182,4 +182,31 @@ describe('Responsible AI Safety & Privacy Guardrails', () => {
       }
     });
   });
+
+  describe('Dignity-First & Non-Alarmist Caregiver Safety Standards', () => {
+    test('Triage guidance should avoid punitive/alarmist terms (BLOCKED, VIOLATION, 🚨)', () => {
+      const strokeAlert = scanForAcuteTriage('Grandma has sudden slurred speech');
+      assert.ok(strokeAlert);
+      assert.ok(!strokeAlert.guidance.includes('BLOCKED'));
+      assert.ok(!strokeAlert.guidance.includes('VIOLATION'));
+      assert.ok(!strokeAlert.actionTitle.includes('🚨'));
+      // Guidance must explicitly mention ongoing rehabilitation / recovery care option
+      assert.match(strokeAlert.guidance, /ongoing rehabilitation, or recovery care/i);
+    });
+
+    test('Crisis guidance should frame 988 with warmth and caregiver respite', () => {
+      const crisisAlert = scanForAcuteTriage('Feeling completely overwhelmed and want to die');
+      assert.ok(crisisAlert);
+      assert.match(crisisAlert.guidance, /caregiver respite/i);
+      assert.match(crisisAlert.reason, /988 Lifeline/i);
+    });
+
+    test('PII warning should use calm privacy-protecting language instead of scolding', () => {
+      const piiWarning = getClientPiiWarning('Call me at 555-123-4567');
+      assert.ok(piiWarning);
+      assert.ok(!piiWarning.includes('BLOCKED'));
+      assert.match(piiWarning, /protect family privacy/i);
+      assert.match(piiWarning, /phone number/i);
+    });
+  });
 });
