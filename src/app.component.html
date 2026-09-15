@@ -195,6 +195,44 @@
                 </div>
               </header>
 
+              @if (agenticResult(); as agentic) {
+                <div class="p-6 bg-(--card-bg) border border-(--text-accent)/30 rounded-2xl shadow-xl backdrop-blur-md relative overflow-hidden animate-pop">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-(--border-color) pb-4 mb-4">
+                    <div class="flex items-center gap-3">
+                      <div class="p-2 bg-(--text-accent)/10 rounded-xl text-(--text-accent)">
+                        <app-icon name="refresh" [size]="24"></app-icon>
+                      </div>
+                      <div>
+                        <h3 class="text-lg font-bold font-serif text-(--text-color) tracking-tight">Multi-Agent Debate Consensus</h3>
+                        <p class="text-xs text-(--text-color-muted)">Structured synthesis closure resolving divergent provocations & grounding guardrails</p>
+                      </div>
+                    </div>
+                    <span class="px-3 py-1 bg-(--text-accent)/15 border border-(--text-accent)/30 rounded-full text-(--text-accent) text-xs font-semibold self-start sm:self-auto">
+                      Synthesis Closed
+                    </span>
+                  </div>
+
+                  <p class="text-sm/relaxed text-(--text-color) mb-4 font-medium">{{ agentic.consensus }}</p>
+
+                  @if (agentic.synthesisActionBridge; as bridge) {
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-(--border-color)/60">
+                      <div class="p-3.5 rounded-xl bg-(--card-bg-subtle) border border-purple-500/20">
+                        <span class="text-[11px] uppercase tracking-wider font-bold text-purple-400 block mb-1">Divergent Breakthrough</span>
+                        <p class="text-xs/relaxed text-(--text-color)">{{ bridge.divergentLeap }}</p>
+                      </div>
+                      <div class="p-3.5 rounded-xl bg-(--card-bg-subtle) border border-amber-500/20">
+                        <span class="text-[11px] uppercase tracking-wider font-bold text-amber-400 block mb-1">Grounding Guardrail</span>
+                        <p class="text-xs/relaxed text-(--text-color)">{{ bridge.groundingGuardrail }}</p>
+                      </div>
+                      <div class="p-3.5 rounded-xl bg-(--card-bg-subtle) border border-emerald-500/20">
+                        <span class="text-[11px] uppercase tracking-wider font-bold text-emerald-400 block mb-1">Immediate Traction Step</span>
+                        <p class="text-xs/relaxed text-(--text-color)">{{ bridge.immediateTractionStep }}</p>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
               <!-- Responsible AI Safety Report Card -->
               <div class="p-6 bg-(--card-bg) border border-(--border-color) rounded-2xl shadow-xl backdrop-blur-md relative overflow-hidden animate-pop">
                 <div class="absolute top-0 right-0 p-4 opacity-10">
@@ -412,15 +450,28 @@
                         <div class="space-y-6">
                             @for (section of getCarePlanSections(plan); track section.id) {
                                 <div>
-                                    <h4 class="flex items-center gap-3 mb-2">
+                                    <h4 class="flex items-center gap-3 mb-2 font-serif text-lg text-(--text-color)">
                                         <app-icon [name]="section.icon" [size]="20" class="text-(--text-accent)"></app-icon>
                                         {{ section.title }}
                                     </h4>
-                                    <ul class="list-disc pl-10 space-y-1 text-(--text-color-muted)">
-                                        @for (item of section.items; track item) {
-                                            <li>{{ item }}</li>
-                                        }
-                                    </ul>
+                                    @if (section.title.includes('Checklist') || section.title.includes('Safeguards')) {
+                                        <ul class="pl-8 space-y-2 text-(--text-color)">
+                                            @for (item of section.items; track item) {
+                                                <li class="flex items-start gap-2.5 p-2 rounded-lg bg-(--card-bg-subtle) border border-(--border-color)/50">
+                                                    <span class="inline-flex items-center justify-center w-5 h-5 rounded border border-(--text-accent)/40 bg-(--text-accent)/10 text-(--text-accent) text-xs shrink-0 mt-0.5">
+                                                      <app-icon name="check" [size]="12"></app-icon>
+                                                    </span>
+                                                    <span class="text-sm/relaxed">{{ item }}</span>
+                                                </li>
+                                            }
+                                        </ul>
+                                    } @else {
+                                        <ul class="list-disc pl-10 space-y-1 text-(--text-color-muted)">
+                                            @for (item of section.items; track item) {
+                                                <li>{{ item }}</li>
+                                            }
+                                        </ul>
+                                    }
                                 </div>
                             }
                         </div>
@@ -540,9 +591,11 @@
                       rows="4"
                       [placeholder]="appMode() === 'creative' ? 'Describe your challenge, idea, or question...' : 'Describe a de-identified health goal or support challenge...'"
                       class="w-full p-4 text-base bg-(--card-bg) border rounded-xl focus:ring-2 focus:ring-(--ring-color) focus:outline-none transition-all resize-y shadow-lg"
-                      [class.border-(--border-color-strong)]="!piiWarning()"
-                      [class.border-amber-500]="!!piiWarning()"
-                      [class.focus:ring-amber-500]="!!piiWarning()"
+                      [class.border-(--border-color-strong)]="!piiWarning() && !acuteTriageAlert()"
+                      [class.border-red-500]="!!acuteTriageAlert()"
+                      [class.focus:ring-red-500]="!!acuteTriageAlert()"
+                      [class.border-amber-500]="!acuteTriageAlert() && !!piiWarning()"
+                      [class.focus:ring-amber-500]="!acuteTriageAlert() && !!piiWarning()"
                       [attr.aria-label]="problemInputAriaLabel()"
                       autocomplete="off">
                     </textarea>
@@ -553,9 +606,8 @@
                     <div class="flex items-center gap-2">
                       <button (click)="toggleVoiceInput()" 
                               type="button" 
-                              [class.bg-red-500/20]="speechService.isListening()"
-                              [class.text-red-300]="speechService.isListening()"
-                              [class.border-red-500/50]="speechService.isListening()"
+                              aria-label="Toggle living room voice input"
+                              [attr.aria-pressed]="speechService.isListening()"
                               class="text-xs font-semibold py-2 px-3 rounded-lg border border-(--border-color) bg-(--card-bg) hover:bg-(--button-bg-hover) text-(--text-color) transition-all flex items-center gap-2 cursor-pointer shadow-sm">
                         <app-icon name="mic" [size]="16" [class]="speechService.isListening() ? 'text-red-400 animate-pulse' : 'text-(--text-accent)'"></app-icon>
                         <span>{{ speechService.isListening() ? 'Listening (Speak now)...' : 'Voice Input' }}</span>
@@ -563,17 +615,20 @@
 
                       <!-- Live Privacy & Containment Badge -->
                       <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono border"
-                            [class.bg-emerald-500/10]="!piiWarning() && charCount() > 0"
-                            [class.border-emerald-500/30]="!piiWarning() && charCount() > 0"
-                            [class.text-emerald-400]="!piiWarning() && charCount() > 0"
+                            [class.bg-red-500/20]="!!acuteTriageAlert()"
+                            [class.border-red-500/40]="!!acuteTriageAlert()"
+                            [class.text-red-300]="!!acuteTriageAlert()"
+                            [class.bg-emerald-500/10]="!piiWarning() && !acuteTriageAlert() && charCount() > 0"
+                            [class.border-emerald-500/30]="!piiWarning() && !acuteTriageAlert() && charCount() > 0"
+                            [class.text-emerald-400]="!piiWarning() && !acuteTriageAlert() && charCount() > 0"
                             [class.bg-black/20]="charCount() === 0"
                             [class.border-white/10]="charCount() === 0"
                             [class.text-(--text-color-muted)]="charCount() === 0"
-                            [class.bg-amber-500/15]="!!piiWarning()"
-                            [class.border-amber-500/40]="!!piiWarning()"
-                            [class.text-amber-300]="!!piiWarning()">
-                        <app-icon [name]="piiWarning() ? 'alert-triangle' : 'shield-check'" [size]="13"></app-icon>
-                        <span>{{ piiWarning() ? 'PII Detected (Blocked)' : (charCount() > 0 ? 'Safe & De-Identified' : 'Contained & Private') }}</span>
+                            [class.bg-amber-500/15]="!acuteTriageAlert() && !!piiWarning()"
+                            [class.border-amber-500/40]="!acuteTriageAlert() && !!piiWarning()"
+                            [class.text-amber-300]="!acuteTriageAlert() && !!piiWarning()">
+                        <app-icon [name]="acuteTriageAlert() ? 'alert-triangle' : (piiWarning() ? 'alert-triangle' : 'shield-check')" [size]="13"></app-icon>
+                        <span>{{ acuteTriageAlert() ? 'Emergency Intercept' : (piiWarning() ? 'PII Detected (Blocked)' : (charCount() > 0 ? 'Safe & De-Identified' : 'Contained & Private')) }}</span>
                       </span>
                     </div>
 
@@ -595,13 +650,56 @@
                       }
                     </span>
                   </div>
-                  @if (piiWarning(); as warning) {
-                    <div role="alert" class="mt-3 p-4 rounded-xl border flex items-start gap-3 bg-(--card-bg) border-amber-500/50 text-amber-300 animate-fade-in" style="background: rgba(212, 164, 76, 0.08);">
-                      <app-icon name="alert-triangle" [size]="20" class="shrink-0 mt-0.5 text-amber-400"></app-icon>
-                      <div class="flex-1">
-                        <h4 class="font-bold text-xs uppercase tracking-wide mb-1 text-amber-400">HIPAA & Privacy Guardrail</h4>
-                        <p class="text-sm/relaxed text-(--text-color)">{{ warning }}</p>
+
+                  <!-- Acute Triage Emergency Intercept Banner -->
+                  @if (acuteTriageAlert(); as triage) {
+                    <div role="alert" class="mt-3 p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in"
+                         [class.border-red-500]="triage.type === 'medical'"
+                         [class.bg-red-950/40]="triage.type === 'medical'"
+                         [class.border-purple-500]="triage.type === 'crisis'"
+                         [class.bg-purple-950/40]="triage.type === 'crisis'">
+                      <div class="flex items-start gap-3">
+                        <app-icon name="alert-triangle" [size]="22" class="shrink-0 mt-0.5" [class.text-red-400]="triage.type === 'medical'" [class.text-purple-400]="triage.type === 'crisis'"></app-icon>
+                        <div>
+                          <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-[11px] uppercase tracking-wider px-2 py-0.5 rounded text-white font-mono"
+                                  [class.bg-red-600]="triage.type === 'medical'"
+                                  [class.bg-purple-600]="triage.type === 'crisis'">
+                              {{ triage.type === 'medical' ? '🚨 Acute Medical Emergency' : '💜 988 Crisis Lifeline' }}
+                            </span>
+                            <span class="font-bold text-xs text-(--text-color)">{{ triage.reason }}</span>
+                          </div>
+                          <p class="text-xs/relaxed text-(--text-color)/90 mt-1.5">{{ triage.guidance }}</p>
+                        </div>
                       </div>
+                      <a [href]="triage.phoneUrl"
+                         class="px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white shadow-lg flex items-center justify-center gap-2 transition-all hover:scale-105 active:scale-95 shrink-0 cursor-pointer text-center"
+                         [class.bg-red-600]="triage.type === 'medical'"
+                         [class.hover:bg-red-500]="triage.type === 'medical'"
+                         [class.bg-purple-600]="triage.type === 'crisis'"
+                         [class.hover:bg-purple-500]="triage.type === 'crisis'">
+                        <app-icon name="phone" [size]="16"></app-icon>
+                        <span>{{ triage.actionTitle }}</span>
+                      </a>
+                    </div>
+                  }
+
+                  <!-- HIPAA Safe Harbor Guardrail Banner -->
+                  @if (!acuteTriageAlert() && piiWarning(); as warning) {
+                    <div role="alert" class="mt-3 p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-(--card-bg) border-amber-500/50 text-amber-300 animate-fade-in" style="background: rgba(212, 164, 76, 0.08);">
+                      <div class="flex items-start gap-3 flex-1">
+                        <app-icon name="alert-triangle" [size]="20" class="shrink-0 mt-0.5 text-amber-400"></app-icon>
+                        <div class="flex-1">
+                          <h4 class="font-bold text-xs uppercase tracking-wide mb-1 text-amber-400">HIPAA Safe Harbor Guardrail</h4>
+                          <p class="text-sm/relaxed text-(--text-color)">{{ warning }}</p>
+                        </div>
+                      </div>
+                      <button (click)="autoDeIdentify()"
+                              type="button"
+                              class="px-3.5 py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-semibold shrink-0 transition-all cursor-pointer flex items-center justify-center gap-1.5 self-start sm:self-auto">
+                        <app-icon name="sparkles" [size]="14"></app-icon>
+                        <span>Auto-Scrub Details</span>
+                      </button>
                     </div>
                   }
                 </div>
@@ -755,13 +853,21 @@
                   <div class="step-connector__orb"></div><div class="step-connector__orb"></div><div class="step-connector__orb"></div>
                 </div>
 
-                <!-- Generate Button -->
-                <div>
+                <!-- Generate Buttons (Standard & Multi-Agent Debate) -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button (click)="generateInsights()"
                           [disabled]="isGenerateDisabled()"
-                          class="generate-button w-full font-bold text-lg py-5 px-8 min-h-12 rounded-xl shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-(--ring-color)">
+                          class="generate-button sm:col-span-2 font-bold text-lg py-5 px-8 min-h-12 rounded-xl shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
                     <app-icon [name]="generateButtonIcon()" [size]="22"></app-icon>
                     <span>{{ generateButtonText() }}</span>
+                  </button>
+
+                  <button (click)="generateDeepInsights()"
+                          [disabled]="isGenerateDisabled()"
+                          title="Run 5-phase multi-agent debate and structured consensus synthesis"
+                          class="bg-(--card-bg) hover:bg-(--button-bg-hover) text-(--text-accent) border-2 border-(--text-accent)/40 font-bold text-sm py-4 px-4 min-h-12 rounded-xl shadow-md flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
+                    <app-icon name="refresh" [size]="18" class="text-(--text-accent)"></app-icon>
+                    <span>Multi-Agent Debate</span>
                   </button>
                 </div>
 

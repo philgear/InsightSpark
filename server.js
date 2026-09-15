@@ -196,23 +196,85 @@ Crucial Safety Instruction:
 Under no circumstances should you ever repeat, store, or include any Personally Identifiable Information (PII) such as names, dates, addresses, or specific identifiers in your response. Your output must be completely anonymous and focused solely on the abstract health challenge.
 `;
 
-// Scan string for potential PII (Emails, Phone numbers, SSNs, IP addresses)
+// Scan string for acute medical emergencies and suicide/crisis distress
+function scanForAcuteTriage(text) {
+  if (!text || typeof text !== 'string') return null;
+  const input = text.length > 2000 ? text.slice(0, 2000) : text;
+
+  const suicideCrisisRegex = /\b(?:suicid(?:e|al)|want\s+to\s+(?:die|end\s+(?:it\s+all|my\s+life))|kill\s+myself|hurting\s+myself|self[- ]harm)\b/i;
+  if (suicideCrisisRegex.test(input)) {
+    return {
+      isEmergency: true,
+      type: 'crisis',
+      reason: 'Mental Health & Crisis Support Indicator Detected',
+      hotline: '988',
+      phoneUrl: 'tel:988',
+      actionTitle: 'Call or Text 988 (Suicide & Crisis Lifeline)',
+      guidance: 'Free, confidential support is available 24/7 via the 988 Suicide & Crisis Lifeline.'
+    };
+  }
+
+  const strokeRegex = /\b(?:face\s+(?:droop|drooping)|slurred\s+speech|arm\s+(?:weakness|numbness)|sudden\s+(?:numbness|paralysis)|loss\s+of\s+balance)\b/i;
+  const cardiacRespRegex = /\b(?:chest\s+(?:pain|pressure|tightness)|can['’]?t\s+breathe|shortness\s+of\s+breath|severe\s+allergic\s+reaction|anaphylaxis|loss\s+of\s+consciousness|unconscious)\b/i;
+  const traumaPoisonRegex = /\b(?:profuse\s+bleeding|severe\s+burn|swallowed\s+poison|suspected\s+overdose)\b/i;
+
+  if (strokeRegex.test(input) || cardiacRespRegex.test(input) || traumaPoisonRegex.test(input)) {
+    let specificReason = 'Signs of an acute, life-threatening medical emergency';
+    if (strokeRegex.test(input)) specificReason = 'Signs of potential acute stroke (FAST indicators)';
+    else if (cardiacRespRegex.test(input)) specificReason = 'Signs of potential acute cardiac or respiratory distress';
+
+    return {
+      isEmergency: true,
+      type: 'medical',
+      reason: specificReason,
+      hotline: '911',
+      phoneUrl: 'tel:911',
+      actionTitle: 'Call 911 Immediately',
+      guidance: 'This description indicates an acute emergency. AI tools are NOT equipped for emergency triage. Call 911 or proceed to the nearest Emergency Department immediately.'
+    };
+  }
+
+  return null;
+}
+
+// Deep HIPAA Safe Harbor PII scanner
 function scanForPII(text) {
   if (!text || typeof text !== 'string') return [];
   const input = text.length > 2000 ? text.slice(0, 2000) : text;
 
-  const emailRegex = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}\b/g;
-  const phoneRegex = /(?:\+\d{1,3}[-.\s])?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
-  const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/g;
+  const emailRegex = /(?:\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}\b|\b[a-zA-Z0-9._%+-]+\s*(?:\[at\]|\(at\)|@)\s*[a-zA-Z0-9.-]+\s*(?:\[dot\]|\(dot\)|\.)\s*[a-zA-Z]{2,10}\b)/gi;
+  const phoneRegex = /(?:\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
+  const ssnRegex = /\b\d{3}[-\s.]\d{2}[-\s.]\d{4}\b/g;
   const ipRegex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g;
+  const dobRegex = /\b(?:DOB|Date of Birth|Birthdate|Born on)\s*[:=]?\s*\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}\b/gi;
+  const mrnRegex = /\b(?:MRN|Medical Record Number|Patient ID)\s*[:=]\s*[A-Z0-9-]+\b/gi;
+  const streetAddressRegex = /\b\d{1,5}\s+[A-Za-z0-9\s.,]{2,30}\s+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Court|Ct|Way|Place|Pl|Suite|Apt)\b/gi;
 
   const foundPII = [];
   if (emailRegex.test(input)) foundPII.push('Email Address');
   if (phoneRegex.test(input)) foundPII.push('Phone Number');
   if (ssnRegex.test(input)) foundPII.push('Social Security Number');
   if (ipRegex.test(input)) foundPII.push('IP Address');
+  if (dobRegex.test(input)) foundPII.push('Date of Birth');
+  if (mrnRegex.test(input)) foundPII.push('Medical Record Number');
+  if (streetAddressRegex.test(input)) foundPII.push('Street Address');
 
   return foundPII;
+}
+
+// Pre-flight safety interceptor for acute medical and crisis distress
+function checkPreFlightSafety(text) {
+  const triageAlert = scanForAcuteTriage(text);
+  if (triageAlert) {
+    return {
+      status: 400,
+      json: {
+        error: `Acute Triage Intercept: ${triageAlert.reason}. Please contact emergency services (${triageAlert.hotline}) immediately.`,
+        triageAlert
+      }
+    };
+  }
+  return null;
 }
 
 const SAFETY_SETTINGS = [
@@ -405,6 +467,9 @@ app.post('/api/structure', [
     }
     const { problem } = req.body;
 
+    const safetyCheck = checkPreFlightSafety(problem);
+    if (safetyCheck) return res.status(safetyCheck.status).json(safetyCheck.json);
+
     const piiFound = scanForPII(problem);
     if (piiFound.length > 0) {
       return res.status(400).json({ error: `Security Check Blocked: Potential personally identifiable information (PII) detected (${piiFound.join(', ')}). Under HIPAA guidelines, please de-identify your health goals before generating insights.` });
@@ -488,6 +553,9 @@ app.post('/api/insights', [
       return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or contact the administrator.' });
     }
     const { problem, strategies, mode, gist, healthSnapshot } = req.body;
+
+    const safetyCheck = checkPreFlightSafety(problem) || checkPreFlightSafety(gist) || checkPreFlightSafety(healthSnapshot);
+    if (safetyCheck) return res.status(safetyCheck.status).json(safetyCheck.json);
 
     const piiFound = [
       ...scanForPII(problem),
@@ -624,6 +692,9 @@ app.post('/api/care-plan', [
     }
     const { problem, insights } = req.body;
 
+    const safetyCheck = checkPreFlightSafety(problem);
+    if (safetyCheck) return res.status(safetyCheck.status).json(safetyCheck.json);
+
     const piiFound = [
       ...scanForPII(problem),
       ...insights.flatMap(i => scanForPII(i.text || ''))
@@ -640,9 +711,11 @@ app.post('/api/care-plan', [
           monitoringPlan: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of 2-3 items for the person or supporter to monitor." },
           guidanceAndEducation: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of 2-3 educational points for the person, explained simply." },
           positiveAchievements: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of 2-3 encouraging achievements or potential milestones to celebrate and motivate the person." },
-          recommendations: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of 2-3 next-step recommendations for the supporter or person, framed positively." }
+          recommendations: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of 2-3 next-step recommendations for the supporter or person, framed positively." },
+          transitionChecklist: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of 2-3 critical transition closure checks (e.g. 72h post-acute/stage-change handoffs, medication reconciliation, hazard checks)." },
+          respiteClosureChecklist: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of 2-3 weekly caregiver respite safeguards and handoff checkpoints to ensure primary caregiver relief." }
       },
-      required: ["personGoal", "keyInterventions", "monitoringPlan", "guidanceAndEducation", "positiveAchievements", "recommendations"]
+      required: ["personGoal", "keyInterventions", "monitoringPlan", "guidanceAndEducation", "positiveAchievements", "recommendations", "transitionChecklist", "respiteClosureChecklist"]
     };
 
     const insightText = insights.map(i => `- ${i.text}`).join('\n');
@@ -661,6 +734,8 @@ app.post('/api/care-plan', [
         - Each section must contain concise, positive, and actionable items.
         - "positiveAchievements" should highlight milestones to celebrate and motivate the person.
         - "recommendations" should propose supportive next steps.
+        - "transitionChecklist" should outline 2-3 critical checks to safely close the transition period (e.g., 72-hour hospital-to-home, new mobility milestone, medication alignment).
+        - "respiteClosureChecklist" should identify 2-3 non-negotiable weekly respite checkpoints ensuring the primary caregiver receives dedicated guilt-free relief.
         - All text must be easily understood by individuals and their families, avoiding clinical jargon.
         ${getLanguageInstruction(req)}
       `;
@@ -701,6 +776,9 @@ app.post('/api/creative-plan', [
       return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or contact the administrator.' });
     }
     const { problem, insights } = req.body;
+
+    const safetyCheck = checkPreFlightSafety(problem);
+    if (safetyCheck) return res.status(safetyCheck.status).json(safetyCheck.json);
 
     const piiFound = [
       ...scanForPII(problem),
@@ -846,8 +924,16 @@ const STRATEGY_MAP = {
   'random': { name: 'Random Object', persona: 'I introduce chaos on purpose. Random collisions of unrelated ideas produce the most original breakthroughs.' },
   'first-principles': { name: 'First Principles', persona: 'I strip away complexity until only fundamental truths remain. I rebuild from bedrock, ignoring convention entirely.' },
   'root-cause': { name: 'Root Cause (5 Whys)', persona: 'I am relentless. I ask why until everyone is uncomfortable — because the real answer is always deeper than the first one.' },
+  'sensory-bridge': { name: 'Sensory Bridge & Somatics', persona: 'I tune out intellectual abstractions and listen to the senses: sound, scent, texture, and kinetic rhythm. When the mind is stuck, the body knows the way.' },
+  'found-kinship': { name: 'Unlikely Alliances & Outsiders', persona: 'Blood is not the only bond. When the biological circle is strained or absent, I weave chosen family, neighbors, and trusted allies into an unbreakable safety net.' },
+  'time-dilation': { name: 'Time Dilation & Century Lens', persona: 'I stretch and compress time. When you rush, I slow the moment down to a breath; when you hesitate, I look forward 100 years.' },
   'fmea': { name: 'FMEA (Risk Analysis)', persona: 'I see what can go wrong before it does. My job is to protect, not to pessimize — I build guardrails, not walls.' },
   'critical-path': { name: 'Critical Path Method', persona: 'I see dependencies. I map the non-negotiable sequence — what must happen first, what blocks what, and where the bottleneck hides.' },
+  'perma-strengths': { name: 'VIA Strengths & Optimism', persona: 'I do not fix deficits; I amplify signature strengths. When you see an obstacle, I see an opportunity for micro-mastery, engagement flow, and PERMA+H flourishing.' },
+  'kinship-triad': { name: 'Intergenerational Kinship', persona: 'I look through three generations at once: the wonder of children, the grounding of parents, and the enduring wisdom of grandparents.' },
+  'respite-pacing': { name: 'Sustainable Sprint & Burnout Shield', persona: 'A plan that burns out the caregiver is a failed plan. I enforce protected rest, guilt-free handoffs, and renewable emotional energy.' },
+  'ethical-dignity': { name: 'Integrity & Non-Negotiable Boundaries', persona: 'I am the keeper of dignity and autonomy. Every intervention must honor the person\'s voice, values, and living truth—nothing about them without them.' },
+  'environmental-safety': { name: 'Physical Grounding & Ergonomics', persona: 'I inspect the physical living room floor. Brilliant intentions fail when someone trips on a rug or can\'t read a medicine bottle. I ground care in physical reality.' },
 };
 
 // Auth helper: supports both x-gemini-api-key header and Bearer token
@@ -882,6 +968,9 @@ app.post('/api/agent/select', [
     if (!genAI) return res.status(500).json({ error: 'Gemini API is not configured.' });
 
     const { problem, mode } = req.body;
+    const safetyCheck = checkPreFlightSafety(problem);
+    if (safetyCheck) return res.status(safetyCheck.status).json(safetyCheck.json);
+
     const piiFound = scanForPII(problem);
     if (piiFound.length > 0) return res.status(400).json({ error: `PII detected: ${piiFound.join(', ')}` });
 
@@ -1048,8 +1137,18 @@ app.post('/api/agent/refine', [
           },
         },
         consensus: { type: Type.STRING, description: 'A 2-4 sentence synthesis statement capturing the strongest path forward, acknowledging remaining tensions.' },
+        synthesisActionBridge: {
+          type: Type.OBJECT,
+          description: 'A concrete closed-loop bridge reconciling the divergent provocations with grounding constraints.',
+          properties: {
+            divergentLeap: { type: Type.STRING, description: 'The primary lateral breakthrough idea.' },
+            groundingGuardrail: { type: Type.STRING, description: 'The non-negotiable risk or dependency constraint that grounds the breakthrough.' },
+            immediateTractionStep: { type: Type.STRING, description: 'The immediate low-friction first action.' },
+          },
+          required: ['divergentLeap', 'groundingGuardrail', 'immediateTractionStep'],
+        },
       },
-      required: ['refinedInsights', 'consensus'],
+      required: ['refinedInsights', 'consensus', 'synthesisActionBridge'],
     };
 
     const prompt = `
@@ -1068,6 +1167,7 @@ app.post('/api/agent/refine', [
       2. For each, produce a refined version that incorporates valid critiques while preserving original strengths.
       3. Rate confidence (0.0-1.0): 1.0 = all agents agree, 0.5 = mixed, 0.0 = strongly contested.
       4. Write a consensus statement that captures the strongest path forward and any remaining open tensions.
+      5. Provide a 'synthesisActionBridge' object that directly pairs the primary divergent leap with a grounding guardrail and an immediate first traction step.
     `;
 
     const response = await genAI.models.generateContent({
@@ -1078,6 +1178,7 @@ app.post('/api/agent/refine', [
         responseSchema: schema,
         temperature: 0.5,
         safetySettings: SAFETY_SETTINGS,
+        ...getThinkingConfig(req)
       },
     });
 
@@ -1102,6 +1203,9 @@ app.post('/api/agent/pipeline', [
     if (!genAI) return res.status(500).json({ error: 'Gemini API is not configured.' });
 
     const { problem, mode, gist } = req.body;
+    const safetyCheck = checkPreFlightSafety(problem) || checkPreFlightSafety(gist);
+    if (safetyCheck) return res.status(safetyCheck.status).json(safetyCheck.json);
+
     const piiFound = scanForPII(problem);
     if (piiFound.length > 0) return res.status(400).json({ error: `PII detected: ${piiFound.join(', ')}` });
 
@@ -1235,7 +1339,7 @@ app.post('/api/agent/pipeline', [
 
     const refineResponse = await genAI.models.generateContent({
       model: getModel(req),
-      contents: `Problem: "${problem}"\n\nOriginal Insights:\n${insightTextForDebate}\n\nDebate:\n${debateTextForRefine}\n\nProduce 3-5 refined insights with confidence scores and a consensus statement.`,
+      contents: `Problem: "${problem}"\n\nOriginal Insights:\n${insightTextForDebate}\n\nDebate:\n${debateTextForRefine}\n\nProduce 3-5 refined insights with confidence scores, a consensus statement, and a synthesisActionBridge connecting the divergent leap to a grounding guardrail and immediate first traction step.`,
       config: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -1255,11 +1359,22 @@ app.post('/api/agent/pipeline', [
               },
             },
             consensus: { type: Type.STRING },
+            synthesisActionBridge: {
+              type: Type.OBJECT,
+              description: 'A concrete closed-loop bridge reconciling the divergent provocations with grounding constraints.',
+              properties: {
+                divergentLeap: { type: Type.STRING },
+                groundingGuardrail: { type: Type.STRING },
+                immediateTractionStep: { type: Type.STRING },
+              },
+              required: ['divergentLeap', 'groundingGuardrail', 'immediateTractionStep'],
+            },
           },
-          required: ['refinedInsights', 'consensus'],
+          required: ['refinedInsights', 'consensus', 'synthesisActionBridge'],
         },
         temperature: 0.5,
         safetySettings: SAFETY_SETTINGS,
+        ...getThinkingConfig(req)
       },
     });
 
@@ -1274,6 +1389,7 @@ app.post('/api/agent/pipeline', [
         debate: debates,
         refinedInsights: refinement.refinedInsights,
         consensus: refinement.consensus,
+        synthesisActionBridge: refinement.synthesisActionBridge,
       },
     });
 
@@ -1307,6 +1423,9 @@ app.post('/api/agent/:strategyId', [
     if (!genAI) return res.status(500).json({ error: 'Gemini API is not configured.' });
 
     const { problem, mode } = req.body;
+    const safetyCheck = checkPreFlightSafety(problem);
+    if (safetyCheck) return res.status(safetyCheck.status).json(safetyCheck.json);
+
     const piiFound = scanForPII(problem);
     if (piiFound.length > 0) return res.status(400).json({ error: `PII detected: ${piiFound.join(', ')}` });
 

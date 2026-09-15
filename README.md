@@ -38,25 +38,37 @@ An interactive lateral thinking workbench, positive psychology companion, and in
 *   **🚀 Interactive Demo Mode:** Immediate offline preview with simulated streaming insights.
 
 ### 3. Two-Tier Ideation: Provocations & Grounding Counterbalances
-To prevent ungrounded or frictionless brainstorming, strategies are organized into two distinct shelves:
-*   **🌟 Divergent Provocations:** *What If, Redefine Constraints, Butterfly Effect, Combinatorial Evolution, Opposite Day, Future Vision, Child's Play, Alien Perspective, Nature's Wisdom, Superpower, Eliminate & Simplify, Random Object, First Principles, Root Cause (5 Whys).*
-*   **⚖️ Grounding Counterbalances & Kinship Anchors:**
+To prevent ungrounded or frictionless brainstorming, 24 strategies are organized into two distinct shelves ([CHANGELOG.md](CHANGELOG.md)):
+*   **🌟 Divergent Provocations (17 Models):**
+    *   *What If, Redefine Constraints, Butterfly Effect, Combinatorial Evolution, Opposite Day, Future Vision, Child's Play, Alien Perspective, Nature's Wisdom, Superpower, Eliminate & Simplify, Random Object, First Principles, Root Cause (5 Whys).*
+    *   ✨ **Sensory Bridge & Somatics / Sensory Bridging & De-escalation:** Tactile, auditory, olfactory, and kinetic grounding to reduce anxiety.
+    *   🤝 **Unlikely Alliances & Outsiders / Chosen Family & Community Circles:** Expanding kinship to chosen family, trusted neighbors, and peers.
+    *   ⏳ **Time Dilation & Century Lens / Circadian Micro-Pacing:** Timescale reframing and biological energy pacing.
+*   **⚖️ Grounding Counterbalances & Kinship Anchors (7 Models):**
     *   🛡️ **FMEA (Risk Analysis) / Safety Net:** Failure mode pre-mortems, consequence ranking, and mitigation guardrails.
     *   🌿 **Critical Path Method / Milestone Map:** Non-negotiable sequence dependencies and milestone timelines.
     *   ✨ **VIA Strengths & Optimism / PERMA+H:** Positive psychology signature strength amplification and Learned Optimism reframing.
-    *   🌹 **Intergenerational Kinship / Family Kinship & Legacy:** Multi-generational family circles (Kids, Parents, Grandparents) and caregiver respite.
+    *   🌹 **Intergenerational Kinship / Family Kinship & Legacy:** Multi-generational family circles (Kids, Parents, Grandparents) and shared activities.
+    *   🛡️ **Sustainable Sprint & Burnout Shield / Respite Safeguards & Caregiver Pacing:** Non-negotiable weekly respite protection and sustainable pacing.
+    *   ⚖️ **Integrity & Non-Negotiables / Dignity, Autonomy & Values Alignment:** Living wills, advance directives, and ethical boundaries (*"Nothing about me without me"*).
+    *   🏡 **Physical Grounding & Ergonomics / Living Room Safety & Hazard Pre-Mortem:** Fall hazards, throw rugs, grab bars, and room accessibility.
 
 ### 4. 🌹 Intergenerational Kinship & Living Room Collaboration
 *   **7 Kinship Personas:** *Daughter (joy/tech), Mother (grounding/pacing), Grandmother (heritage/dignity), Son (action/vitality), Father (protection/safety), Grandfather (craftsmanship/patience), and Kinship Coordinator (harmony).*
+*   **📋 Care Transition & Respite Closure Checklists:** Structured 72h acute discharge and 30d follow-up checklists mapped to HL7 FHIR R4 `ServiceRequest` bundles.
 *   **🎙️ Living Room Voice Input & TTS Narration:** Native Web Speech API voice dictation for couch discussions and gentle Text-to-Speech audio read-aloud for kids and grandparents.
-*   **🖨️ "Family Kinship Circle" Refrigerator Plan:** Formats a clean, printable single-page dashboard with dedicated zones for Youth, Parents, and Grandparents.
+*   **🖨️ "Family Kinship Circle" Refrigerator Plan:** Formats a clean, printable single-page dashboard with dedicated pen-and-paper checkboxes (`[ ]`) for Youth, Parents, and Grandparents.
 
-### 5. 📊 Direct Preference Optimization (DPO) Dataset Export
+### 5. 🤖 Multi-Agent Dialectic Debate & Synthesis Closure
+*   5-phase dialectic debate engine running between opposing strategy agents.
+*   Enforces structured `synthesisActionBridge` outputs: *Divergent Leap*, *Grounding Guardrail*, and *Immediate Traction Step* (24h action).
+
+### 6. 📊 Direct Preference Optimization (DPO) Dataset Export
 *   Export saved insights and care plans into standard Hugging Face/TRL `.jsonl` preference pairs ($\mathbf{y_w}$ Preferred vs $\mathbf{y_l}$ Penalized).
 *   Enforces asset-based, hopeful, and empowering language over pathologizing or deficit-based narratives.
-*   Includes ORCID researcher attribution in the metadata header for academic provenance.
+*   Includes ORCID researcher attribution in the metadata header for academic provenance ([Phil Gear `0009-0008-1372-5381`](https://orcid.org/0009-0008-1372-5381)).
 
-### 6. 🌐 Multilingual & Sister Cities Intelligence
+### 7. 🌐 Multilingual & Sister Cities Intelligence
 *   Native real-time translation across **19 target locales**, including all **9 Portland Sister Cities** (Sapporo, Guadalajara, Ulsan, Suzhou, Ashkelon, Bratislava, Mutare, Bologna, Kota Kinabalu) with localized cultural nuances.
 
 ---

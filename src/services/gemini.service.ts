@@ -394,6 +394,16 @@ export class GeminiService {
         recommendations: [
           "Consult physical therapy to clear specific movements before starting outdoor gardening.",
           "Purchase a lightweight watering wand to make hydration of plants easy."
+        ],
+        transitionChecklist: [
+          "Verify 72-hour post-recovery pathway clearance: confirm walker/cane fits beside garden planter.",
+          "Reconcile morning medication schedule prior to any outdoor gardening sessions.",
+          "Establish direct emergency contact protocol between family coordinator and physical therapist."
+        ],
+        respiteClosureChecklist: [
+          "Schedule dedicated 3-hour Saturday respite window for primary caregiver.",
+          "Confirm secondary family member or neighbor handoff for Sunday afternoon supervision.",
+          "Check in on caregiver fatigue metrics weekly to adjust support pacing."
         ]
       };
     }
@@ -572,6 +582,71 @@ export class GeminiService {
     onUpdate: (partial: Partial<AgenticResult>) => void,
     gist?: string
   ): Promise<AgenticResult> {
+    if (this.isDemoMode()) {
+      onPhaseChange('selecting');
+      const selection = {
+        selectedIds: ['what-if', 'constraints', 'critical-path', 'fmea'],
+        reasoning: 'Balancing divergent lateral provocation with grounding failure-mode analysis and dependency sequencing.',
+        problemCategory: mode === 'care' ? 'clinical & family care' : 'systemic innovation'
+      };
+      onUpdate({ selection });
+
+      onPhaseChange('generating');
+      const initialInsights = this.getMockInsights(problem, [
+        { id: 'what-if', name: 'What If?', description: '', icon: 'sparkles', color: '#8E75C2' },
+        { id: 'critical-path', name: 'Critical Path Method', description: '', icon: 'git-branch', color: '#38BDF8' }
+      ], mode);
+      onUpdate({ selection, initialInsights });
+
+      onPhaseChange('debating');
+      const debate: DebateEntry[] = [
+        {
+          agentId: 'fmea',
+          agentName: 'FMEA (Risk Analysis)',
+          targetInsight: initialInsights[0]?.insights[0]?.text || 'Initial insight',
+          critique: 'This provocation overlooks caregiver fatigue thresholds during the initial 72 hours.',
+          strengthens: false,
+          suggestedRefinement: 'Pair the creative intervention with a structured caregiver relief schedule.'
+        },
+        {
+          agentId: 'critical-path',
+          agentName: 'Critical Path Method',
+          targetInsight: initialInsights[0]?.insights[0]?.text || 'Initial insight',
+          critique: 'Strong concept, but requires step 1 equipment clearance before initiation.',
+          strengthens: true,
+          suggestedRefinement: 'Sequence equipment installation on day 1 followed by gradual engagement.'
+        }
+      ];
+      onUpdate({ selection, initialInsights, debate });
+
+      onPhaseChange('refining');
+      const refinedInsights: RefinedInsight[] = [
+        {
+          original: initialInsights[0]?.insights[0]?.text || 'Initial insight',
+          refined: 'Structured, paced engagement with verified equipment clearance and designated respite intervals.',
+          debateInfluences: ['FMEA (Risk Analysis)', 'Critical Path Method'],
+          confidence: 0.94
+        }
+      ];
+      const consensus = 'The panel converged on an asset-based strategy grounded in strict sequence dependencies and caregiver sustainability.';
+      const synthesisActionBridge = {
+        divergentLeap: 'Reimagining the recovery environment through adaptive micro-engagements.',
+        groundingGuardrail: 'Mandatory 72-hour transition safety check and non-negotiable caregiver respite.',
+        immediateTractionStep: 'Confirm walker path clearance and schedule weekend family respite handoff.'
+      };
+      onUpdate({ selection, initialInsights, debate, refinedInsights, consensus, synthesisActionBridge });
+
+      onPhaseChange('complete');
+      return {
+        selection,
+        initialInsights,
+        debate,
+        refinedInsights,
+        consensus,
+        synthesisActionBridge
+      };
+    }
+
     return this._withRetries(async () => {
       const response = await fetch('/api/agent/pipeline', {
         method: 'POST',
@@ -623,6 +698,7 @@ export class GeminiService {
                       case 'refining':
                         result.refinedInsights = data.result.refinedInsights;
                         result.consensus = data.result.consensus;
+                        result.synthesisActionBridge = data.result.synthesisActionBridge;
                         break;
                       case 'complete':
                         result = data.result;

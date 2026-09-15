@@ -170,13 +170,117 @@ describe('Translation & Internationalization Suite', () => {
     assert.ok(kinshipStrategy.agentPersona.includes('three generations'), 'agentPersona should reflect multi-generational synthesis');
   });
 
-  test('Anchor strategies (fmea, critical-path, perma-strengths, kinship-triad) have category anchor', async () => {
+  test('Anchor strategies (7 models) have category anchor and valid dual-mode metadata', async () => {
     const { STRATEGIES } = await import('../src/models/creative-types.ts');
-    const anchorIds = ['fmea', 'critical-path', 'perma-strengths', 'kinship-triad'];
+    const anchorIds = [
+      'fmea',
+      'critical-path',
+      'perma-strengths',
+      'kinship-triad',
+      'respite-pacing',
+      'ethical-dignity',
+      'environmental-safety'
+    ];
     for (const id of anchorIds) {
       const s = STRATEGIES.find(item => item.id === id);
       assert.ok(s, `Strategy ${id} must exist`);
       assert.strictEqual(s.category, 'anchor', `Strategy ${id} must have category anchor`);
+      assert.ok(s.careModeName, `Strategy ${id} must have careModeName`);
+      assert.ok(s.careModeDescription, `Strategy ${id} must have careModeDescription`);
+      assert.ok(s.agentPersona, `Strategy ${id} must have agentPersona`);
     }
+  });
+
+  test('Complete strategy registry contains 24 models (17 provocations, 7 anchors)', async () => {
+    const { STRATEGIES } = await import('../src/models/creative-types.ts');
+    assert.strictEqual(STRATEGIES.length, 24, 'Must have exactly 24 strategies');
+
+    const provocations = STRATEGIES.filter(s => s.category !== 'anchor');
+    const anchors = STRATEGIES.filter(s => s.category === 'anchor');
+
+    assert.strictEqual(provocations.length, 17, 'Must have exactly 17 divergent provocations');
+    assert.strictEqual(anchors.length, 7, 'Must have exactly 7 systems rigor anchors');
+
+    // Verify new provocations
+    const newProvocationIds = ['sensory-bridge', 'found-kinship', 'time-dilation'];
+    for (const id of newProvocationIds) {
+      const s = STRATEGIES.find(item => item.id === id);
+      assert.ok(s, `New provocation ${id} must exist`);
+      assert.ok(s.careModeName, `New provocation ${id} must have careModeName`);
+      assert.ok(s.agentPersona, `New provocation ${id} must have agentPersona`);
+    }
+  });
+
+  test('FHIR R4 Bundle Builder maps Care Transition & Respite Checklists to ServiceRequest activities', () => {
+    const carePlanWithChecklists = {
+      personGoal: 'Safely transition from hospital to living room gardening',
+      keyInterventions: ['Seated planting', 'Supported 10m walks'],
+      monitoringPlan: ['Daily vitals', 'Pain thresholds'],
+      guidanceAndEducation: ['Ergonomic tools instruction'],
+      positiveAchievements: ['5 minutes standing milestone'],
+      recommendations: ['Follow up with PT in 2 weeks'],
+      transitionChecklist: [
+        '72-hour walkway clearance for walker navigation',
+        'Medication schedule reconciliation'
+      ],
+      respiteClosureChecklist: [
+        'Weekly 4-hour primary caregiver relief window',
+        'Designate secondary emergency contact'
+      ]
+    };
+
+    const activities = [
+      ...carePlanWithChecklists.keyInterventions.map(i => ({ detail: { kind: 'ServiceRequest', description: i } })),
+      ...carePlanWithChecklists.transitionChecklist.map(t => ({ detail: { kind: 'ServiceRequest', description: `[Transition Protocol]: ${t}` } })),
+      ...carePlanWithChecklists.respiteClosureChecklist.map(r => ({ detail: { kind: 'ServiceRequest', description: `[Respite Safeguard]: ${r}` } }))
+    ];
+
+    assert.strictEqual(activities.length, 6, 'Should contain 2 key interventions + 2 transition checks + 2 respite checks');
+    assert.ok(activities.some(a => a.detail.description.startsWith('[Transition Protocol]:')));
+    assert.ok(activities.some(a => a.detail.description.startsWith('[Respite Safeguard]:')));
+  });
+
+  test('GeminiService in Demo Mode returns structured transition & respite checklists in CarePlan', async () => {
+    const { GeminiService } = await import('../src/services/gemini.service.ts');
+    const service = new GeminiService();
+    // Activate demo mode via global localStorage simulation
+    globalThis.localStorage = {
+      getItem: (key) => key === 'spark_cfg_val' ? 'demo-key-active' : null,
+      setItem: () => {},
+      removeItem: () => {}
+    };
+
+    const plan = await service.generateCarePlan('Post-recovery mobility support', [
+      { id: '1', text: 'Gentle morning movement', strategyName: 'What If', problem: 'Mobility', timestamp: Date.now(), type: 'insight' }
+    ]);
+
+    assert.ok(plan.transitionChecklist && plan.transitionChecklist.length > 0, 'Must include transitionChecklist');
+    assert.ok(plan.respiteClosureChecklist && plan.respiteClosureChecklist.length > 0, 'Must include respiteClosureChecklist');
+    assert.ok(plan.transitionChecklist[0].includes('72-hour'), 'Must cite 72-hour transition window');
+  });
+
+  test('GeminiService runAgenticPipeline in Demo Mode returns synthesisActionBridge', async () => {
+    const { GeminiService } = await import('../src/services/gemini.service.ts');
+    const service = new GeminiService();
+    globalThis.localStorage = {
+      getItem: (key) => key === 'spark_cfg_val' ? 'demo-key-active' : null,
+      setItem: () => {},
+      removeItem: () => {}
+    };
+
+    const phases = [];
+    const result = await service.runAgenticPipeline(
+      'Test problem',
+      'care',
+      (phase) => phases.push(phase),
+      () => {}
+    );
+
+    assert.ok(result.consensus, 'Consensus must exist');
+    assert.ok(result.synthesisActionBridge, 'synthesisActionBridge must exist');
+    assert.ok(result.synthesisActionBridge.divergentLeap, 'Must have divergentLeap');
+    assert.ok(result.synthesisActionBridge.groundingGuardrail, 'Must have groundingGuardrail');
+    assert.ok(result.synthesisActionBridge.immediateTractionStep, 'Must have immediateTractionStep');
+    assert.ok(phases.includes('complete'), 'Pipeline must complete');
   });
 });

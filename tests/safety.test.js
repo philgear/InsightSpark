@@ -1,56 +1,76 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert';
-
-// Define the PII detection logic used in the client (app.component.ts) and server (server.js)
-function scanForPII(text) {
-  if (!text || typeof text !== 'string') return [];
-  const input = text.length > 2000 ? text.slice(0, 2000) : text;
-
-  const emailRegex = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}\b/g;
-  const phoneRegex = /(?:\+\d{1,3}[-.\s])?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
-  const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/g;
-  const ipRegex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g;
-
-  const foundPII = [];
-  // Reset regex lastIndex because of /g flag
-  emailRegex.lastIndex = 0;
-  phoneRegex.lastIndex = 0;
-  ssnRegex.lastIndex = 0;
-  ipRegex.lastIndex = 0;
-
-  if (emailRegex.test(input)) foundPII.push('Email Address');
-  if (phoneRegex.test(input)) foundPII.push('Phone Number');
-  if (ssnRegex.test(input)) foundPII.push('Social Security Number');
-  if (ipRegex.test(input)) foundPII.push('IP Address');
-
-  return foundPII;
-}
-
-// Client-side warning message builder logic
-function getClientPiiWarning(rawText) {
-  if (!rawText) return null;
-  const text = rawText.length > 2000 ? rawText.slice(0, 2000) : rawText;
-
-  const emailRegex = /\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}\b/g;
-  const phoneRegex = /(?:\+\d{1,3}[-.\s])?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/;
-  const ssnRegex = /\b\d{3}-\d{2}-\d{4}\b/;
-  const ipRegex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
-
-  const found = [];
-  if (emailRegex.test(text)) found.push('email address');
-  if (phoneRegex.test(text)) found.push('phone number');
-  if (ssnRegex.test(text)) found.push('social security number');
-  if (ipRegex.test(text)) found.push('IP address');
-
-  if (found.length > 0) {
-    return `Potential ${found.join(' and ')} detected. Under HIPAA guidelines, please de-identify your query before generating insights.`;
-  }
-  return null;
-}
+import { 
+  scanForAcuteTriage, 
+  scanForPII, 
+  getClientPiiWarning, 
+  autoScrubPII 
+} from '../src/utils/safety-guards.ts';
 
 describe('Responsible AI Safety & Privacy Guardrails', () => {
   
-  describe('PII Scanner Regex Validation', () => {
+  describe('ClinicalTriageGuard — Acute Emergency & Crisis Interception', () => {
+    test('Clean ideation and care inputs should NOT trigger triage intercept', () => {
+      const inputs = [
+        'Patient has joint pain in knee, struggling to walk up stairs comfortably.',
+        'Brainstorming ideas for an intergenerational community garden in Portland.',
+        'Recovering from hip replacement, wants to attend granddaughter wedding.'
+      ];
+      for (const input of inputs) {
+        const triage = scanForAcuteTriage(input);
+        assert.strictEqual(triage, null, `Clean input triggered false positive triage: "${input}"`);
+      }
+    });
+
+    test('FAST Stroke indicators should trigger 911 medical emergency intercept', () => {
+      const strokeInputs = [
+        'Elder suddenly has slurred speech and left arm weakness',
+        'Noticed face drooping on one side and sudden numbness in right arm',
+        'Sudden loss of balance and inability to speak clearly'
+      ];
+      for (const input of strokeInputs) {
+        const triage = scanForAcuteTriage(input);
+        assert.ok(triage, `Failed to detect stroke signs in: "${input}"`);
+        assert.strictEqual(triage.isEmergency, true);
+        assert.strictEqual(triage.type, 'medical');
+        assert.strictEqual(triage.hotline, '911');
+        assert.match(triage.guidance, /911/);
+      }
+    });
+
+    test('Cardiac and severe respiratory distress should trigger 911 medical emergency intercept', () => {
+      const cardiacInputs = [
+        'Grandpa complaining of severe chest pain and radiating arm numbness',
+        'Sudden chest pressure and cannot breathe properly',
+        'Patient collapsed with loss of consciousness and blue lips'
+      ];
+      for (const input of cardiacInputs) {
+        const triage = scanForAcuteTriage(input);
+        assert.ok(triage, `Failed to detect cardiac/respiratory distress in: "${input}"`);
+        assert.strictEqual(triage.isEmergency, true);
+        assert.strictEqual(triage.type, 'medical');
+        assert.strictEqual(triage.hotline, '911');
+      }
+    });
+
+    test('Suicidal crisis and despair language should trigger 988 Crisis Lifeline intercept', () => {
+      const crisisInputs = [
+        'Caregiver burnout is too much, I feel hopeless and want to end it all',
+        'Patient expressed suicidal thoughts and feelings of worthlessness',
+        'I want to die, nothing is getting better'
+      ];
+      for (const input of crisisInputs) {
+        const triage = scanForAcuteTriage(input);
+        assert.ok(triage, `Failed to detect crisis in: "${input}"`);
+        assert.strictEqual(triage.isEmergency, true);
+        assert.strictEqual(triage.type, 'crisis');
+        assert.strictEqual(triage.hotline, '988');
+        assert.match(triage.actionTitle, /988/);
+      }
+    });
+  });
+
+  describe('HipaaSafeHarborGuard — Deep PII/PHI De-Identification', () => {
     test('Should pass for clean clinical inputs with no PII', () => {
       const input = 'Patient has joint pain in knee, struggling to walk up stairs.';
       const detected = scanForPII(input);
@@ -58,11 +78,16 @@ describe('Responsible AI Safety & Privacy Guardrails', () => {
       assert.strictEqual(getClientPiiWarning(input), null);
     });
 
-    test('Should catch email addresses', () => {
-      const input = 'Patient contact email is john.doe@example.com for follow-up.';
-      const detected = scanForPII(input);
-      assert.deepStrictEqual(detected, ['Email Address']);
-      assert.match(getClientPiiWarning(input), /email address/);
+    test('Should catch email addresses (standard and obfuscated)', () => {
+      const emails = [
+        'Patient contact email is john.doe@example.com for follow-up.',
+        'Reach me at doctor [at] clinic [dot] org'
+      ];
+      for (const input of emails) {
+        const detected = scanForPII(input);
+        assert.ok(detected.includes('Email Address'), `Failed to catch email: ${input}`);
+        assert.match(getClientPiiWarning(input) || '', /email address/);
+      }
     });
 
     test('Should catch phone numbers in various formats', () => {
@@ -76,7 +101,7 @@ describe('Responsible AI Safety & Privacy Guardrails', () => {
         const input = `Reach out at ${format} for assistance.`;
         const detected = scanForPII(input);
         assert.ok(detected.includes('Phone Number'), `Failed to catch phone format: ${format}`);
-        assert.match(getClientPiiWarning(input), /phone number/);
+        assert.match(getClientPiiWarning(input) || '', /phone number/);
       }
     });
 
@@ -84,25 +109,50 @@ describe('Responsible AI Safety & Privacy Guardrails', () => {
       const input = 'SSN on file is 000-12-3456.';
       const detected = scanForPII(input);
       assert.deepStrictEqual(detected, ['Social Security Number']);
-      assert.match(getClientPiiWarning(input), /social security number/);
+      assert.match(getClientPiiWarning(input) || '', /social security number/);
     });
 
     test('Should catch IP addresses', () => {
       const input = 'Request originated from IP 192.168.1.100.';
       const detected = scanForPII(input);
       assert.deepStrictEqual(detected, ['IP Address']);
-      assert.match(getClientPiiWarning(input), /IP address/);
+      assert.match(getClientPiiWarning(input) || '', /ip address/);
     });
 
-    test('Should catch multiple types of PII simultaneously', () => {
-      const input = 'Send records to doc@hospital.org or call 555-123-4567.';
+    test('Should catch Date of Birth (DOB) under HIPAA Safe Harbor', () => {
+      const input = 'Patient records indicate DOB: 05/12/1948.';
       const detected = scanForPII(input);
-      assert.ok(detected.includes('Email Address'));
-      assert.ok(detected.includes('Phone Number'));
-      
-      const clientWarning = getClientPiiWarning(input);
-      assert.match(clientWarning, /email address/);
-      assert.match(clientWarning, /phone number/);
+      assert.ok(detected.includes('Date of Birth'));
+      assert.match(getClientPiiWarning(input) || '', /date of birth/);
+    });
+
+    test('Should catch Medical Record Numbers (MRN)', () => {
+      const input = 'Follow up for patient with MRN: 98765432.';
+      const detected = scanForPII(input);
+      assert.ok(detected.includes('Medical Record Number'));
+      assert.match(getClientPiiWarning(input) || '', /medical record number/);
+    });
+
+    test('Should catch Street Addresses', () => {
+      const input = 'Home health aid visits 742 Evergreen Terrace Apt 4B on Mondays.';
+      const detected = scanForPII(input);
+      assert.ok(detected.includes('Street Address'));
+      assert.match(getClientPiiWarning(input) || '', /street address/);
+    });
+
+    test('autoScrubPII should scrub PII tokens cleanly with placeholder tokens', () => {
+      const dirty = 'Contact nurse at 555-123-4567 or nurse@clinic.org regarding patient DOB: 01/01/1950 at 123 Main Street.';
+      const clean = autoScrubPII(dirty);
+
+      assert.ok(!clean.includes('555-123-4567'), 'Phone must be scrubbed');
+      assert.ok(!clean.includes('nurse@clinic.org'), 'Email must be scrubbed');
+      assert.ok(!clean.includes('01/01/1950'), 'DOB must be scrubbed');
+      assert.ok(!clean.includes('123 Main Street'), 'Address must be scrubbed');
+
+      assert.ok(clean.includes('[phone]'));
+      assert.ok(clean.includes('[email]'));
+      assert.ok(clean.includes('[date of birth]'));
+      assert.ok(clean.includes('[street address]'));
     });
   });
 

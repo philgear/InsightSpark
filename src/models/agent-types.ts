@@ -44,6 +44,11 @@ export interface AgenticResult {
   debate: DebateEntry[];
   refinedInsights: RefinedInsight[];
   consensus: string;
+  synthesisActionBridge?: {
+    divergentLeap: string;
+    groundingGuardrail: string;
+    immediateTractionStep: string;
+  };
 }
 
 // ─── Pipeline Phase Tracking ──────────────────────────────────────────

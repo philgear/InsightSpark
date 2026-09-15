@@ -36,6 +36,8 @@ export interface CarePlan {
   guidanceAndEducation: string[];
   positiveAchievements: string[];
   recommendations: string[];
+  transitionChecklist?: string[];
+  respiteClosureChecklist?: string[];
 }
 
 export interface CreativePlan {
@@ -234,6 +236,36 @@ export const STRATEGIES: CreativeStrategy[] = [
     careModeDescription: "Explore the root causes and underlying triggers of the support challenge.",
     agentPersona: 'I am relentless. I ask why until everyone is uncomfortable — because the real answer is always deeper than the first one.'
   },
+  {
+    id: 'sensory-bridge',
+    name: 'Sensory Bridge & Somatics',
+    description: 'Bypass intellectual abstractions and ground the challenge in the 5 senses (sound, scent, texture, kinetic rhythm).',
+    icon: 'volume-2',
+    color: '#FDD87A',
+    careModeName: 'Sensory Bridging & De-escalation',
+    careModeDescription: 'Tap into nostalgic music, tactile comforts, and soothing lighting to de-escalate anxiety and sensory overload.',
+    agentPersona: 'I tune out intellectual abstractions and listen to the senses: sound, scent, texture, and kinetic rhythm. When the mind is stuck, the body knows the way.'
+  },
+  {
+    id: 'found-kinship',
+    name: 'Unlikely Alliances & Outsiders',
+    description: 'Partner with an adversarial discipline, outsider community, or fringe group to spark non-linear breakthroughs.',
+    icon: 'user-check',
+    color: '#E8B9C8',
+    careModeName: 'Chosen Family & Community Circles',
+    careModeDescription: 'Expand support beyond bloodlines to trusted neighbors, faith volunteers, peer buddies, and companion animals.',
+    agentPersona: 'Blood is not the only bond. When the biological circle is strained or absent, I weave chosen family, neighbors, and trusted allies into an unbreakable safety net.'
+  },
+  {
+    id: 'time-dilation',
+    name: 'Time Dilation & Century Lens',
+    description: 'Radical timescale shift: How does this work in 3 seconds? How does this endure across 300 years?',
+    icon: 'refresh',
+    color: '#6C7A68',
+    careModeName: 'Circadian Micro-Pacing',
+    careModeDescription: 'Align interventions with biological energy curves (morning momentum, sundowning mitigation, twilight winding down).',
+    agentPersona: 'I stretch and compress time. When you rush, I slow the moment down to a breath; when you hesitate, I look forward 100 years.'
+  },
   { 
     id: 'fmea', 
     name: 'FMEA (Risk Analysis)', 
@@ -277,5 +309,38 @@ export const STRATEGIES: CreativeStrategy[] = [
     careModeName: 'Family Kinship & Legacy',
     careModeDescription: 'Distributes care across generations (children, parents, grandparents) into shared, joy-filled co-activities.',
     agentPersona: 'I look through three generations at once: the wonder of children, the grounding of parents, and the enduring wisdom of grandparents.'
+  },
+  {
+    id: 'respite-pacing',
+    name: 'Sustainable Sprint & Burnout Shield',
+    description: 'Identify team endurance limits, prevent crunch, and bake regenerative rest cycles directly into the roadmap.',
+    icon: 'shield',
+    color: '#9AE6B4',
+    category: 'anchor',
+    careModeName: 'Respite Safeguards & Caregiver Pacing',
+    careModeDescription: 'Guard caregiver vitality with non-negotiable weekly respite windows (3–4 hrs minimum), designated handoffs, and sustainable pacing.',
+    agentPersona: 'A plan that burns out the caregiver is a failed plan. I enforce protected rest, guilt-free handoffs, and renewable emotional energy.'
+  },
+  {
+    id: 'ethical-dignity',
+    name: 'Integrity & Non-Negotiable Boundaries',
+    description: 'Establish ethical guardrails, privacy protections, and accessibility redlines that cannot be compromised for speed.',
+    icon: 'shield-check',
+    color: '#F6AD55',
+    category: 'anchor',
+    careModeName: 'Dignity, Autonomy & Values Alignment',
+    careModeDescription: 'Ground care in the individual\'s expressed wishes, advance directives, spiritual heritage, and self-determination.',
+    agentPersona: 'I am the keeper of dignity and autonomy. Every intervention must honor the person\'s voice, values, and living truth—nothing about them without them.'
+  },
+  {
+    id: 'environmental-safety',
+    name: 'Physical Grounding & Ergonomics',
+    description: 'Anchor concepts into tangible real-world spatial constraints, physical ergonomics, hardware friction, and room dynamics.',
+    icon: 'move',
+    color: '#6C7A68',
+    category: 'anchor',
+    careModeName: 'Living Room Safety & Hazard Pre-Mortem',
+    careModeDescription: 'Close vulnerability loops on fall hazards, throw rugs, shower grab bars, medication locking, and emergency exit pathways.',
+    agentPersona: 'I inspect the physical living room floor. Brilliant intentions fail when someone trips on a rug or can\'t read a medicine bottle. I ground care in physical reality.'
   }
 ];

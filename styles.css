@@ -81,6 +81,9 @@ html {
   --strategy-critical-path: var(--strategy-thistle);
   --strategy-perma-strengths: var(--strategy-green);
   --strategy-kinship-triad: var(--strategy-chocolate);
+  --strategy-respite-pacing: var(--strategy-green);
+  --strategy-ethical-dignity: var(--strategy-chocolate);
+  --strategy-environmental-safety: var(--strategy-thistle);
 
   /* Icon Assignments */
   --strategy-icon-what-if: var(--icon-purple);
@@ -97,10 +100,16 @@ html {
   --strategy-icon-random: var(--icon-thistle);
   --strategy-icon-first-principles: var(--icon-green);
   --strategy-icon-root-cause: var(--icon-purple);
+  --strategy-icon-sensory-bridge: var(--icon-chocolate);
+  --strategy-icon-found-kinship: var(--icon-thistle);
+  --strategy-icon-time-dilation: var(--icon-green);
   --strategy-icon-fmea: var(--icon-green);
   --strategy-icon-critical-path: var(--icon-thistle);
   --strategy-icon-perma-strengths: var(--icon-green);
   --strategy-icon-kinship-triad: var(--icon-chocolate);
+  --strategy-icon-respite-pacing: var(--icon-green);
+  --strategy-icon-ethical-dignity: var(--icon-chocolate);
+  --strategy-icon-environmental-safety: var(--icon-purple);
 
   --logo-url: url('/assets/logo-dark.svg');
   accent-color: var(--text-accent);

@@ -89,6 +89,70 @@ function setStoredThinkingBudget(budget: number): void {
           </div>
         </div>
       </header>
+
+      <!-- What's New in v2.1 (Release Highlights) -->
+      <div class="bg-linear-to-r from-(--card-bg) via-emerald-950/20 to-(--card-bg) p-5 rounded-2xl border border-emerald-500/30 shadow-lg">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <span class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 font-mono font-bold text-xs flex items-center gap-1.5 border border-emerald-500/30">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              v2.1 Release
+            </span>
+            <h3 class="text-sm sm:text-base font-bold text-(--text-highlight)">
+              New Grounding Anchors, Care Closure Checklists & On-Device AI
+            </h3>
+          </div>
+          <button (click)="toggleChangelog()"
+                  class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 border border-(--border-color) transition-all flex items-center gap-1.5 text-(--text-accent) self-start sm:self-auto cursor-pointer">
+            <span>{{ showChangelog() ? 'Hide Highlights' : "View What's New" }}</span>
+            <app-icon [name]="showChangelog() ? 'chevron-up' : 'chevron-down'" [size]="14"></app-icon>
+          </button>
+        </div>
+
+        @if (showChangelog()) {
+          <div class="mt-4 pt-4 border-t border-(--border-color)/40 space-y-4 text-xs animate-in fade-in duration-200">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div class="p-3 bg-black/20 rounded-xl border border-white/5 space-y-1">
+                <div class="font-bold text-(--text-accent) flex items-center gap-1.5">
+                  <app-icon name="shield-check" [size]="14"></app-icon>
+                  <span>6 New Strategy Models</span>
+                </div>
+                <p class="text-(--text-color-muted) leading-relaxed">
+                  Added <strong>Sensory Bridge</strong>, <strong>Chosen Family</strong>, <strong>Time Dilation</strong>, <strong>Respite Safeguards</strong>, <strong>Ethical Dignity</strong>, and <strong>Home Hazard Pre-Mortems</strong> across both Creative and Care modes.
+                </p>
+              </div>
+
+              <div class="p-3 bg-black/20 rounded-xl border border-white/5 space-y-1">
+                <div class="font-bold text-(--text-accent) flex items-center gap-1.5">
+                  <app-icon name="clipboard-list" [size]="14"></app-icon>
+                  <span>Care Transition Checklists</span>
+                </div>
+                <p class="text-(--text-color-muted) leading-relaxed">
+                  Standardized 72h acute discharge and 30d handoff checklists with pen-and-paper refrigerator plan formatting and HL7 FHIR R4 ServiceRequest resource mapping.
+                </p>
+              </div>
+
+              <div class="p-3 bg-black/20 rounded-xl border border-white/5 space-y-1">
+                <div class="font-bold text-(--text-accent) flex items-center gap-1.5">
+                  <app-icon name="sparkles" [size]="14"></app-icon>
+                  <span>DPO Alignment & Multi-Agent</span>
+                </div>
+                <p class="text-(--text-color-muted) leading-relaxed">
+                  Export pairwise preference datasets for Hugging Face TRL with ORCID provenance (<a href="https://orcid.org/0009-0008-1372-5381" target="_blank" class="underline hover:text-(--text-highlight)">Phil Gear</a>) plus 5-phase multi-agent dialectical synthesis closure.
+                </p>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 text-[11px] text-(--text-color-muted)">
+              <span>Explore complete version history and architecture notes:</span>
+              <a href="https://github.com/philgear/InsightSpark/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer" class="text-(--text-accent) hover:underline font-semibold flex items-center gap-1">
+                <span>View Full CHANGELOG.md on GitHub</span>
+                <span>&rarr;</span>
+              </a>
+            </div>
+          </div>
+        }
+      </div>
       
       @if (appMode() === 'creative') {
         <div class="space-y-6">
@@ -485,6 +549,11 @@ export class HelpComponent implements OnInit {
   userLanguage = signal(this.translationService.currentLang());
   userTemperature = signal(getStoredTemperature());
   userThinkingBudget = signal(getStoredThinkingBudget());
+  showChangelog = signal(false);
+
+  toggleChangelog() {
+    this.showChangelog.update(v => !v);
+  }
 
   chromeAiAvailable = signal(false);
   ollamaAvailable = signal(false);

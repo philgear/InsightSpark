@@ -15,6 +15,7 @@ import { HelpComponent } from './components/ui/help.component';
 import { GraphViewComponent } from './components/ui/graph-view.component';
 import { LojongCleansingComponent } from './components/ui/lojong-cleansing.component';
 import { SpeechService } from './services/speech.service';
+import { scanForAcuteTriage, getClientPiiWarning, autoScrubPII, AcuteTriageAlert } from './utils/safety-guards';
 
 function getStoredApiKey(): string {
   let value = localStorage.getItem('spark_cfg_val');
@@ -446,14 +447,17 @@ export class AppComponent implements OnDestroy {
     if (!printWindow) return;
 
     const sectionsHtml = isCare 
-      ? this.getCarePlanSections(plan as CarePlan).map(s => `
+      ? this.getCarePlanSections(plan as CarePlan).map(s => {
+          const isChecklist = s.title.includes('Checklist') || s.title.includes('Safeguards');
+          return `
           <div style="margin-bottom: 16px; padding: 14px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff;">
             <h3 style="margin: 0 0 6px 0; color: #2d3748; font-size: 15px; font-weight: bold;">${s.title}</h3>
-            <ul style="margin: 0; padding-left: 18px; color: #4a5568; font-size: 13px; line-height: 1.6;">
-              ${s.items.map(item => `<li>${item}</li>`).join('')}
+            <ul style="margin: 0; padding-left: ${isChecklist ? '4px' : '18px'}; color: #4a5568; font-size: 13px; line-height: 1.6; list-style-type: ${isChecklist ? 'none' : 'disc'};">
+              ${s.items.map(item => isChecklist ? `<li style="margin-bottom: 6px; display: flex; align-items: flex-start; gap: 8px;"><span style="display:inline-block; min-width:14px; height:14px; border:1.5px solid #4a5568; border-radius:3px; margin-top:2px;"></span> <span>${item}</span></li>` : `<li>${item}</li>`).join('')}
             </ul>
           </div>
-        `).join('')
+        `;
+        }).join('')
       : this.getCreativePlanSections(plan as CreativePlan).map(s => `
           <div style="margin-bottom: 16px; padding: 14px; border: 1px solid #e2e8f0; border-radius: 12px; background: #fff;">
             <h3 style="margin: 0 0 6px 0; color: #2d3748; font-size: 15px; font-weight: bold;">${s.title}</h3>
@@ -633,33 +637,21 @@ export class AppComponent implements OnDestroy {
   charCount = computed(() => this.problemInput().length);
   maxCharLimit = 2000;
 
-  piiWarning = computed(() => {
-    const rawText = this.problemInput();
-    if (!rawText) return null;
-    const text = rawText.length > 2000 ? rawText.slice(0, 2000) : rawText;
+  acuteTriageAlert = computed<AcuteTriageAlert | null>(() => scanForAcuteTriage(this.problemInput()));
+  piiWarning = computed<string | null>(() => getClientPiiWarning(this.problemInput()));
 
-    const emailRegex = /(?:\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}\b|\b[a-zA-Z0-9._%+-]+\s*(?:\[at\]|\(at\)|@)\s*[a-zA-Z0-9.-]+\s*(?:\[dot\]|\(dot\)|\.)\s*[a-zA-Z]{2,10}\b)/gi;
-    const phoneRegex = /(?:\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/;
-    const ssnRegex = /\b\d{3}[-\s.]\d{2}[-\s.]\d{4}\b/;
-    const ipRegex = /\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/;
-    const dobRegex = /\b(?:DOB|Date of Birth|Birthdate)\s*[:=]\s*\d{1,4}[-/.]\d{1,2}[-/.]\d{1,4}\b/i;
-    const mrnRegex = /\b(?:MRN|Medical Record Number|Patient ID)\s*[:=]\s*[A-Z0-9-]+\b/i;
+  isGenerateDisabled = computed(() => 
+    this.problemInput().trim().length < 5 || 
+    this.isLoading() || 
+    !!this.acuteTriageAlert() || 
+    !!this.piiWarning() || 
+    this.charCount() > this.maxCharLimit
+  );
 
-    const found: string[] = [];
-    if (emailRegex.test(text)) found.push('email address');
-    if (phoneRegex.test(text)) found.push('phone number');
-    if (ssnRegex.test(text)) found.push('social security number');
-    if (ipRegex.test(text)) found.push('IP address');
-    if (dobRegex.test(text)) found.push('date of birth');
-    if (mrnRegex.test(text)) found.push('medical record number');
-
-    if (found.length > 0) {
-      return `Potential ${found.join(', ')} detected. Under HIPAA & privacy guidelines, please de-identify your text before submitting.`;
-    }
-    return null;
-  });
-
-  isGenerateDisabled = computed(() => this.problemInput().trim().length < 5 || this.isLoading() || !!this.piiWarning() || this.charCount() > this.maxCharLimit);
+  autoDeIdentify() {
+    const scrubbed = autoScrubPII(this.problemInput());
+    this.problemInput.set(scrubbed);
+  }
   selectedStrategiesCount = computed(() => this.selectedStrategyIds().size);
   
   problemInputAriaLabel = computed(() => {
@@ -757,6 +749,8 @@ export class AppComponent implements OnDestroy {
       { title: 'Guidance & Education', items: plan.guidanceAndEducation, icon: 'brain' },
       { title: 'Positive Achievements', items: plan.positiveAchievements, icon: 'sparkles' },
       { title: 'Recommendations', items: plan.recommendations, icon: 'arrow-up' },
+      ...(plan.transitionChecklist && plan.transitionChecklist.length > 0 ? [{ title: 'Care Transition Checklist (72h / 30d)', items: plan.transitionChecklist, icon: 'shield' }] : []),
+      ...(plan.respiteClosureChecklist && plan.respiteClosureChecklist.length > 0 ? [{ title: 'Caregiver Respite Safeguards', items: plan.respiteClosureChecklist, icon: 'heart-pulse' }] : []),
     ];
 
     return sections
@@ -1368,14 +1362,32 @@ export class AppComponent implements OnDestroy {
             } : undefined,
             addresses: [{ reference: 'urn:uuid:condition-1' }],
             goal: [{ reference: 'urn:uuid:goal-1' }],
-            activity: p.keyInterventions.map((intervention) => ({
-              detail: {
-                kind: 'ServiceRequest',
-                status: 'not-started',
-                description: intervention,
-                doNotPerform: false
-              }
-            })),
+            activity: [
+              ...p.keyInterventions.map((intervention) => ({
+                detail: {
+                  kind: 'ServiceRequest',
+                  status: 'not-started',
+                  description: intervention,
+                  doNotPerform: false
+                }
+              })),
+              ...(p.transitionChecklist || []).map((trans) => ({
+                detail: {
+                  kind: 'ServiceRequest',
+                  status: 'not-started',
+                  description: `[Transition Protocol]: ${trans}`,
+                  doNotPerform: false
+                }
+              })),
+              ...(p.respiteClosureChecklist || []).map((respite) => ({
+                detail: {
+                  kind: 'ServiceRequest',
+                  status: 'not-started',
+                  description: `[Respite Safeguard]: ${respite}`,
+                  doNotPerform: false
+                }
+              }))
+            ],
             note: [
               ...p.monitoringPlan.map(m => ({ text: `[Monitoring]: ${m}` })),
               ...p.guidanceAndEducation.map(g => ({ text: `[Education]: ${g}` })),
