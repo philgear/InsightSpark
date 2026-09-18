@@ -43,8 +43,8 @@ test.describe('ORCID Authentication Flow', () => {
     const connectedId = page.locator('text=0009-0008-1372-5381');
     await expect(connectedId).toBeVisible();
 
-    // 3. Close overlay by clicking Try a Demo (to see header and footer)
-    const demoButton = page.locator('button:has-text("Try a Demo")');
+    // 3. Close overlay by clicking Try Demo Mode (to see header and footer)
+    const demoButton = page.locator('button:has-text("Demo Mode")');
     await demoButton.click({ force: true });
 
     // 4. Verify the header displays the verified ORCID badge

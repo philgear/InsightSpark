@@ -9,7 +9,7 @@ test.describe('Pivot & Pulse End-to-End Tests', () => {
 
   test('PII Privacy Shield should trigger warning on personal information', async ({ page }) => {
     // 1. Enter Demo Mode to unlock input text area
-    const demoButton = page.locator('button:has-text("Try a Demo")');
+    const demoButton = page.locator('button:has-text("Demo Mode")');
     await expect(demoButton).toBeVisible();
     await demoButton.click({ force: true });
 
@@ -20,17 +20,17 @@ test.describe('Pivot & Pulse End-to-End Tests', () => {
     await problemTextarea.click({ force: true });
     await problemTextarea.fill('Reach me at 555-123-4567 or email patient@med.org.');
     
-    // 3. Verify Privacy Warning banner is triggered
-    const privacyWarning = page.locator('text=Privacy Warning');
+    // 3. Verify Dignity-First Privacy Check banner is triggered
+    const privacyWarning = page.locator('text=A Gentle Privacy Check');
     await expect(privacyWarning).toBeVisible();
     
-    const warningText = page.locator('text=Under HIPAA guidelines, please de-identify your query');
+    const warningText = page.locator('text=To protect family privacy, please tidy detected personal details');
     await expect(warningText).toBeVisible();
   });
 
   test('Demo Mode: should generate Creative Mode insights', async ({ page }) => {
     // 1. Enter Demo Mode (starts in Creative Mode by default)
-    const demoButton = page.locator('button:has-text("Try a Demo")');
+    const demoButton = page.locator('button:has-text("Demo Mode")');
     await demoButton.click({ force: true });
 
     // 2. Verify pre-populated challenge text is present
@@ -52,7 +52,7 @@ test.describe('Pivot & Pulse End-to-End Tests', () => {
 
   test('Demo Mode: should switch to Care Mode, save insights, and synthesize care plans', async ({ page }) => {
     // 1. Enter Demo Mode (starts in Creative Mode)
-    const demoButton = page.locator('button:has-text("Try a Demo")');
+    const demoButton = page.locator('button:has-text("Demo Mode")');
     await expect(demoButton).toBeVisible();
     await demoButton.click({ force: true });
 
