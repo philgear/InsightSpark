@@ -29,6 +29,7 @@
     "d3": "7.9.0",
     "express": "5.2.1",
     "express-rate-limit": "8.5.2",
+    "express-validator": "7.3.2",
     "helmet": "8.2.0",
     "morgan": "^1.12.1",
     "partial-json": "0.1.7",

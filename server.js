@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url';
 import { GoogleGenAI, Type } from '@google/genai';
 import fs from 'fs';
 import compression from 'compression';
+import { body, validationResult } from 'express-validator';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

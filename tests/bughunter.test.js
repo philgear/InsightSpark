@@ -136,11 +136,47 @@ describe('Bug Hunter Audit: Security, Privacy & Stream Fuzzing Suite', () => {
     });
   });
 
-  describe('5. Server Proxy Integrity & Syntax Verification', () => {
-    test('server.js should parse cleanly with zero syntax or missing reference errors', async () => {
+  describe('5. Server Proxy Integrity & Startup Verification', () => {
+    test('server.js should parse cleanly with zero syntax errors', async () => {
       const { execSync } = await import('node:child_process');
       assert.doesNotThrow(() => {
         execSync('node --check server.js', { stdio: 'pipe' });
+      });
+    });
+
+    test('server.js should boot and listen on port without runtime reference errors', async () => {
+      const { spawn } = await import('node:child_process');
+      await new Promise((resolve, reject) => {
+        const proc = spawn('node', ['server.js'], {
+          env: { ...process.env, PORT: '8998', NODE_ENV: 'test' },
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
+
+        let output = '';
+        let errorOutput = '';
+
+        proc.stdout.on('data', (d) => {
+          output += d.toString();
+          if (output.includes('Server listening on port 8998')) {
+            proc.kill('SIGTERM');
+            resolve();
+          }
+        });
+
+        proc.stderr.on('data', (d) => {
+          errorOutput += d.toString();
+        });
+
+        proc.on('close', (code) => {
+          if (!output.includes('Server listening on port 8998')) {
+            reject(new Error(`Server exited prematurely (code ${code}): ${errorOutput}`));
+          }
+        });
+
+        setTimeout(() => {
+          proc.kill('SIGKILL');
+          reject(new Error(`Server boot timed out: ${errorOutput || output}`));
+        }, 5000);
       });
     });
   });
