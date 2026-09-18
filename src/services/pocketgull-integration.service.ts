@@ -21,6 +21,7 @@ export class PocketgullIntegrationService {
   
   // Stream of verified incoming messages
   public incomingMessages$ = new Subject<PocketgullMessage>();
+  private verifiedParentOrigin: string | null = null;
 
   constructor() {
     this.checkIfEmbedded();
@@ -45,6 +46,8 @@ export class PocketgullIntegrationService {
         return;
       }
 
+      this.verifiedParentOrigin = event.origin;
+
       if (event.data && typeof event.data === 'object' && 'type' in event.data) {
         this.incomingMessages$.next(event.data as PocketgullMessage);
       }
@@ -60,17 +63,17 @@ export class PocketgullIntegrationService {
       return;
     }
 
-    // Use '*' or a strict origin depending on the desired strictness.
-    // For passing data UP to the parent, '*' is often used if the parent origin is variable,
-    // but strict targetOrigin is safer. Since Pocketgull loads this iframe, 
-    // we can post back to the parent window, but ideally we'd know the exact origin.
-    // We will post to '*' to ensure delivery, but we rely on the parent validating it.
-    // However, for maximum security, we can just use event.origin if we saved it, 
-    // or broadly send to '*' since it's the parent. 
-    // Let's use '*' for parent communication to avoid cross-domain complexities 
-    // with subdomains, but the parent should verify.
+    // Resolve target origin strictly to prevent CWE-345 data interception
+    let targetOrigin = this.verifiedParentOrigin;
+    if (!targetOrigin && typeof document !== 'undefined' && document.referrer) {
+      targetOrigin = ALLOWED_ORIGINS.find(o => document.referrer.startsWith(o)) || null;
+    }
+    if (!targetOrigin) {
+      targetOrigin = 'https://pocketgull.app';
+    }
+
     try {
-      window.parent.postMessage({ type, payload }, '*');
+      window.parent.postMessage({ type, payload }, targetOrigin);
     } catch (e) {
       console.error('Failed to postMessage to parent:', e);
     }

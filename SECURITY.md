@@ -16,7 +16,7 @@ To prevent transmission of Protected Health Information (PHI) or Personally Iden
    * **IP Addresses**: `/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g`
    If PII is detected, the frontend blocks submission and displays a clear warning card instructing the user to de-identify the query.
 2. **Server-Side Validation**:
-   Inputs are validated using `express-validator` to ensure all properties conform to expected schema types and strings are sanitized to mitigate injection vulnerabilities.
+   Inputs are validated using strict type verification and regex sanitization to ensure all properties conform to expected schema types and malicious injection payloads are neutralized.
 
 ---
 

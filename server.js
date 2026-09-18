@@ -3,7 +3,6 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
-import { body, validationResult } from 'express-validator';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, Type } from '@google/genai';
@@ -98,7 +97,7 @@ app.use('/api/', apiLimiter);
 
 // Initialize Gemini API
 const apiKey = process.env.GEMINI_API_KEY;
-const DEFAULT_MODEL = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
+const DEFAULT_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 
 function getModel(req) {
   return req?.headers?.['x-gemini-model'] || req?.body?.model || DEFAULT_MODEL;

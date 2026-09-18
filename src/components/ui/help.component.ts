@@ -40,7 +40,7 @@ function removeStoredApiKey(): void {
 }
 
 function getStoredModel(): string {
-  return localStorage.getItem('spark_model_val') || localStorage.getItem('user_gemini_model') || 'gemini-3.6-flash';
+  return localStorage.getItem('spark_model_val') || localStorage.getItem('user_gemini_model') || 'gemini-3.8-flash';
 }
 
 function setStoredModel(modelName: string): void {
@@ -253,6 +253,23 @@ function setStoredThinkingBudget(budget: number): void {
           {{ t('settings.model.desc') }}
         </p>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+          <!-- Gemini 3.8 Flash -->
+          <button (click)="updateModel('gemini-3.8-flash')"
+                  [class.bg-(--text-accent)]="userModel() === 'gemini-3.8-flash'"
+                  [class.text-(--primary-cta-text)]="userModel() === 'gemini-3.8-flash'"
+                  [class.bg-(--button-bg)]="userModel() !== 'gemini-3.8-flash'"
+                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemini-3.8-flash'"
+                  class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
+            <div>
+              <div class="font-bold text-sm flex items-center gap-1.5">
+                <span>Gemini 3.8 Flash</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">NEW</span>
+              </div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Most intelligent Flash model for agents & complex reasoning (Free Tier)</div>
+            </div>
+            <span class="inline-block text-[10px] uppercase font-bold tracking-wider mt-3 px-2 py-0.5 rounded bg-black/20 text-current w-fit">Default</span>
+          </button>
+
           <!-- Gemini 3.7 Flash -->
           <button (click)="updateModel('gemini-3.7-flash')"
                   [class.bg-(--text-accent)]="userModel() === 'gemini-3.7-flash'"
@@ -261,27 +278,10 @@ function setStoredThinkingBudget(budget: number): void {
                   [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemini-3.7-flash'"
                   class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
             <div>
-              <div class="font-bold text-sm flex items-center gap-1.5">
-                <span>Gemini 3.7 Flash</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">NEW</span>
-              </div>
+              <div class="font-bold text-sm">Gemini 3.7 Flash</div>
               <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Cutting-edge speed with hybrid thinking & reasoning</div>
             </div>
             <span class="inline-block text-[10px] uppercase font-bold tracking-wider mt-3 px-2 py-0.5 rounded bg-black/20 text-current w-fit">Next-Gen</span>
-          </button>
-
-          <!-- Gemini 3.6 Flash -->
-          <button (click)="updateModel('gemini-3.6-flash')"
-                  [class.bg-(--text-accent)]="userModel() === 'gemini-3.6-flash'"
-                  [class.text-(--primary-cta-text)]="userModel() === 'gemini-3.6-flash'"
-                  [class.bg-(--button-bg)]="userModel() !== 'gemini-3.6-flash'"
-                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemini-3.6-flash'"
-                  class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
-            <div>
-              <div class="font-bold text-sm">Gemini 3.6 Flash</div>
-              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Sub-second latency & highest lateral consistency</div>
-            </div>
-            <span class="inline-block text-[10px] uppercase font-bold tracking-wider mt-3 px-2 py-0.5 rounded bg-black/20 text-current w-fit">Default</span>
           </button>
 
           <!-- Gemini 2.5 Pro -->

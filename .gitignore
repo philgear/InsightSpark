@@ -1,5 +1,5 @@
 # Logs
-logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,25 +7,12 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-.env
-.env.local
+# Dependencies & Build Outputs
+node_modules/
+dist/
+dist-ssr/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Security & Credentials
+# Security, Environment & Credentials
 .env
 .env.local
 .env.*.local
@@ -48,20 +35,38 @@ firestore-debug.log*
 pubsub-debug.log*
 ui-debug.log*
 
-# Playwright Test Outputs
+# Framework & Tool Caches
+.angular/
+.eslintcache
+
+# Test Outputs & Coverage
+coverage/
+.nyc_output/
 test-results/
 playwright-report/
 blob-report/
 playwright/.local-browsers/
 
-# Developer scratch & temporary files
+# Editor & OS Artifacts
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.bak
+*.orig
+
+# Developer scratch & temporary scripts
 scratch/
 test-partial.js
 deploy-setup.ps1
 cleanup-policy.json
 scripts/estimate-effort*.js
-
-# Angular & Node caches
-.angular/cache/
-.eslintcache
-npm-debug.log*

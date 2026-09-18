@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.1] - 2026-09-18
+
+### Security & Hardening
+- **Zero-Vulnerability Milestone**: Updated overrides for `fast-uri` (^3.1.8), `hono` (^4.13.8), and `qs` (^6.16.0), and bumped `morgan` (^1.12.1), driving `npm audit` to **0 vulnerabilities**.
+- **Iframe & PostMessage Defense (CWE-345)**: Hardened [`PocketgullIntegrationService`](src/services/pocketgull-integration.service.ts) to strictly track and dispatch to verified parent origins instead of wildcard (`*`) targetOrigins.
+- **Dead File & Ghost Artifact Purge**:
+  - Removed orphaned `env-config.js` files that referenced non-existent `entrypoint.sh` scripts.
+  - Pruned temporary `fix-tailwind.ps1` script containing local workstation absolute paths.
+  - Untracked Playwright `.last-run.json` and ephemeral `scratch/` test scripts from git tracking.
+  - Hardened `.gitignore` with comprehensive OS and test coverage exclusion rules.
+
+### Performance & AI Models
+- **Upgraded Default Flash Model to Gemini 3.8 Flash**:
+  - Promoted Google's latest `gemini-3.8-flash` (released September 2026) as the default free-tier model across backend proxy and client settings.
+  - Enhanced model selector UI with Gemini 3.8 Flash flagship capabilities.
+
+### Legal & Compliance
+- **Attribution Disentanglement**: Clarified export attributions so that `CC BY-SA 4.0` attaches cleanly to generated insights and care plans rather than misrepresenting Edward de Bono's proprietary works.
+- **Trademark Pruning**: Removed references to "6 Thinking Hats" from `public/llms.txt`.
+- **License Synchronization**: Aligned `CITATION.cff` and `package.json` with the repository root `CC-BY-NC-SA-4.0` license.
+
+---
+
 ## [2.1.0] - 2026-09-15
 
 ### Added
