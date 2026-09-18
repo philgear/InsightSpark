@@ -22,7 +22,7 @@
     "@angular/core": "^22.1.0",
     "@angular/forms": "^22.1.0",
     "@angular/platform-browser": "^22.1.0",
-    "@angular/service-worker": "^22.1.0",
+    "@angular/service-worker": "^22.1.6",
     "@google/genai": "2.8.0",
     "compression": "^1.8.1",
     "cors": "2.8.6",
