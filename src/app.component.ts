@@ -1062,7 +1062,7 @@ export class AppComponent implements OnDestroy {
            formatSection("Guidance & Education", plan.guidanceAndEducation) +
            formatSection("Positive Achievements", plan.positiveAchievements) +
            formatSection("Recommendations", plan.recommendations) +
-           `\n— Generated via Pivot & Pulse (designed by Phil Gear)${orcidCredit}, powered by Google Gemini, inspired by Edward de Bono's Lateral Thinking (CC BY-SA 4.0)`;
+           `\n— Generated via Pivot & Pulse (designed by Phil Gear)${orcidCredit}, powered by Google Gemini (Open-shared under CC BY-SA 4.0). Inspired by Edward de Bono's lateral thinking principles.`;
   }
 
   copyCarePlan(plan?: CarePlan, problem?: string) {
@@ -1084,7 +1084,7 @@ export class AppComponent implements OnDestroy {
   // --- Generic Actions ---
   copyToClipboard(text: string, id: string) {
     const orcidCredit = this.orcidId() ? ` | Documented by Researcher: ${this.orcidName()} (ORCID: https://orcid.org/${this.orcidId()})` : '';
-    const attributionText = `${text}\n\n— Generated via Pivot & Pulse (designed by Phil Gear)${orcidCredit}, powered by Google Gemini, inspired by Edward de Bono's Lateral Thinking (CC BY-SA 4.0)`;
+    const attributionText = `${text}\n\n— Generated via Pivot & Pulse (designed by Phil Gear)${orcidCredit}, powered by Google Gemini (Open-shared under CC BY-SA 4.0). Inspired by Edward de Bono's lateral thinking principles.`;
     navigator.clipboard.writeText(attributionText).then(() => {
       this.copiedId.set(id);
       setTimeout(() => { if (this.copiedId() === id) this.copiedId.set(null); }, 2000);
@@ -1158,7 +1158,7 @@ export class AppComponent implements OnDestroy {
            formatSection("Required Resources", plan.requiredResources) +
            formatSection("Milestones", plan.milestones) +
            formatSection("Immediate Next Steps", plan.nextSteps) +
-           `\n— Generated via Pivot & Pulse (designed by Phil Gear)${orcidCredit}, powered by Google Gemini, inspired by Edward de Bono's Lateral Thinking (CC BY-SA 4.0)`;
+           `\n— Generated via Pivot & Pulse (designed by Phil Gear)${orcidCredit}, powered by Google Gemini (Open-shared under CC BY-SA 4.0). Inspired by Edward de Bono's lateral thinking principles.`;
   }
 
   copyCreativePlan(plan?: CreativePlan, problem?: string) {
