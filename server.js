@@ -400,17 +400,14 @@ app.get('/api/local-llm/status', async (req, res) => {
   return res.json({ available: false, models: [] });
 });
 
-app.post('/api/auth/orcid', [
-  body('code').isString().trim().notEmpty(),
-  body('redirectUri').isString().trim().notEmpty(),
-], async (req, res) => {
+app.post('/api/auth/orcid', async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+    const { code, redirectUri } = req.body || {};
+    if (!code || typeof code !== 'string' || !code.trim() ||
+        !redirectUri || typeof redirectUri !== 'string' || !redirectUri.trim()) {
+      return res.status(400).json({ error: 'Missing or invalid "code" or "redirectUri" in request body.' });
     }
 
-    const { code, redirectUri } = req.body;
     const clientId = process.env.ORCID_CLIENT_ID?.trim();
     const clientSecret = process.env.ORCID_CLIENT_SECRET?.trim();
 

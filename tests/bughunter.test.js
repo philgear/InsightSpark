@@ -135,4 +135,13 @@ describe('Bug Hunter Audit: Security, Privacy & Stream Fuzzing Suite', () => {
       assert.strictEqual(isAllowed, false, 'CSP must block untrusted remote image URLs to prevent data exfiltration');
     });
   });
+
+  describe('5. Server Proxy Integrity & Syntax Verification', () => {
+    test('server.js should parse cleanly with zero syntax or missing reference errors', async () => {
+      const { execSync } = await import('node:child_process');
+      assert.doesNotThrow(() => {
+        execSync('node --check server.js', { stdio: 'pipe' });
+      });
+    });
+  });
 });
