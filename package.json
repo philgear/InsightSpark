@@ -42,7 +42,7 @@
     "@types/d3": "^7.4.3",
     "@types/node": "^25.9.3",
     "angular-eslint": "22.1.0",
-    "eslint": "^10.5.0",
+    "eslint": "^10.11.0",
     "postcss": "^8.5.26",
     "sloc": "^0.3.2",
     "tailwindcss": "latest",
