@@ -400,6 +400,18 @@ app.get('/api/local-llm/status', async (req, res) => {
   return res.json({ available: false, models: [] });
 });
 
+// Parquet Dataset Direct Binary Export
+app.get('/api/export/parquet', (req, res) => {
+  const parquetPath = path.join(__dirname, 'datasets', 'kinship-care-dpo.parquet');
+  if (fs.existsSync(parquetPath)) {
+    res.setHeader('Content-Type', 'application/vnd.apache.parquet');
+    res.setHeader('Content-Disposition', 'attachment; filename="kinship-care-dpo.parquet"');
+    const stream = fs.createReadStream(parquetPath);
+    return stream.pipe(res);
+  }
+  return res.status(404).json({ error: 'Parquet dataset file not found on server.' });
+});
+
 // API Endpoints
 app.post('/api/structure', [
   body('problem').isString().trim().escape().notEmpty(),
@@ -574,6 +586,11 @@ app.post('/api/insights', [
       For each strategy, provide 2 to 3 distinct, specific, and actionable insights or ideas.
       Ensure the insights are written in clear, simple language, avoiding jargon to be accessible to a wide audience.
       
+      ${strategies.length > 1 ? `
+      **Combinatorial Cross-Pollination & Synthesis:**
+      Because multiple strategies are active (${strategies.map(s => mode === 'care' ? (s.careModeName || s.name) : s.name).join(', ')}), allow them to cross-pollinate! Ensure at least one insight actively bridges the friction points between the selected strategies into a cohesive, non-obvious breakthrough.
+      ` : ''}
+
       ${mode === 'care' ? `
       IMPORTANT: For each insight, you MUST also provide a brief summary of its supportive impact on the person's well-being, as described in the JSON schema.
       ` : ''}

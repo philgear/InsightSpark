@@ -145,6 +145,14 @@ const CARE_ROLES: CareRole[] = [
   },
 ];
 
+export interface SynergyPreset {
+  id: string;
+  name: string;
+  description: string;
+  strategyIds: string[];
+  roles?: string[];
+}
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -755,6 +763,127 @@ export class AppComponent implements OnDestroy {
   selectAllStrategies = () => this.selectedStrategyIds.set(new Set(this.availableStrategies().map(s => s.id)));
   clearSelection = () => this.selectedStrategyIds.set(new Set());
 
+  // Curated Combinatorial Synergy Presets
+  synergyPresets = computed<SynergyPreset[]>(() => {
+    if (this.appMode() === 'care') {
+      return [
+        {
+          id: 'kinship-harmony',
+          name: '🌹 Kinship Harmony Mesh',
+          description: 'Intergenerational triad + sensory bridge + character strengths',
+          strategyIds: ['kinship-triad', 'sensory-bridge', 'via-strengths'],
+          roles: ['Daughter', 'Mother', 'Grandmother']
+        },
+        {
+          id: 'gentle-recovery',
+          name: '🌱 Micro-Mastery Gardening',
+          description: 'Adaptive support + butterfly effect + practical sequence',
+          strategyIds: ['constraints', 'butterfly', 'critical-path'],
+          roles: ['Physical Therapist', 'Son', 'Best Friend']
+        },
+        {
+          id: 'dignity-advocate',
+          name: '🛡️ Dignity & Respite Shield',
+          description: 'Outcome visualization + failure safeguards + caregiver respite',
+          strategyIds: ['what-if', 'fmea', 'found-kinship'],
+          roles: ['Patient Advocate', 'Kinship Coordinator', 'Positive Psychologist']
+        }
+      ];
+    } else {
+      return [
+        {
+          id: 'biomimetic-play',
+          name: '🌿 Biomimetic Play',
+          description: 'Nature wisdom + childlike simplicity + pre-mortem stress test',
+          strategyIds: ['nature', 'child', 'fmea']
+        },
+        {
+          id: 'butterfly-lever',
+          name: '🦋 The Irreducible Lever',
+          description: 'Butterfly cascade + first principles + critical path',
+          strategyIds: ['butterfly', 'first-principles', 'critical-path']
+        },
+        {
+          id: 'stress-inversion',
+          name: '⚡ Stress-Tested Inversion',
+          description: 'Opposite day + superpower leap + risk guardrails',
+          strategyIds: ['opposite', 'superpower', 'fmea']
+        },
+        {
+          id: 'combinatorial-future',
+          name: '🔮 Combinatorial Future',
+          description: 'Cross-industry fusion + 20-year vision + simplification',
+          strategyIds: ['combinatorial', 'future', 'simplify']
+        }
+      ];
+    }
+  });
+
+  activeSynergyLabel = computed(() => {
+    const selected = Array.from(this.selectedStrategyIds());
+    if (selected.length < 2) return null;
+    const names = selected.map(id => {
+      const s = this.availableStrategies().find(st => st.id === id);
+      return s ? (this.appMode() === 'care' ? (s.careModeName || s.name) : s.name) : id;
+    });
+    return names.slice(0, 3).join(' × ') + (names.length > 3 ? ` (+${names.length - 3} more)` : '');
+  });
+
+  applySynergyPreset(presetId: string) {
+    const preset = this.synergyPresets().find(p => p.id === presetId);
+    if (!preset) return;
+
+    this.selectedStrategyIds.set(new Set(preset.strategyIds));
+    if (this.appMode() === 'care' && preset.roles) {
+      this.activeCareRoles.set(new Set(preset.roles));
+      const selected = this.careRoles().filter(r => preset.roles!.includes(r.name));
+      this.gistInput.set(
+        selected.length === 1
+          ? selected[0].gist
+          : `Blend the following perspectives into a single, cohesive voice:\n` +
+            selected.map((r, i) => `${i + 1}. **${r.name}**: ${r.gist}`).join('\n')
+      );
+    }
+  }
+
+  applySmartSynergy() {
+    const provocations = this.provocationStrategies();
+    const anchors = this.anchorStrategies();
+
+    const randomProvocation = provocations[Math.floor(Math.random() * provocations.length)];
+    let secondStrategy = provocations[Math.floor(Math.random() * provocations.length)];
+    while (secondStrategy && randomProvocation && secondStrategy.id === randomProvocation.id && provocations.length > 1) {
+      secondStrategy = provocations[Math.floor(Math.random() * provocations.length)];
+    }
+    const randomAnchor = anchors.length > 0
+      ? anchors[Math.floor(Math.random() * anchors.length)]
+      : null;
+
+    const newSet = new Set<string>();
+    if (randomProvocation) newSet.add(randomProvocation.id);
+    if (secondStrategy) newSet.add(secondStrategy.id);
+    if (randomAnchor) newSet.add(randomAnchor.id);
+    this.selectedStrategyIds.set(newSet);
+
+    if (this.appMode() === 'care') {
+      const youth = ['Daughter', 'Son'];
+      const parentClinical = ['Mother', 'Father', 'Bedside Nurse', 'Positive Psychologist'];
+      const elders = ['Grandmother', 'Grandfather', 'Kinship Coordinator'];
+
+      const chosenYouth = youth[Math.floor(Math.random() * youth.length)];
+      const chosenParent = parentClinical[Math.floor(Math.random() * parentClinical.length)];
+      const chosenElder = elders[Math.floor(Math.random() * elders.length)];
+
+      const chosenRoles = [chosenYouth, chosenParent, chosenElder];
+      this.activeCareRoles.set(new Set(chosenRoles));
+      const selected = this.careRoles().filter(r => chosenRoles.includes(r.name));
+      this.gistInput.set(
+        `Blend the following perspectives into a single, cohesive voice:\n` +
+        selected.map((r, i) => `${i + 1}. **${r.name}**: ${r.gist}`).join('\n')
+      );
+    }
+  }
+
   setCareRole(role: CareRole): void {
     const current = new Set(this.activeCareRoles());
     if (current.has(role.name)) {
@@ -1130,6 +1259,80 @@ export class AppComponent implements OnDestroy {
     this.availableStrategies().find(s => s.name === name || s.careModeName === name);
 
   getStrategyIcon = (name: string): string => this.findStrategy(name)?.icon || 'sparkles';
+
+  getInsightBadge(text: string, strategyName: string, influence?: string): { label: string; icon: string; styleClass: string } {
+    const isCare = this.appMode() === 'care';
+    const combined = `${text} ${influence || ''} ${strategyName}`.toLowerCase();
+
+    if (isCare) {
+      if (/respite|burnout|rest|safeguard|guarantee|partner|protect/i.test(combined)) {
+        return {
+          label: '🛡️ Protected Respite',
+          icon: 'shield-check',
+          styleClass: 'text-amber-300 bg-amber-500/15 border-amber-500/30'
+        };
+      }
+      if (/youth|teen|grandson|daughter|son|intergenerational|story|legacy|histor/i.test(combined)) {
+        return {
+          label: '👧👵 Kinship Mesh',
+          icon: 'users',
+          styleClass: 'text-purple-300 bg-purple-500/15 border-purple-500/30'
+        };
+      }
+      if (/mastery|micro|planter|seedling|progress|win|habit|repetition/i.test(combined)) {
+        return {
+          label: '🌿 72h Micro-Mastery',
+          icon: 'sparkles',
+          styleClass: 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30'
+        };
+      }
+      if (/music|playlist|scent|sensory|tactile|aroma|soundscape/i.test(combined)) {
+        return {
+          label: '🎵 Sensory Bridge',
+          icon: 'volume-2',
+          styleClass: 'text-cyan-300 bg-cyan-500/15 border-cyan-500/30'
+        };
+      }
+      return {
+        label: '🌹 PERMA+H Flourishing',
+        icon: 'heart',
+        styleClass: 'text-rose-300 bg-rose-500/15 border-rose-500/30'
+      };
+    } else {
+      const s = strategyName.toLowerCase();
+      if (/opposite|superpower|alien|random|future/.test(s)) {
+        return {
+          label: '⚡ 85%+ Orthogonal Leap',
+          icon: 'zap',
+          styleClass: 'text-purple-300 bg-purple-500/15 border-purple-500/30'
+        };
+      }
+      if (/nature|combinatorial|butterfly|child/.test(s)) {
+        return {
+          label: '🧬 Cross-Domain Transfer (65% Div)',
+          icon: 'activity',
+          styleClass: 'text-cyan-300 bg-cyan-500/15 border-cyan-500/30'
+        };
+      }
+      if (/fmea|critical|principles|simplify|constraints/.test(s)) {
+        return {
+          label: '🛡️ Grounded Traction (Adjacent)',
+          icon: 'shield-check',
+          styleClass: 'text-emerald-300 bg-emerald-500/15 border-emerald-500/30'
+        };
+      }
+      return {
+        label: '✨ Lateral Spark',
+        icon: 'sparkles',
+        styleClass: 'text-amber-300 bg-amber-500/15 border-amber-500/30'
+      };
+    }
+  }
+
+  exportParquetDataset() {
+    window.location.href = '/api/export/parquet';
+  }
+
   formatDate = (ts: number): string => new Date(ts).toLocaleString(undefined, {
     month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
   });

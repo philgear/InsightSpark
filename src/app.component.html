@@ -294,7 +294,15 @@
                     <div class="space-y-4 flex-1">
                       @for (insight of result.insights; track insight.text; let i = $index) {
                         @let id = 'insight-' + result.strategyName + '-' + i;
+                        @let badge = getInsightBadge(insight.text, result.strategyName, insight.influence);
                         <div class="insight-card-magical group relative">
+                          <div class="mb-2">
+                            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-xs"
+                                  [class]="badge.styleClass">
+                              <app-icon [name]="badge.icon" [size]="12"></app-icon>
+                              <span>{{ badge.label }}</span>
+                            </span>
+                          </div>
                           <p class="text-base/relaxed">{{ insight.text }}</p>
                           @if (insight.influence) {
                              <p class="text-sm text-(--text-color-muted) mt-2 italic border-l-2 border-(--border-color) pl-3">
@@ -767,6 +775,50 @@
                       </div>
                       <p class="text-sm text-(--text-color-muted)">{{ appMode() === 'care' ? 'Select a few approaches, or leave blank for a curated mix.' : 'Each one shifts the field differently. Choose a few, or let chance decide.' }}</p>
                     </div>
+
+                    <!-- Combinatorial Synergy Studio (Collisions & Presets) -->
+                    <div class="p-3.5 rounded-xl bg-(--card-bg-subtle) border border-(--border-color) space-y-2.5">
+                      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                          <span class="p-1 rounded-md bg-(--text-accent)/10 text-(--text-accent)">
+                            <app-icon name="sparkles" [size]="16"></app-icon>
+                          </span>
+                          <span class="text-xs font-bold uppercase tracking-wider text-(--text-color)">Combinatorial Synergy</span>
+                          <span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-(--text-accent)/15 text-(--text-accent)">Collision Engine</span>
+                        </div>
+                        <button (click)="applySmartSynergy()"
+                                type="button"
+                                class="flex items-center gap-1.5 text-xs font-bold py-1.5 px-3 rounded-lg bg-(--text-accent) text-(--primary-cta-text) hover:opacity-90 active:scale-95 transition-all shadow-sm cursor-pointer self-start sm:self-auto"
+                                title="Automatically combine a divergent provocation, cognitive shift, and grounding counterbalance">
+                          <app-icon name="zap" [size]="14"></app-icon>
+                          <span>⚡ Roll Smart Synergy</span>
+                        </button>
+                      </div>
+
+                      <!-- Synergy Preset Chips -->
+                      <div class="flex flex-wrap items-center gap-2">
+                        <span class="text-xs text-(--text-color-muted)">Curated Synergies:</span>
+                        @for (preset of synergyPresets(); track preset.id) {
+                          <button (click)="applySynergyPreset(preset.id)"
+                                  type="button"
+                                  [title]="preset.description"
+                                  class="text-xs font-medium py-1 px-2.5 rounded-full border border-(--border-color) bg-(--card-bg) hover:bg-(--button-bg-hover) text-(--text-color) hover:border-(--text-accent)/50 transition-all cursor-pointer shadow-xs">
+                            {{ preset.name }}
+                          </button>
+                        }
+                      </div>
+
+                      @if (activeSynergyLabel(); as label) {
+                        <div class="pt-2 border-t border-(--border-color)/60 flex items-center justify-between text-xs text-(--text-accent)">
+                          <span class="flex items-center gap-1.5">
+                            <app-icon name="activity" [size]="14"></app-icon>
+                            <span><strong>Active Collision:</strong> {{ label }}</span>
+                          </span>
+                          <span class="text-[11px] text-(--text-color-muted)">Multi-Field Cross-Pollination</span>
+                        </div>
+                      }
+                    </div>
+
                     <!-- Section A: Creative Provocations -->
                     <div>
                       <div class="text-xs font-bold uppercase tracking-wider text-(--text-color-muted) mb-2.5 flex items-center gap-1.5">
@@ -905,6 +957,13 @@
                             title="Export pairwise DPO preference dataset for fine-tuning open models (Gemma/Llama)">
                       <app-icon name="download" [size]="16"></app-icon>
                       <span>Export DPO (.jsonl)</span>
+                    </button>
+
+                    <button (click)="exportParquetDataset()" 
+                            class="flex items-center justify-center gap-1.5 bg-(--button-bg) hover:bg-(--button-bg-hover) text-xs font-semibold py-2 px-3 min-h-12 organic-button border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color)"
+                            title="Export binary Apache Parquet dataset for high-throughput training and zero-copy memory mapping">
+                      <app-icon name="collection" [size]="16" class="text-(--text-accent)"></app-icon>
+                      <span>Export Parquet (.parquet)</span>
                     </button>
                   </div>
                 </div>

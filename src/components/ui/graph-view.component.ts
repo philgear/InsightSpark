@@ -10,7 +10,7 @@ interface GraphNode extends d3.SimulationNodeDatum {
   id: string;
   text: string;
   fullText?: string;
-  type: 'problem' | 'strategy' | 'insight';
+  type: 'problem' | 'strategy' | 'insight' | 'synthesis';
   color: string;
   radius: number;
 }
@@ -18,6 +18,7 @@ interface GraphNode extends d3.SimulationNodeDatum {
 interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
   source: string | GraphNode;
   target: string | GraphNode;
+  isSynergyBridge?: boolean;
 }
 
 @Component({
@@ -100,6 +101,18 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
       stroke-width: 1.8px;
       transition: stroke 0.3s, stroke-opacity 0.3s, stroke-width 0.3s;
     }
+    :host ::ng-deep .graph-link.synergy-bridge {
+      stroke: var(--text-accent);
+      stroke-opacity: 0.7;
+      stroke-dasharray: 6, 4;
+      stroke-width: 2.2px;
+      animation: dash 25s linear infinite;
+    }
+    @keyframes dash {
+      to {
+        stroke-dashoffset: -1000;
+      }
+    }
     :host ::ng-deep .graph-link.highlighted {
       stroke: var(--text-accent);
       stroke-opacity: 1;
@@ -108,6 +121,11 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
     :host ::ng-deep .graph-node {
       cursor: pointer;
       transition: opacity 0.3s, transform 0.3s;
+    }
+    :host ::ng-deep .graph-node.synthesis-node circle.main-circle {
+      stroke: var(--text-accent);
+      stroke-width: 2.5px;
+      filter: drop-shadow(0 0 10px rgba(212, 164, 76, 0.5));
     }
     :host ::ng-deep .graph-node circle.main-circle {
       transition: stroke 0.3s, stroke-width 0.3s, r 0.3s, fill 0.3s;
@@ -289,6 +307,39 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
       }
     });
 
+    // 3. Emergent Synergy Collision Hub & Bridge Links
+    if (resultsData.length >= 2 && (filter === 'all' || filter === 'strategy')) {
+      const synthesisId = 'synthesis-hub';
+      nodes.push({
+        id: synthesisId,
+        text: '🔮 Synergy Collision',
+        fullText: 'Emergent cross-pollination synthesis bridging all active strategies',
+        type: 'synthesis',
+        color: 'var(--text-accent)',
+        radius: 20,
+      });
+
+      // Connect synthesis hub to each strategy node with glowing bridge links
+      resultsData.forEach((_, s) => {
+        links.push({
+          source: synthesisId,
+          target: `strategy-${s}`,
+          isSynergyBridge: true
+        });
+      });
+
+      // Harmonic cross-strategy link between consecutive strategies
+      for (let s = 0; s < resultsData.length; s++) {
+        const nextS = (s + 1) % resultsData.length;
+        if (resultsData.length === 2 && s === 1) break;
+        links.push({
+          source: `strategy-${s}`,
+          target: `strategy-${nextS}`,
+          isSynergyBridge: true
+        });
+      }
+    }
+
     this.totalNodeCount.set(nodes.length);
     return { nodes, links };
   }
@@ -307,7 +358,7 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
 
     this.simulation = d3.forceSimulation(nodes)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .force("link", d3.forceLink(links).id((d: any) => d.id).distance((d: any) => d.source.type === 'problem' ? 220 : 120))
+        .force("link", d3.forceLink(links).id((d: any) => d.id).distance((d: any) => d.isSynergyBridge ? 160 : (d.source.type === 'problem' ? 220 : 120)))
         .force("charge", d3.forceManyBody().strength(-900))
         .force("center", d3.forceCenter(width / 2, height / 2))
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -334,7 +385,8 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
         .selectAll("line")
         .data(links)
         .join("line")
-        .attr("class", "graph-link");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .attr("class", (d: any) => d.isSynergyBridge ? "graph-link synergy-bridge" : "graph-link");
 
     const node = g.append("g")
         .attr("class", "graph-nodes")
@@ -350,8 +402,8 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
         .on("mouseout", () => this.hideTooltip())
         .call(this.drag(this.simulation));
         
-    // Pulse animation ring for Strategy Nodes
-    node.filter((d: GraphNode) => d.type === 'strategy')
+    // Pulse animation ring for Strategy & Synthesis Nodes
+    node.filter((d: GraphNode) => d.type === 'strategy' || d.type === 'synthesis')
         .append("circle")
         .attr("class", "pulse-ring")
         .attr("r", 20)
