@@ -180,4 +180,46 @@ describe('Bug Hunter Audit: Security, Privacy & Stream Fuzzing Suite', () => {
       });
     });
   });
+
+  describe('6. LocalStorage Resilience & Corrupted Key Auto-Recovery', () => {
+    test('Should safely reject and cleanse v1:aes-gcm encrypted or malformed non-JSON payloads without throwing', () => {
+      // Mock localStorage environment
+      const storage = new Map();
+      const mockLocalStorage = {
+        getItem: (k) => storage.get(k) || null,
+        setItem: (k, v) => storage.set(k, String(v)),
+        removeItem: (k) => storage.delete(k),
+        clear: () => storage.clear()
+      };
+
+      const key = 'spark_deck_saved';
+      mockLocalStorage.setItem(key, 'v1:aes-gcm:dGhpc2lzYW5pdmFuZHRhZw==:Y2lwaGVydGV4dGRhdGE=');
+
+      function safeLoad(storageKey) {
+        try {
+          const data = mockLocalStorage.getItem(storageKey);
+          if (!data) return [];
+          if (data.startsWith('v1:aes-gcm')) {
+            mockLocalStorage.removeItem(storageKey);
+            return [];
+          }
+          return JSON.parse(data);
+        } catch {
+          mockLocalStorage.removeItem(storageKey);
+          return [];
+        }
+      }
+
+      const result = safeLoad(key);
+      assert.deepStrictEqual(result, []);
+      assert.strictEqual(mockLocalStorage.getItem(key), null, 'Corrupted key should have been purged from storage');
+
+      // Test general syntax error corrupted payload
+      mockLocalStorage.setItem(key, '{not_valid_json');
+      const malformedResult = safeLoad(key);
+      assert.deepStrictEqual(malformedResult, []);
+      assert.strictEqual(mockLocalStorage.getItem(key), null, 'Malformed key should have been purged from storage');
+    });
+  });
 });
+

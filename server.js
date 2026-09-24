@@ -55,8 +55,8 @@ app.use(helmet({
       scriptSrc: ["'self'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https://orcid.org", "https://*.orcid.org"],
-      connectSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com", "https://orcid.org", "https://*.orcid.org"],
+      imgSrc: ["'self'", "data:"],
+      connectSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
       frameSrc: ["'self'"],
       frameAncestors: [
         "'self'",
@@ -379,8 +379,7 @@ function getCleanErrorMessage(error) {
 // Config endpoint to expose Client ID & Local LLM status to frontend
 app.get('/api/config', (req, res) => {
   res.json({
-    googleClientId: process.env.GOOGLE_CLIENT_ID || null,
-    orcidClientId: process.env.ORCID_CLIENT_ID || null
+    googleClientId: process.env.GOOGLE_CLIENT_ID || null
   });
 });
 
@@ -399,55 +398,6 @@ app.get('/api/local-llm/status', async (req, res) => {
     // Ollama not currently running on user's device
   }
   return res.json({ available: false, models: [] });
-});
-
-app.post('/api/auth/orcid', async (req, res) => {
-  try {
-    const { code, redirectUri } = req.body || {};
-    if (!code || typeof code !== 'string' || !code.trim() ||
-        !redirectUri || typeof redirectUri !== 'string' || !redirectUri.trim()) {
-      return res.status(400).json({ error: 'Missing or invalid "code" or "redirectUri" in request body.' });
-    }
-
-    const clientId = process.env.ORCID_CLIENT_ID?.trim();
-    const clientSecret = process.env.ORCID_CLIENT_SECRET?.trim();
-
-    if (!clientId || !clientSecret) {
-      return res.status(500).json({ error: 'ORCID client credentials are not configured on the server.' });
-    }
-
-    const params = new URLSearchParams();
-    params.append('client_id', clientId);
-    params.append('client_secret', clientSecret);
-    params.append('grant_type', 'authorization_code');
-    params.append('code', code);
-    params.append('redirect_uri', redirectUri);
-
-    const tokenResponse = await fetch('https://orcid.org/oauth/token', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: params.toString()
-    });
-
-    const data = await tokenResponse.json();
-
-    if (!tokenResponse.ok) {
-      console.error('ORCID OAuth token exchange failed:', data);
-      return res.status(tokenResponse.status).json({ error: data.error_description || data.error || 'Failed to exchange ORCID authorization code.' });
-    }
-
-    res.json({
-      orcid: data.orcid,
-      name: data.name,
-      accessToken: data.access_token
-    });
-  } catch (error) {
-    console.error('Error in /api/auth/orcid:', error);
-    res.status(500).json({ error: getCleanErrorMessage(error) });
-  }
 });
 
 // API Endpoints

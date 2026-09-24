@@ -22,9 +22,16 @@ export class StorageService {
   private loadFromStorage(): SavedItem[] {
     try {
       const data = localStorage.getItem(this.ITEMS_STORAGE_KEY);
-      return data ? JSON.parse(data) : [];
+      if (!data) return [];
+      if (data.startsWith('v1:aes-gcm')) {
+        console.warn(`[StorageService] Detected encrypted payload for ${this.ITEMS_STORAGE_KEY}. Resetting key.`);
+        try { localStorage.removeItem(this.ITEMS_STORAGE_KEY); } catch { /* noop */ }
+        return [];
+      }
+      return JSON.parse(data);
     } catch (e) {
-      console.error('Error reading from localStorage', e);
+      console.warn(`[StorageService] Error reading from localStorage (${this.ITEMS_STORAGE_KEY}), resetting corrupted entry:`, e);
+      try { localStorage.removeItem(this.ITEMS_STORAGE_KEY); } catch { /* noop */ }
       return [];
     }
   }
@@ -32,9 +39,16 @@ export class StorageService {
   private loadCustomRoles(): CareRole[] {
     try {
       const data = localStorage.getItem(this.CUSTOM_ROLES_KEY);
-      return data ? JSON.parse(data) : [];
+      if (!data) return [];
+      if (data.startsWith('v1:aes-gcm')) {
+        console.warn(`[StorageService] Detected encrypted payload for ${this.CUSTOM_ROLES_KEY}. Resetting key.`);
+        try { localStorage.removeItem(this.CUSTOM_ROLES_KEY); } catch { /* noop */ }
+        return [];
+      }
+      return JSON.parse(data);
     } catch (e) {
-      console.error('Error reading custom roles from localStorage', e);
+      console.warn(`[StorageService] Error reading custom roles from localStorage (${this.CUSTOM_ROLES_KEY}), resetting corrupted entry:`, e);
+      try { localStorage.removeItem(this.CUSTOM_ROLES_KEY); } catch { /* noop */ }
       return [];
     }
   }
