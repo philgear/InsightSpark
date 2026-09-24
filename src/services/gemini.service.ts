@@ -859,7 +859,7 @@ export class GeminiService {
       _metadata: {
         format: 'DPO_JSONL_PAIRWISE_PREFERENCES',
         version: '1.0.0',
-        license: 'CC BY-SA 4.0',
+        license: 'Apache-2.0',
         creator: orcidName || 'Pivot & Pulse Researcher',
         orcid: orcidId ? `https://orcid.org/${orcidId}` : 'https://orcid.org/0009-0008-1372-5381',
         exportedAt: new Date().toISOString(),

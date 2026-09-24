@@ -8,7 +8,7 @@ version: 1.0.0
 date-released: 2026-08-27
 url: "https://github.com/philgear/InsightSpark"
 repository-code: "https://github.com/philgear/InsightSpark"
-license: CC-BY-NC-SA-4.0
+license: Apache-2.0
 keywords:
   - lateral-thinking
   - clinical-care-planning

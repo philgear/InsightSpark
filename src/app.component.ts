@@ -476,7 +476,7 @@ export class AppComponent implements OnDestroy {
           ${sectionsHtml}
 
           <div class="footer">
-            <p>Pin to refrigerator or family corkboard • Zero-data retained on servers • Open sharing under CC BY-SA 4.0</p>
+            <p>Pin to refrigerator or family corkboard • Zero-data retained on servers • Open-source under Apache-2.0</p>
           </div>
           <script>
             window.onload = function() { window.print(); };
@@ -1116,7 +1116,7 @@ export class AppComponent implements OnDestroy {
            formatSection("Guidance & Education", plan.guidanceAndEducation) +
            formatSection("Positive Achievements", plan.positiveAchievements) +
            formatSection("Recommendations", plan.recommendations) +
-           `\n— Generated via Pivot & Pulse (designed by Phil Gear), powered by Google Gemini (Open-shared under CC BY-SA 4.0). Inspired by Edward de Bono's lateral thinking principles.`;
+           `\n— Generated via Pivot & Pulse (designed by Phil Gear), powered by Google Gemini (Open-source under Apache-2.0). Inspired by Edward de Bono's lateral thinking principles.`;
   }
 
   copyCarePlan(plan?: CarePlan, problem?: string) {
@@ -1137,7 +1137,7 @@ export class AppComponent implements OnDestroy {
 
   // --- Generic Actions ---
   copyToClipboard(text: string, id: string) {
-    const attributionText = `${text}\n\n— Generated via Pivot & Pulse (designed by Phil Gear), powered by Google Gemini (Open-shared under CC BY-SA 4.0). Inspired by Edward de Bono's lateral thinking principles.`;
+    const attributionText = `${text}\n\n— Generated via Pivot & Pulse (designed by Phil Gear), powered by Google Gemini (Open-source under Apache-2.0). Inspired by Edward de Bono's lateral thinking principles.`;
     navigator.clipboard.writeText(attributionText).then(() => {
       this.copiedId.set(id);
       setTimeout(() => { if (this.copiedId() === id) this.copiedId.set(null); }, 2000);
@@ -1209,7 +1209,7 @@ export class AppComponent implements OnDestroy {
            formatSection("Required Resources", plan.requiredResources) +
            formatSection("Milestones", plan.milestones) +
            formatSection("Immediate Next Steps", plan.nextSteps) +
-           `\n— Generated via Pivot & Pulse (designed by Phil Gear), powered by Google Gemini (Open-shared under CC BY-SA 4.0). Inspired by Edward de Bono's lateral thinking principles.`;
+           `\n— Generated via Pivot & Pulse (designed by Phil Gear), powered by Google Gemini (Open-source under Apache-2.0). Inspired by Edward de Bono's lateral thinking principles.`;
   }
 
   copyCreativePlan(plan?: CreativePlan, problem?: string) {

@@ -85,7 +85,7 @@ def convert_jsonl_to_parquet(jsonl_path: str, parquet_path: str) -> Dict[str, An
     meta_dict = {
         b"format": b"DPO_PARQUET_PAIRWISE_PREFERENCES",
         b"version": b"1.0.0",
-        b"license": b"CC BY-SA 4.0 / Apache-2.0",
+        b"license": b"Apache-2.0",
         b"provenance": file_metadata.get("provenance", "InsightSpark (Pivot & Pulse)").encode("utf-8"),
         b"curator_orcid": file_metadata.get("orcid", "https://orcid.org/0009-0008-1372-5381").encode("utf-8"),
         b"raw_metadata": json.dumps(file_metadata).encode("utf-8"),
