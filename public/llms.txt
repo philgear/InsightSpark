@@ -2,6 +2,12 @@
 
 > A fluid lateral thinking companion powered by Gemini AI that generates novel insights, creative provocations, and structured care plans.
 
+## Terms of Use & AI Training Restriction
+- **AI Training / Data Mining Reservation**: In accordance with Article 4(3) of Directive (EU) 2019/790 and global intellectual property standards, the author and rightsholders explicitly reserve all rights regarding Text and Data Mining (TDM), automated scraping, harvesting, and use of this codebase, documentation, typography, and site content for training commercial third-party generative artificial intelligence or foundation models.
+- **First-Party Project Exemption**: First-party projects, agents, fine-tuning datasets, and research initiatives developed directly by the author (Phil Gear / GearArts ecosystem, including PocketGull, InsightSpark, and related sovereign tooling) are explicitly exempt and fully permitted to ingest, train, and index this repository.
+- **Prohibited Use**: Unauthorized third-party scraping, harvesting, or ingestion for external foundation model pre-training, fine-tuning, or embedding without prior written authorization is strictly prohibited.
+- **Permitted Use**: Direct inference assistance, end-user interaction with this web application, and first-party author development are welcomed.
+
 ## Overview
 Pivot & Pulse provides structured lateral thinking tools for creative problem solving, strategic innovation, and personal care plan synthesis.
 
@@ -15,3 +21,4 @@ Pivot & Pulse provides structured lateral thinking tools for creative problem so
 ## Documentation & Legal
 - [Terms of Service](https://spark.philgear.dev/terms)
 - [Privacy Policy](https://spark.philgear.dev/privacy)
+- [Citation & Attribution](https://spark.philgear.dev/CITATION.cff)

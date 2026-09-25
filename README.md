@@ -8,13 +8,16 @@
 
 [![CI](https://github.com/philgear/InsightSpark/actions/workflows/ci.yml/badge.svg)](https://github.com/philgear/InsightSpark/actions/workflows/ci.yml)
 [![CodeQL Analysis](https://github.com/philgear/InsightSpark/actions/workflows/codeql.yml/badge.svg)](https://github.com/philgear/InsightSpark/actions/workflows/codeql.yml)
-[![Angular](https://img.shields.io/badge/Angular-v22.0.0-DD0031?logo=angular&logoColor=white)](https://angular.dev/)
-[![Express](https://img.shields.io/badge/Express-v4.19.2-000000?logo=express&logoColor=white)](https://expressjs.com/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-latest-38BDF8?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![ORCID](https://img.shields.io/badge/ORCID-0009--0008--1372--5381-A6CE39?logo=orcid&logoColor=white)](https://orcid.org/0009-0008-1372-5381)
+[![Angular](https://img.shields.io/badge/Angular-v22.1.0-DD0031?logo=angular&logoColor=white)](https://angular.dev/)
+[![Express](https://img.shields.io/badge/Express-v5.2.1-000000?logo=express&logoColor=white)](https://expressjs.com/)
+[![Tests](https://img.shields.io/badge/Tests-50_Passing-brightgreen)](tests/)
 [![D3.js](https://img.shields.io/badge/D3.js-v7.9.0-F9A03F?logo=d3.js&logoColor=white)](https://d3js.org/)
-[![Google Gemini](https://img.shields.io/badge/Google_Gemini-v1.35.0-8E75C2?logo=google-gemini&logoColor=white)](https://deepmind.google/technologies/gemini/)
+[![Google Gemini](https://img.shields.io/badge/Google_Gemini-v2.8.0-8E75C2?logo=google-gemini&logoColor=white)](https://deepmind.google/technologies/gemini/)
 [![Gemma](https://img.shields.io/badge/Gemma_2-On--Device_%26_Local-4285F4?logo=google&logoColor=white)](https://ai.google.dev/gemma)
 [![FHIR R4](https://img.shields.io/badge/HL7_FHIR-R4_Bundle-E11D48?logo=hl7&logoColor=white)](https://hl7.org/fhir/R4/)
+[![DPO Parquet](https://img.shields.io/badge/Dataset-Apache_Parquet-008080?logo=apache&logoColor=white)](datasets/kinship-care-dpo.parquet)
 [![DPO JSONL](https://img.shields.io/badge/DPO_Export-HuggingFace_TRL-F59E0B)](https://huggingface.co/docs/trl)
 
 An interactive lateral thinking workbench, positive psychology companion, and intergenerational care planner. **Pivot & Pulse** synthesizes [Edward de Bono's](https://en.wikipedia.org/wiki/Edward_de_Bono) lateral thinking provocations with [Dr. Martin Seligman's](https://en.wikipedia.org/wiki/Martin_Seligman) PERMA+H framework (as taught in the UPenn [Foundations of Positive Psychology Specialization on Coursera](https://www.coursera.org/specializations/positivepsychology)), multi-generational family kinship dynamics, on-device Gemini Nano/Gemma intelligence, and HIPAA/COPPA-compliant clinical workflows.
@@ -59,17 +62,29 @@ To prevent ungrounded or frictionless brainstorming, 24 strategies are organized
 *   **🎙️ Living Room Voice Input & TTS Narration:** Native Web Speech API voice dictation for couch discussions and gentle Text-to-Speech audio read-aloud for kids and grandparents.
 *   **🖨️ "Family Kinship Circle" Refrigerator Plan:** Formats a clean, printable single-page dashboard with dedicated pen-and-paper checkboxes (`[ ]`) for Youth, Parents, and Grandparents.
 
-### 5. 🤖 Multi-Agent Dialectic Debate & Synthesis Closure
+### 5. 🔮 Combinatorial Synergy Studio & Visual D3 Collision Bridges
+*   **Curated Cross-Pollination Presets:** Instant activation of proven high-resonance strategy collisions:
+    *   🌿 *Biomimetic Play:* Nature's evolutionary wisdom + child-like unconstrained curiosity.
+    *   📐 *The Irreducible Lever:* First-principles deconstruction + radical elimination/simplification.
+    *   🔄 *Stress-Tested Inversion:* 180° opposite-day inversion + rigorous FMEA pre-mortem safety nets.
+    *   👵👧 *Kinship Harmony Mesh:* Multi-generational family legacy + protected non-negotiable caregiver respite.
+*   **⚡ Smart Synergy Roller:** Algorithmic selector that pairs a high-friction divergent provocation with an anchoring grounding counterbalance to discover unexpected systemic solutions.
+*   **Interactive Force-Directed Synergy Geometry:** When multiple strategies are combined, the D3 visualization dynamically generates a central `🔮 Synergy Collision` synthesis hub and animated dashed harmonic bridge links (`.synergy-bridge`) connecting active thought hubs.
+*   **Live Divergence & PERMA+H Telemetry Badges:** Every generated insight card displays semantic distance badges (e.g. `⚡ 85%+ Orthogonal Leap`, `🌱 Adjacent Possible`, `👧👵 Kinship Mesh`, `🛡️ Protected Respite`).
+
+### 6. 🤖 Multi-Agent Dialectic Debate & Synthesis Closure
 *   5-phase dialectic debate engine running between opposing strategy agents.
 *   Enforces structured `synthesisActionBridge` outputs: *Divergent Leap*, *Grounding Guardrail*, and *Immediate Traction Step* (24h action).
 
-### 6. 📊 Direct Preference Optimization (DPO) Dataset Export
+### 7. 📊 Direct Preference Optimization (DPO) Dataset Pipeline (JSONL & Parquet)
 *   Export saved insights and care plans into standard Hugging Face/TRL `.jsonl` preference pairs ($\mathbf{y_w}$ Preferred vs $\mathbf{y_l}$ Penalized).
+*   **Binary Apache Parquet Export:** Stream compressed, high-performance `.parquet` datasets directly from the Spark Deck UI or backend (`GET /api/export/parquet`), pre-indexed with embedded clinical metadata, PERMA+H schemas, and Apache-2.0 licensing.
 *   Enforces asset-based, hopeful, and empowering language over pathologizing or deficit-based narratives.
 *   Includes ORCID researcher attribution in the metadata header for academic provenance ([Phil Gear `0009-0008-1372-5381`](https://orcid.org/0009-0008-1372-5381)).
 
-### 7. 🌐 Multilingual & Sister Cities Intelligence
-*   Native real-time translation across **19 target locales**, including all **9 Portland Sister Cities** (Sapporo, Guadalajara, Ulsan, Suzhou, Ashkelon, Bratislava, Mutare, Bologna, Kota Kinabalu) with localized cultural nuances.
+### 8. 🌐 Multilingual & Sister Cities Intelligence
+*   Native real-time translation across **19 target locales**, including all **9 Portland Sister Cities** (Sapporo 🌸, Guadalajara 🇲🇽, Kaohsiung & Suzhou 🏮, Ulsan 🇰🇷, Bologna 🏛️, Ashkelon 🕊️, Kota Kinabalu 🌴, Mutare 🇿🇼, Arkhangelsk ❄️) with localized cultural nuances.
+*   **Living Room Audio & Speech:** Real-time speech-to-text dictation and synthesized Web Speech TTS playback tuned to the selected target language.
 
 ---
 
@@ -133,7 +148,8 @@ To spin up both backend proxy and frontend:
 ### 4. Run Test Suite & Build Verification
 To execute the automated security, resilience, and clinical validation test suite:
 ```bash
-npm test        # Runs all 33 unit, chaos engineering, fuzzing, and compliance tests
+npm test        # Runs all 50 automated tests across 15 unit, chaos engineering, fuzzing, FHIR R4, and DPO suites
+npm run lint    # Verifies TypeScript & Angular code quality with zero errors/warnings
 npm run build   # Verifies the production Angular bundle build
 ```
 
@@ -151,12 +167,26 @@ If you are submitting an Institutional Review Board (IRB) proposal or deploying 
 *   **Local Sovereignty:** All saved items reside exclusively in the participant's local browser `localStorage`.
 
 ### 2. Provenance & ORCID Integration
-To ensure academic provenance, this application integrates with the ORCID public OAuth 2.0 API. Connecting your researcher record signs exported care plans, action plans, and DPO `.jsonl` preference datasets with your verified ORCID iD.
+To ensure academic provenance, this application integrates with the ORCID public OAuth 2.0 API. Connecting your researcher record signs exported care plans, action plans, and DPO `.jsonl` preference datasets with your verified ORCID iD ([Phil Gear `0009-0008-1372-5381`](https://orcid.org/0009-0008-1372-5381)).
 
 ### 3. How to Cite
-If you use Pivot & Pulse (InsightSpark) in your research, please cite it as:
-```text
-Gear, P. (2026). Pivot & Pulse (InsightSpark): A Lateral Thinking Workbench and Clinical Care Strategist. GitHub Repository. https://github.com/philgear/InsightSpark
+If you use Pivot & Pulse (InsightSpark), its clinical care methodologies, or the DPO pairwise preference datasets in your research, please cite it using the following APA or BibTeX format:
+
+**APA 7th Edition:**
+> Gear, P. (2026). *Pivot & Pulse (InsightSpark): A Lateral Thinking Workbench, Intergenerational Care Planner, and Healthcare AI Alignment Dataset* (Version 2.1.1) [Computer software]. Apache-2.0. https://github.com/philgear/InsightSpark
+
+**BibTeX:**
+```bibtex
+@software{gear2026pivotpulse,
+  author       = {Gear, Phil},
+  title        = {{Pivot \& Pulse (InsightSpark): A Lateral Thinking Workbench, Intergenerational Care Planner, and Healthcare AI Alignment Dataset}},
+  year         = {2026},
+  month        = {9},
+  version      = {2.1.1},
+  license      = {Apache-2.0},
+  url          = {https://github.com/philgear/InsightSpark},
+  orcid        = {https://orcid.org/0009-0008-1372-5381}
+}
 ```
 *(A standard `CITATION.cff` file is included in the repository root for automated BibTeX and APA export via GitHub's "Cite this repository" feature).*
 

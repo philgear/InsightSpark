@@ -283,4 +283,66 @@ describe('Translation & Internationalization Suite', () => {
     assert.ok(result.synthesisActionBridge.immediateTractionStep, 'Must have immediateTractionStep');
     assert.ok(phases.includes('complete'), 'Pipeline must complete');
   });
+
+  test('PocketGull Soft Sovereign Font: WOFF2 & TTF binaries exist with valid headers', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const woff2Path = path.resolve('public/fonts/PocketGull-Soft-Regular.woff2');
+    const ttfPath = path.resolve('public/fonts/PocketGull-Soft-Regular.ttf');
+    
+    assert.ok(fs.existsSync(woff2Path), 'PocketGull-Soft-Regular.woff2 must exist in public/fonts/');
+    assert.ok(fs.existsSync(ttfPath), 'PocketGull-Soft-Regular.ttf must exist in public/fonts/');
+    
+    const ttfBuffer = fs.readFileSync(ttfPath);
+    assert.ok(ttfBuffer.length > 500000, `Font size must be complete superfamily (>500KB), got ${ttfBuffer.length}`);
+    
+    const scalerType = ttfBuffer.readUInt32BE(0);
+    assert.strictEqual(scalerType, 0x00010000, 'Must have valid TrueType 1.0 scaler header (0x00010000)');
+  });
+
+  test('Spark DSRP Variable Font: VF binaries exist with valid fvar & gvar variation tables', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const vfTtfPath = path.resolve('public/fonts/SparkDSRP-VF.ttf');
+    const vfWoff2Path = path.resolve('public/fonts/SparkDSRP-VF.woff2');
+    
+    assert.ok(fs.existsSync(vfTtfPath), 'SparkDSRP-VF.ttf must exist in public/fonts/');
+    assert.ok(fs.existsSync(vfWoff2Path), 'SparkDSRP-VF.woff2 must exist in public/fonts/');
+    
+    const vfBuffer = fs.readFileSync(vfTtfPath);
+    assert.strictEqual(vfBuffer.readUInt32BE(0), 0x00010000, 'Must have valid TrueType scaler header');
+    
+    // Parse SFNT table tags to verify variable font tables
+    const numTables = vfBuffer.readUInt16BE(4);
+    const tags = new Set();
+    for (let i = 0; i < numTables; i++) {
+      const offset = 12 + i * 16;
+      tags.add(vfBuffer.toString('ascii', offset, offset + 4));
+    }
+    assert.ok(tags.has('fvar'), 'Must contain fvar (Font Variations) table');
+    assert.ok(tags.has('gvar'), 'Must contain gvar (Glyph Variations) table');
+    assert.ok(tags.has('STAT'), 'Must contain STAT (Style Attributes) table');
+  });
+
+  test('AI Training Reservation & Robots Safeguards: robots.txt and llms.txt contain explicit directives', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const robotsPath = path.resolve('public/robots.txt');
+    const llmsPath = path.resolve('public/llms.txt');
+
+    assert.ok(fs.existsSync(robotsPath), 'public/robots.txt must exist');
+    assert.ok(fs.existsSync(llmsPath), 'public/llms.txt must exist');
+
+    const robotsContent = fs.readFileSync(robotsPath, 'utf8');
+    assert.ok(robotsContent.includes('User-agent: GPTBot'), 'robots.txt must block GPTBot');
+    assert.ok(robotsContent.includes('User-agent: CCBot'), 'robots.txt must block CCBot');
+    assert.ok(robotsContent.includes('User-agent: ClaudeBot'), 'robots.txt must block ClaudeBot');
+
+    const llmsContent = fs.readFileSync(llmsPath, 'utf8');
+    assert.ok(llmsContent.includes('Terms of Use & AI Training Restriction'), 'llms.txt must have AI training restriction section');
+    assert.ok(llmsContent.includes('First-Party Project Exemption'), 'llms.txt must carve out first-party project exemption for the author');
+    assert.ok(llmsContent.includes('Phil Gear'), 'llms.txt must attribute the author');
+  });
 });
+
+

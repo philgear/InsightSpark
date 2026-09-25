@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pivot & Pulse — Spark DSRP Variable Typography & Systems Studio</title>
+  <style>
+    @font-face {
+      font-family: 'Spark DSRP';
+      src: url('/fonts/SparkDSRP-VF.woff2') format('woff2'),
+           url('/fonts/SparkDSRP-VF.ttf') format('truetype');
+      font-weight: 100 900;
+      font-stretch: 75% 100%;
+      font-style: oblique -10.5deg 0deg;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'PocketGull Soft';
+      src: url('/fonts/PocketGull-Soft-Regular.woff2') format('woff2'),
+           url('/fonts/PocketGull-Soft-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'PocketGull Soft';
+      src: url('/fonts/PocketGull-Soft-Bold.woff2') format('woff2'),
+           url('/fonts/PocketGull-Soft-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'PocketGull Mono';
+      src: url('/fonts/PocketGullMono-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      /* Palette Grounded in Pivot & Pulse Banner & Logo */
+      --bg-dark: #191613;
+      --bg-espresso: #221e1a;
+      --card-bg: rgba(38, 33, 27, 0.82);
+      --card-border: rgba(246, 173, 85, 0.22);
+      --card-border-glow: rgba(157, 125, 250, 0.35);
+      
+      --cream: #fdf5e6;
+      --cream-soft: #f4ecdc;
+      --text-muted: #b8ac9d;
+      
+      --purple-amethyst: #9d7dfa;
+      --purple-glow: rgba(157, 125, 250, 0.45);
+      --gold-honey: #f6ad55;
+      --gold-glow: rgba(246, 173, 85, 0.4);
+      --sage-mint: #9ae6b4;
+      --sage-glow: rgba(154, 230, 180, 0.35);
+      --rose-thistle: #e2a8b6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 20% 15%, rgba(157, 125, 250, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 80% 25%, rgba(246, 173, 85, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 50% 80%, rgba(154, 230, 180, 0.08) 0%, transparent 50%);
+      color: var(--cream);
+      font-family: 'Spark DSRP', 'PocketGull Soft', system-ui, -apple-system, sans-serif;
+      line-height: 1.618;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Interactive Celestial Stardust Canvas */
+    #stardustCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 44px 24px 80px 24px;
+    }
+
+    /* ── Cute Glowing Header ─────────────────────────────────────────── */
+    header {
+      text-align: center;
+      margin-bottom: 36px;
+      position: relative;
+    }
+
+    .logo-lantern-wrap {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 18px;
+    }
+
+    .logo-lantern {
+      width: 92px;
+      height: 92px;
+      border-radius: 26px;
+      background: var(--bg-espresso);
+      border: 1.5px solid rgba(246, 173, 85, 0.35);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 25px var(--purple-glow);
+      padding: 6px;
+      position: relative;
+      z-index: 2;
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: pointer;
+    }
+
+    .logo-lantern:hover {
+      transform: scale(1.08) rotate(-3deg);
+      border-color: var(--gold-honey);
+    }
+
+    .logo-lantern img {
+      width: 100%;
+      height: 100%;
+      border-radius: 20px;
+      display: block;
+    }
+
+    .lantern-halo {
+      position: absolute;
+      inset: -14px;
+      border-radius: 36px;
+      background: radial-gradient(circle, rgba(157, 125, 250, 0.4) 0%, rgba(246, 173, 85, 0.25) 50%, transparent 75%);
+      filter: blur(14px);
+      z-index: 1;
+      animation: pulse-halo 4s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    @keyframes pulse-halo {
+      0% { transform: scale(0.95); opacity: 0.6; }
+      100% { transform: scale(1.1); opacity: 1; }
+    }
+
+    .brand-eyebrow {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: var(--gold-honey);
+      margin-bottom: 6px;
+      text-shadow: 0 0 12px var(--gold-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    h1.brand-title {
+      font-size: clamp(34px, 5.5vw, 56px);
+      margin: 0 0 10px 0;
+      color: var(--cream);
+      letter-spacing: -0.025em;
+      line-height: 1.15;
+      font-variation-settings: 'wght' 750, 'opsz' 48;
+      text-shadow: 0 0 28px var(--purple-glow);
+    }
+
+    .brand-ampersand {
+      color: var(--gold-honey);
+      font-style: italic;
+      font-weight: 400;
+      text-shadow: 0 0 16px var(--gold-glow);
+      padding: 0 4px;
+    }
+
+    .brand-subtitle {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 660px;
+      margin: 0 auto 20px auto;
+      line-height: 1.55;
+    }
+
+    .cute-badge-bar {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+
+    .cute-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 12.5px;
+      font-weight: 600;
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--card-border);
+      background: rgba(42, 36, 29, 0.7);
+      color: var(--cream);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .cute-chip.amethyst { border-color: var(--purple-amethyst); color: var(--purple-amethyst); }
+    .cute-chip.honey { border-color: var(--gold-honey); color: var(--gold-honey); }
+    .cute-chip.mint { border-color: var(--sage-mint); color: var(--sage-mint); }
+
+    /* ── Tabs Navigation ─────────────────────────────────────────────── */
+    .tabs-bar {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .tab-pill {
+      background: rgba(253, 245, 230, 0.05);
+      border: 1px solid rgba(253, 245, 230, 0.12);
+      color: var(--text-muted);
+      padding: 9px 18px;
+      border-radius: 16px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      backdrop-filter: blur(12px);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-pill:hover {
+      background: rgba(157, 125, 250, 0.18);
+      border-color: var(--purple-amethyst);
+      color: var(--cream);
+      transform: translateY(-2px);
+    }
+
+    .tab-pill.active {
+      background: linear-gradient(135deg, rgba(157, 125, 250, 0.32), rgba(246, 173, 85, 0.24));
+      border-color: var(--gold-honey);
+      color: var(--cream);
+      box-shadow: 0 0 20px var(--gold-glow);
+    }
+
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+      animation: tabFadeIn 0.35s ease-out;
+    }
+
+    @keyframes tabFadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Pebble Glass Cards ──────────────────────────────────────────── */
+    .pebble-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--card-border);
+      border-radius: 28px 24px 30px 22px; /* Organic pebble silhouette */
+      padding: 32px;
+      margin-bottom: 28px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 35px rgba(157, 125, 250, 0.08);
+      position: relative;
+    }
+
+    /* ── Cute Sound Chimes Bar ───────────────────────────────────────── */
+    .chimes-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(253, 245, 230, 0.08);
+    }
+
+    .chime-btn {
+      background: rgba(253, 245, 230, 0.06);
+      border: 1px solid var(--card-border);
+      color: var(--cream);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .chime-btn:hover {
+      background: rgba(157, 125, 250, 0.2);
+      transform: scale(1.03);
+    }
+
+    .chime-btn.active {
+      background: rgba(154, 230, 180, 0.22);
+      border-color: var(--sage-mint);
+      color: var(--sage-mint);
+    }
+
+    /* ── Cute DSRP Sacred Geometry Mandala ───────────────────────────── */
+    .mandala-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 12px 0 24px 0;
+    }
+
+    #dsrpMandala {
+      width: 170px;
+      height: 170px;
+      filter: drop-shadow(0 0 20px var(--purple-glow));
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .mandala-tag {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gold-honey);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    /* ── Presets Grid ────────────────────────────────────────────────── */
+    .presets-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 26px;
+    }
+
+    .preset-pill {
+      background: rgba(45, 39, 32, 0.7);
+      border: 1px solid rgba(253, 245, 230, 0.12);
+      color: var(--cream);
+      padding: 8px 16px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .preset-pill:hover {
+      background: rgba(157, 125, 250, 0.25);
+      border-color: var(--purple-amethyst);
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 4px 14px var(--purple-glow);
+    }
+
+    .preset-pill.active {
+      background: linear-gradient(135deg, var(--purple-amethyst), var(--gold-honey));
+      color: #161411;
+      border-color: transparent;
+      font-weight: 700;
+      box-shadow: 0 0 20px var(--gold-glow);
+    }
+
+    /* ── Cute Sliders ────────────────────────────────────────────────── */
+    .sliders-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 18px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 20px;
+      padding: 22px;
+      border: 1px solid rgba(253, 245, 230, 0.08);
+      margin-bottom: 26px;
+    }
+
+    .slider-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .slider-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .slider-title {
+      color: var(--gold-honey);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .slider-badge {
+      font-family: 'PocketGull Mono', monospace;
+      color: var(--sage-mint);
+      background: rgba(154, 230, 180, 0.12);
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 7px;
+      border-radius: 6px;
+      background: rgba(253, 245, 230, 0.15);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--purple-amethyst);
+      box-shadow: 0 0 12px var(--purple-amethyst);
+      cursor: pointer;
+      transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+      background: var(--gold-honey);
+      box-shadow: 0 0 16px var(--gold-honey);
+    }
+
+    /* ── Cute Live Parchment Playground ──────────────────────────────── */
+    .parchment-box {
+      background: rgba(20, 18, 15, 0.45);
+      border: 1.5px solid rgba(246, 173, 85, 0.25);
+      border-radius: 22px;
+      padding: 28px;
+      margin-bottom: 26px;
+      position: relative;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.35);
+    }
+
+    .parchment-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    #parchmentHero {
+      font-size: clamp(26px, 4.5vw, 44px);
+      line-height: 1.25;
+      color: var(--cream);
+      outline: none;
+      min-height: 80px;
+    }
+
+    #parchmentBody {
+      font-size: 16.5px;
+      color: var(--cream-soft);
+      margin-top: 14px;
+      outline: none;
+      line-height: 1.6;
+    }
+
+    /* ── DSRP Four Pillars Grid ──────────────────────────────────────── */
+    .dsrp-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .mini-pebble {
+      background: rgba(35, 30, 24, 0.7);
+      border: 1px solid rgba(253, 245, 230, 0.08);
+      border-radius: 20px;
+      padding: 20px;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .mini-pebble:hover {
+      transform: translateY(-3px) scale(1.02);
+      border-color: var(--gold-honey);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    .mini-pebble h3 {
+      margin: 0 0 10px 0;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mini-pebble.card-d h3 { color: var(--gold-honey); }
+    .mini-pebble.card-s h3 { color: var(--sage-mint); }
+    .mini-pebble.card-r h3 { color: var(--purple-amethyst); }
+    .mini-pebble.card-p h3 { color: var(--rose-thistle); }
+
+    .mini-pebble p {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin: 0 0 10px 0;
+      line-height: 1.5;
+    }
+
+    .mono-pill-box {
+      font-family: 'PocketGull Mono', monospace;
+      font-size: 12.5px;
+      background: rgba(0, 0, 0, 0.35);
+      padding: 8px 12px;
+      border-radius: 8px;
+      line-height: 1.5;
+      color: var(--sage-mint);
+      border: 1px solid rgba(154, 230, 180, 0.18);
+    }
+
+    /* ── Sister Cities Table ─────────────────────────────────────────── */
+    .sister-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    .sister-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(253, 245, 230, 0.06);
+      font-size: 14.5px;
+    }
+
+    .sister-table tr:hover td {
+      background: rgba(157, 125, 250, 0.06);
+    }
+
+    .sister-native {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--purple-amethyst);
+      text-shadow: 0 0 12px var(--purple-glow);
+    }
+
+    /* ── Telemetry Console ───────────────────────────────────────────── */
+    .telemetry-board {
+      background: #0f0d0b;
+      border: 1px solid rgba(154, 230, 180, 0.3);
+      border-radius: 18px;
+      padding: 22px;
+      font-family: 'PocketGull Mono', monospace;
+      color: var(--sage-mint);
+      box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(154, 230, 180, 0.12);
+      margin-bottom: 20px;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .telemetry-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed rgba(154, 230, 180, 0.18);
+      padding: 4px 0;
+    }
+
+    /* ── Typography & Icons Studio ───────────────────────────────────── */
+    .typo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .typo-card {
+      background: rgba(30, 26, 21, 0.7);
+      border: 1px solid rgba(253, 245, 230, 0.12);
+      border-radius: 20px;
+      padding: 24px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+      position: relative;
+    }
+
+    .typo-card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--gold-honey);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-matrix {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .icon-tile {
+      background: rgba(42, 36, 29, 0.6);
+      border: 1px solid rgba(253, 245, 230, 0.1);
+      border-radius: 16px;
+      padding: 16px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: var(--cream);
+    }
+
+    .icon-tile:hover {
+      background: rgba(157, 125, 250, 0.15);
+      border-color: var(--purple-amethyst);
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 8px 20px rgba(157, 125, 250, 0.25);
+      color: var(--gold-honey);
+    }
+
+    .icon-tile svg {
+      width: 28px;
+      height: 28px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      stroke: currentColor;
+      transition: stroke-width 0.15s ease;
+    }
+
+    .icon-tile span {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-align: center;
+      letter-spacing: -0.01em;
+    }
+
+    .pill-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 11.5px;
+      font-weight: 600;
+      background: rgba(157, 125, 250, 0.12);
+      border: 1px solid rgba(157, 125, 250, 0.3);
+      color: var(--purple-amethyst);
+    }
+
+    .counter-display {
+      font-family: 'Spark DSRP', sans-serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--sage-mint);
+      background: #0f0d0b;
+      border: 1px solid rgba(154, 230, 180, 0.3);
+      border-radius: 12px;
+      padding: 12px 18px;
+      text-align: center;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────────── */
+    footer {
+      text-align: center;
+      padding: 30px 0;
+      color: var(--text-muted);
+      font-size: 13px;
+      border-top: 1px solid rgba(253, 245, 230, 0.08);
+      position: relative;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <!-- Ambient Interactive Stardust Canvas -->
+  <canvas id="stardustCanvas"></canvas>
+
+  <div class="container">
+    <header>
+      <div class="logo-lantern-wrap">
+        <div class="logo-lantern" title="Pivot & Pulse Sovereign Emblem">
+          <img src="/assets/logo-dark.svg" alt="Pivot & Pulse Emblem">
+        </div>
+        <div class="lantern-halo"></div>
+      </div>
+
+      <div class="brand-eyebrow">
+        <span>✨</span> Systems Thinking (DSRP) × Sovereign Typefoundry <span>✨</span>
+      </div>
+
+      <h1 class="brand-title">Pivot <span class="brand-ampersand">&amp;</span> Pulse</h1>
+      <p class="brand-subtitle">
+        A living, fluid variable typeface crafted with felt-marker humanist warmth, 
+        intergenerational care harmony, and life-critical clinical safety.
+      </p>
+
+      <div class="cute-badge-bar">
+        <span class="cute-chip amethyst">✦ OpenType Variations (16 Axes)</span>
+        <span class="cute-chip mint">🛡️ 100% W3C OTS Memory-Safe</span>
+        <span class="cute-chip honey">⚕️ ISMP Safety + Sloan 5:1 Optotype</span>
+        <span class="cute-chip amethyst">🌐 9 Portland Sister Cities Multi-Script</span>
+      </div>
+
+      <nav class="tabs-bar" aria-label="Specimen Modes">
+        <button class="tab-pill active" onclick="switchTab('dsrp')" id="tabBtn-dsrp">🔮 DSRP Systems Studio</button>
+        <button class="tab-pill" onclick="switchTab('cities')" id="tabBtn-cities">🌸 Sister Cities Sanctuary</button>
+        <button class="tab-pill" onclick="switchTab('clinical')" id="tabBtn-clinical">🛡️ Clinical Life-Safety</button>
+        <button class="tab-pill" onclick="switchTab('typography')" id="tabBtn-typography">✨ Typography &amp; Icons</button>
+        <button class="tab-pill" onclick="switchTab('telemetry')" id="tabBtn-telemetry">🔬 FontSpector Telemetry</button>
+      </nav>
+    </header>
+
+    <!-- ── TAB 1: DSRP SYSTEMS STUDIO ────────────────────────────────── -->
+    <div id="tab-dsrp" class="tab-pane active">
+      <div class="pebble-card">
+        <div class="chimes-bar">
+          <div style="font-weight:700; color:var(--cream); font-size:16px;">
+            Interactive Variable Morphing Workbench
+          </div>
+          <button class="chime-btn" id="soundBtn" onclick="toggleSound()">
+            <span id="soundIcon">🎵</span> <span id="soundLabel">Ambient Audio: OFF</span>
+          </button>
+        </div>
+
+        <!-- Cute DSRP Sacred Geometry Mandala -->
+        <div class="mandala-wrap">
+          <svg id="dsrpMandala" viewBox="0 0 200 200">
+            <defs>
+              <radialGradient id="mandalaCenterGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#9d7dfa" stop-opacity="0.85"/>
+                <stop offset="50%" stop-color="#f6ad55" stop-opacity="0.4"/>
+                <stop offset="100%" stop-color="#191613" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <circle cx="100" cy="100" r="90" fill="url(#mandalaCenterGlow)" />
+            <!-- System Orbit (S) -->
+            <circle id="mandalaOrbit" cx="100" cy="100" r="66" fill="none" stroke="#9ae6b4" stroke-width="2.5" stroke-dasharray="4 4" opacity="0.75"/>
+            <!-- Distinction Boundary (D) -->
+            <circle id="mandalaBoundary" cx="100" cy="100" r="46" fill="none" stroke="#f6ad55" stroke-width="4.5" opacity="0.9"/>
+            <!-- Relationship Harmonic Arcs (R) -->
+            <path id="mandalaArc" d="M 54 100 Q 100 48 146 100 Q 100 152 54 100" fill="none" stroke="#9d7dfa" stroke-width="2.8" opacity="0.85"/>
+            <!-- Perspective Prism (P) -->
+            <polygon id="mandalaPrism" points="100,58 136,132 64,132" fill="rgba(226, 168, 182, 0.28)" stroke="#e2a8b6" stroke-width="2.2"/>
+          </svg>
+          <div class="mandala-tag" id="mandalaStatus">D: Distinction • S: System • R: Relationship • P: Perspective</div>
+        </div>
+
+        <!-- Presets -->
+        <div class="presets-row">
+          <button class="preset-pill active" onclick="applyPreset('lateral', this)">⚡ Lateral Spark (Divergence)</button>
+          <button class="preset-pill" onclick="applyPreset('kinship', this)">🌹 Kinship Respite (Care Mode)</button>
+          <button class="preset-pill" onclick="applyPreset('systems', this)">🌐 Systems Synthesis (Macro)</button>
+          <button class="preset-pill" onclick="applyPreset('clinical', this)">🛡️ Clinical Disambiguation (ISMP)</button>
+          <button class="preset-pill" onclick="applyPreset('elder', this)">🕊️ Elder Wisdom (High-Gravity)</button>
+          <button class="preset-pill" onclick="applyPreset('bionic', this)">⚡ Bionic Speed Reader</button>
+        </div>
+
+        <!-- Controls Grid -->
+        <div class="sliders-grid">
+          <div class="slider-item">
+            <div class="slider-label-row">
+              <label for="slider-wght" class="slider-title">Weight (wght)</label>
+              <span class="slider-badge" id="val-wght">600</span>
+            </div>
+            <input type="range" id="slider-wght" min="100" max="900" value="600" oninput="handleSliderChange()">
+          </div>
+
+          <div class="slider-item">
+            <div class="slider-label-row">
+              <label for="slider-wdth" class="slider-title">Width (wdth)</label>
+              <span class="slider-badge" id="val-wdth">100%</span>
+            </div>
+            <input type="range" id="slider-wdth" min="75" max="100" value="100" oninput="handleSliderChange()">
+          </div>
+
+          <div class="slider-item">
+            <div class="slider-label-row">
+              <label for="slider-slnt" class="slider-title">Slant (slnt)</label>
+              <span class="slider-badge" id="val-slnt">-4°</span>
+            </div>
+            <input type="range" id="slider-slnt" min="-10.5" max="0" step="0.5" value="-4" oninput="handleSliderChange()">
+          </div>
+
+          <div class="slider-item">
+            <div class="slider-label-row">
+              <label for="slider-opsz" class="slider-title">Optical Size (opsz)</label>
+              <span class="slider-badge" id="val-opsz">36pt</span>
+            </div>
+            <input type="range" id="slider-opsz" min="6" max="72" value="36" oninput="handleSliderChange()">
+          </div>
+
+          <div class="slider-item">
+            <div class="slider-label-row">
+              <label for="slider-soft" class="slider-title">D: Distinction / Soft</label>
+              <span class="slider-badge" id="val-soft">0.6</span>
+            </div>
+            <input type="range" id="slider-soft" min="0" max="1" step="0.05" value="0.6" oninput="handleSliderChange()">
+          </div>
+
+          <div class="slider-item">
+            <div class="slider-label-row">
+              <label for="slider-grav" class="slider-title">P: Perspective Gravity</label>
+              <span class="slider-badge" id="val-grav">0.2</span>
+            </div>
+            <input type="range" id="slider-grav" min="0" max="1" step="0.05" value="0.2" oninput="handleSliderChange()">
+          </div>
+        </div>
+
+        <!-- Live Parchment Playground -->
+        <div class="parchment-box">
+          <div class="parchment-meta">
+            <span>Live Interactive Text (Click to edit text)</span>
+            <span id="tupleReadout">tuple: wght=600 wdth=100% slnt=-4° opsz=36 SOFT=0.6 GRAV=0.2</span>
+          </div>
+          <div id="parchmentHero" contenteditable="true" spellcheck="false">
+            Pivot &amp; Pulse: Fluid lateral thinking meets intergenerational care harmony.
+          </div>
+          <div id="parchmentBody" contenteditable="true" spellcheck="false">
+            Every idea is a distinction (D) within a system (S), linked by relationships (R), viewed through distinct generational perspectives (P).
+          </div>
+        </div>
+
+        <!-- DSRP Four Pillars Grid -->
+        <div class="dsrp-cards-grid">
+          <div class="mini-pebble card-d">
+            <h3>🔍 D — Distinctions</h3>
+            <p><strong>Identity ↔ Other:</strong> Boundary clarity, optical contrast, ink traps, and medication safety disambiguation.</p>
+            <div class="mono-pill-box">
+              0 vs O (Slashed Zero)<br>
+              1 vs l vs I (Triple Disambiguation)<br>
+              2 vs Z (Slashed Z)
+            </div>
+          </div>
+
+          <div class="mini-pebble card-s">
+            <h3>🌐 S — Systems</h3>
+            <p><strong>Part ↔ Whole:</strong> Modularity and nesting. Individual strategy cards aggregate into closed-loop care plans.</p>
+            <div class="mono-pill-box">
+              • Part: 15m audio story<br>
+              • Whole: Living Room Legacy<br>
+              • Closed Loop: 72h check
+            </div>
+          </div>
+
+          <div class="mini-pebble card-r">
+            <h3>⚡ R — Relationships</h3>
+            <p><strong>Action ↔ Reaction:</strong> Cross-pollination bridges and kinetic slant between divergent lateral provocation hubs.</p>
+            <div class="mono-pill-box">
+              Biomimicry ⟷ Child's Play<br>
+              VIA Strengths ⟷ Respite Pacing<br>
+              Kinship Triad ⟷ Legacy Handoff
+            </div>
+          </div>
+
+          <div class="mini-pebble card-p">
+            <h3>👁️ P — Perspectives</h3>
+            <p><strong>Point ↔ View:</strong> Shifting vantage points across child curiosity, caregiver respite, and elder dignity.</p>
+            <div class="mono-pill-box">
+              • Child: Tactile curiosity<br>
+              • Elder: Autonomy &amp; dignity<br>
+              • Caregiver: 4h/wk respite
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 2: PORTLAND SISTER CITIES ─────────────────────────────── -->
+    <div id="tab-cities" class="tab-pane">
+      <div class="pebble-card">
+        <h2 style="margin-top:0; color:var(--cream); font-size:24px;">🌸 Portland Sister Cities Multi-Script Sanctuary</h2>
+        <p style="color:var(--text-muted); font-size:15px; margin-bottom:24px;">
+          Engineered to celebrate Portland's cultural heritage across all 9 Sister Cities and international partners with zero missing glyph tofu boxes:
+        </p>
+
+        <table class="sister-table">
+          <tbody>
+            <tr>
+              <td><strong>Sapporo, Japan</strong> (1959)</td>
+              <td class="sister-native">札幌市 🌸</td>
+              <td style="color:var(--text-muted);">Snow Festival, Japanese Kanji &amp; Kana</td>
+            </tr>
+            <tr>
+              <td><strong>Guadalajara, Mexico</strong> (1983)</td>
+              <td class="sister-native">Guadalajara 🇲🇽</td>
+              <td style="color:var(--text-muted);">Mariachi, Latin Extended Accents</td>
+            </tr>
+            <tr>
+              <td><strong>Ulsan, South Korea</strong> (1987)</td>
+              <td class="sister-native">울산광역시 🇰🇷</td>
+              <td style="color:var(--text-muted);">Industrial Heartland, Korean Hangul</td>
+            </tr>
+            <tr>
+              <td><strong>Suzhou, China</strong> (1988)</td>
+              <td class="sister-native">苏州市 🏮</td>
+              <td style="color:var(--text-muted);">Classical Gardens, Simplified Hanzi</td>
+            </tr>
+            <tr>
+              <td><strong>Ashkelon, Israel</strong> (1987)</td>
+              <td class="sister-native">אַשְׁקְלוֹן 🕊️</td>
+              <td style="color:var(--text-muted);">Mediterranean Coast, Hebrew Nikkud</td>
+            </tr>
+            <tr>
+              <td><strong>Bratislava, Slovakia</strong> (1992)</td>
+              <td class="sister-native">Bratislava 🏰</td>
+              <td style="color:var(--text-muted);">Danube Capital, Central European Latin</td>
+            </tr>
+            <tr>
+              <td><strong>Mutare, Zimbabwe</strong> (1991)</td>
+              <td class="sister-native">Mutare 🇿🇼</td>
+              <td style="color:var(--text-muted);">Eastern Highlands, Shona &amp; African Marks</td>
+            </tr>
+            <tr>
+              <td><strong>Bologna, Italy</strong> (2003)</td>
+              <td class="sister-native">Bologna 🏛️</td>
+              <td style="color:var(--text-muted);">UNESCO City of Music, Italian Humanist</td>
+            </tr>
+            <tr>
+              <td><strong>Kota Kinabalu, Malaysia</strong> (2014)</td>
+              <td class="sister-native">Kota Kinabalu 🌴</td>
+              <td style="color:var(--text-muted);">Borneo Gateway, Southeast Asian Latin</td>
+            </tr>
+            <tr>
+              <td><strong>Kaohsiung, Taiwan</strong> (Partner)</td>
+              <td class="sister-native">高雄市 🏮</td>
+              <td style="color:var(--text-muted);">Maritime Port, Traditional Hanzi</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── TAB 3: CLINICAL LIFE-SAFETY ───────────────────────────────── -->
+    <div id="tab-clinical" class="tab-pane">
+      <div class="pebble-card">
+        <h2 style="margin-top:0; color:var(--cream); font-size:24px;">🛡️ Clinical ISMP Medication Safety &amp; Optotype Standards</h2>
+        <p style="color:var(--text-muted); font-size:15px; margin-bottom:24px;">
+          Tested for life-critical healthcare environments under Institute for Safe Medication Practices (ISMP) and Louise Sloan 5:1 optometric standards:
+        </p>
+
+        <div class="dsrp-cards-grid">
+          <div class="mini-pebble">
+            <h3 style="color:var(--gold-honey);">Zero vs O Disambiguation</h3>
+            <p>Prevent 10-fold dosing overdoses (e.g. 10 mg vs 100 mg):</p>
+            <div class="mono-pill-box" style="font-size:16px;">
+              0 vs O • 100 vs 1OO<br>
+              50 mg vs 5O mg<br>
+              Code: cv08 slashed zero active
+            </div>
+          </div>
+
+          <div class="mini-pebble">
+            <h3 style="color:var(--sage-mint);">1 vs l vs I Disambiguation</h3>
+            <p>Curved lowercase l and serifed capital I prevent lethal Look-Alike / Sound-Alike confusion:</p>
+            <div class="mono-pill-box" style="font-size:16px;">
+              1 (Numeral One)<br>
+              l (Curved Lowercase l)<br>
+              I (Serifed Capital I)
+            </div>
+          </div>
+
+          <div class="mini-pebble">
+            <h3 style="color:var(--purple-amethyst);">Leading Zero Protection</h3>
+            <p>Prevents fatal decimal misreads under TJC / ISMP standards:</p>
+            <div class="mono-pill-box" style="font-size:16px;">
+              Safe: 0.5 mg (Leading Zero)<br>
+              Dangerous: .5 mg (Misread as 5mg)<br>
+              Zero Slashed: 0.5 mg
+            </div>
+          </div>
+
+          <div class="mini-pebble">
+            <h3 style="color:var(--rose-thistle);">Louise Sloan 5:1 Optotypes</h3>
+            <p>Standardized visual acuity optotype legibility at clinical distance:</p>
+            <div class="mono-pill-box" style="font-size:16px; letter-spacing:0.1em;">
+              C D H K N O R S V Z<br>
+              Ratio: 5:1 Stroke Calibration<br>
+              Acuity: 20/20 Legible
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 4: FONTSPECTOR TELEMETRY ──────────────────────────────── -->
+    <div id="tab-telemetry" class="tab-pane">
+      <div class="pebble-card">
+        <h2 style="margin-top:0; color:var(--cream); font-size:24px;">🔬 FontSpector Pure-Dart Forensic Audit HUD</h2>
+        <p style="color:var(--text-muted); font-size:15px; margin-bottom:20px;">
+          Real-time telemetry verified via PocketGull pure Dart 3.11 typefoundry compiler and Thomas Phinney forensic rules:
+        </p>
+
+        <div class="telemetry-board">
+          <div class="telemetry-row"><span>[PASS] TrueType 2-byte word alignment (loca % 2 == 0)</span><span>0 odd offsets (11,738 glyphs)</span></div>
+          <div class="telemetry-row"><span>[PASS] DirectWrite ClearType gasp antialiasing</span><span>v1 (DOGRAY &amp; SYMMETRIC_SMOOTHING)</span></div>
+          <div class="telemetry-row"><span>[PASS] W3C OTS Chromium memory fault immunity</span><span>100% OTS Safe</span></div>
+          <div class="telemetry-row"><span>[PASS] Reserved Bit-7 coordinate flag masking</span><span>0 bad flags (flags &amp; 0x80 == 0)</span></div>
+          <div class="telemetry-row"><span>[PASS] Self-referencing composite cycles</span><span>0 cycles across 722 composites</span></div>
+          <div class="telemetry-row"><span>[PASS] Nested composite components</span><span>0 nested (Universal Profile)</span></div>
+          <div class="telemetry-row"><span>[PASS] Google Fonts Latin Core coverage</span><span>100% Covered (8,774 glyphs)</span></div>
+          <div class="telemetry-row"><span>[PASS] Full 256 Unicode Braille block (U+2800..U+28FF)</span><span>256/256 ISO/TR 11548 Compliant</span></div>
+          <div class="telemetry-row"><span>[PASS] Em square units per em (UPM)</span><span>1000 UPM standard</span></div>
+          <div class="telemetry-row"><span>[PASS] OpenType Variations fvar table</span><span>16 Axes • 37 Named Instances</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TAB 5: TYPOGRAPHY & ICON STUDIO ────────────────────────── -->
+    <div id="tab-typography" class="tab-pane">
+      <!-- Dynamic Stroke & Font Weight Synchronizer -->
+      <div class="pebble-card">
+        <div class="chimes-bar">
+          <div style="font-weight:700; color:var(--cream); font-size:16px;">
+            ✨ Typographic Hierarchy &amp; Variable Icon Synchronizer
+          </div>
+          <span class="pill-tag">OpenType SVG + VF Unity</span>
+        </div>
+
+        <p style="color:var(--text-muted); font-size:14px; margin-bottom:20px; line-height:1.6;">
+          Variable fonts allow typography and iconography to breathe as one single organism. When font weight increases from Thin (100) to Black (900), icon strokes scale synchronously, eliminating visual disconnect between text and symbols.
+        </p>
+
+        <!-- Synchronizer Controls -->
+        <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:24px; background:rgba(0,0,0,0.25); padding:16px; border-radius:16px; border:1px solid rgba(253,245,230,0.08);">
+          <div style="flex:1; min-width:200px;">
+            <label for="syncWghtSlider" style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; color:var(--gold-honey); margin-bottom:6px;">
+              <span>Font Weight (wght)</span>
+              <span id="syncWghtVal">700</span>
+            </label>
+            <input type="range" id="syncWghtSlider" min="100" max="900" value="700" step="10" oninput="updateIconSync()" style="width:100%;">
+          </div>
+          <div style="flex:1; min-width:200px;">
+            <label for="syncStrokeSlider" style="display:flex; justify-content:space-between; font-size:12px; font-weight:700; color:var(--sage-mint); margin-bottom:6px;">
+              <span>Icon Stroke Width</span>
+              <span id="syncStrokeVal">2.2px</span>
+            </label>
+            <input type="range" id="syncStrokeSlider" min="1.0" max="3.5" value="2.2" step="0.1" oninput="updateManualStroke()" style="width:100%;">
+          </div>
+          <div style="display:flex; align-items:flex-end;">
+            <button class="chime-btn" onclick="toggleAutoStroke()" id="autoStrokeBtn">
+              🔗 Linked to Weight: ON
+            </button>
+          </div>
+        </div>
+
+        <!-- 24-Icon Suite Matrix -->
+        <div style="font-weight:700; font-size:14px; color:var(--gold-honey); margin-bottom:10px;">
+          ✦ Upgraded Sovereign SVG Icon Suite (Harmonized with Spark DSRP)
+        </div>
+        <div class="icon-matrix" id="iconMatrix">
+          <div class="icon-tile" onclick="inspectIcon('lightbulb', 'Inspiration Spark')">
+            <svg viewBox="0 0 24 24"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"></path><path d="M9 18h6"></path><path d="M10 22h4"></path></svg>
+            <span>lightbulb</span>
+          </div>
+          <div class="icon-tile" onclick="inspectIcon('heart-pulse', 'Vital Health Care')">
+            <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path><path d="M22 12h-3l-1.5 3-3-6-1.5 3H2"></path></svg>
+            <span>heart-pulse</span>
+          </div>
+          <div class="icon-tile" onclick="inspectIcon('sparkles', 'Creative Spark')">
+            <svg viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>
+            <span>sparkles</span>
+          </div>
+          <div class="icon-tile" onclick="inspectIcon('home', 'Family Sanctuary')">
+            <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span>home</span>
+          </div>
+          <div class="icon-tile" onclick="inspectIcon('users', 'Intergenerational Kinship')">
+            <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span>users</span>
+          </div>
+          <div class="icon-tile" onclick="inspectIcon('heart-handshake', 'Caregiver Respite')">
+            <svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path><path d="M12 5 9.04 7.96a2.17 2.17 0 0 0 0 3.08c.82.82 2.13.85 3 .07l2.07-1.9a2.82 2.82 0 0 1 3.18 0l1.9 1.6"></path></svg>
+            <span>respite</span>
+          </div>
+          <div class="icon-tile" onclick="inspectIcon('mandala', 'DSRP Systems')">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M12 2a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5z"></path><path d="M12 14a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5z"></path><path d="M2 12a5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5z"></path><path d="M14 12a5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5z"></path></svg>
+            <span>mandala</span>
+          </div>
+          <div class="icon-tile" onclick="inspectIcon('compass', 'Lateral Navigation')">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+            <span>compass</span>
+          </div>
+          <div class="icon-tile" onclick="inspectIcon('send', 'Prompt Execution')">
+            <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+            <span>send</span>
+          </div>
+          <div class="icon-tile" onclick="inspectIcon('code', 'FHIR R4 Schema')">
+            <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+            <span>code</span>
+          </div>
+          <div class="icon-tile" onclick="inspectIcon('book', 'DPO Research Citation')">
+            <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            <span>book</span>
+          </div>
+          <div class="icon-tile" onclick="inspectIcon('plus', 'Add Persona')">
+            <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            <span>plus</span>
+          </div>
+          <div class="icon-tile" onclick="inspectIcon('search', 'Insight Discovery')">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <span>search</span>
+          </div>
+          <div class="icon-tile" onclick="inspectIcon('shield-check', 'Clinical Safety')">
+            <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+            <span>shield-check</span>
+          </div>
+          <div class="icon-tile" onclick="inspectIcon('sliders', 'DSRP Lens Control')">
+            <svg viewBox="0 0 24 24"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+            <span>sliders</span>
+          </div>
+          <div class="icon-tile" onclick="inspectIcon('brain', 'Systems Cognition')">
+            <svg viewBox="0 0 24 24"><path d="M12 2a4.5 4.5 0 0 0-4.5 4.5c0 1.42 1.83 2.5 3 3s1.58 2.5 3 2.5c1.42 0 3-1.83 3-3s-1.5-2.08-3-2.5c-1.42 0-3 1.5-3 2.5"/><path d="M21 12c-2.43 1.5-2.43 3.5 0 5"/><path d="M3 12c2.43 1.5 2.43 3.5 0 5"/><path d="M12 22c-1.5 0-3-1.83-3-3s1.5-2.5 3-2.5 3 1.83 3 3-1.5 3-3 3Z"/><path d="M18 17c-1.5 0-3-1.83-3-3s1.5-2.5 3-2.5c1.42 0 3 1.83 3 3s-1.58 3-3 3Z"/><path d="M6 17c-1.5 0-3-1.83-3-3s1.5-2.5 3-2.5c1.42 0 3 1.83 3 3s-1.58 3-3 3Z"/><path d="M9 12c0 1.42-1.83 3-3 3s-3-1.5-3-3 1.58-2.5 3-2.5c1.42 0 3 .83 3 2.5Z"/><path d="M15 12c0 1.42 1.83 3 3 3s3-1.5 3-3-1.5-2.5-3-2.5c-1.42 0-3 .83-3 2.5Z"/></svg>
+            <span>brain</span>
+          </div>
+        </div>
+
+        <div id="iconReadout" style="margin-top:16px; font-size:12.5px; color:var(--text-muted); text-align:center; font-style:italic;">
+          Click any icon above to hear its harmonic frequency and view its pairing metadata.
+        </div>
+      </div>
+
+      <!-- 4 Modern Typography Pillars Cards -->
+      <div class="typo-grid">
+        <!-- Pillar 1: Dynamic Optical Sizing -->
+        <div class="typo-card">
+          <div class="typo-card-title">
+            <span>🔬</span> 1. Fluid Optical Sizing (opsz Axis)
+          </div>
+          <p style="font-size:13px; color:var(--text-muted); line-height:1.55; margin-bottom:14px;">
+            At 11pt, counters expand and stems thicken to stay crystal clear on mobile. At 48pt, contrast increases for high editorial elegance.
+          </p>
+          <div style="background:#0f0d0b; padding:14px; border-radius:12px; border:1px solid rgba(253,245,230,0.08);">
+            <div style="font-size:36px; font-weight:750; font-variation-settings:'opsz' 36; line-height:1.1; color:var(--cream); margin-bottom:6px;">
+              Pivot &amp; Pulse
+            </div>
+            <div style="font-size:15px; font-weight:450; font-variation-settings:'opsz' 15; color:var(--gold-honey); margin-bottom:6px;">
+              Fluid Intergenerational Care Planning System
+            </div>
+            <div style="font-size:11px; font-weight:600; font-variation-settings:'opsz' 11, 'wght' 600; letter-spacing:0.04em; color:var(--sage-mint); text-transform:uppercase;">
+              FHIR R4 • PERMA+H VIA STRENGTHS • ZERO PII RETENTION
+            </div>
+          </div>
+        </div>
+
+        <!-- Pillar 2: Stable Tabular Lining Figures -->
+        <div class="typo-card">
+          <div class="typo-card-title">
+            <span>⏱️</span> 2. Tabular Lining Figures (tnum / lnum)
+          </div>
+          <p style="font-size:13px; color:var(--text-muted); line-height:1.55; margin-bottom:14px;">
+            Proportional numbers jump horizontally as digits change width (e.g. 1 vs 0). Tabular figures align perfectly on a monospaced grid without jitter.
+          </p>
+          <div class="counter-display" id="liveTicker">
+            12:47:39.428 • 72 BPM
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:12px;">
+            <button class="chime-btn" onclick="toggleNumMode()" id="numModeBtn">
+              Mode: Tabular (tnum=1)
+            </button>
+            <span style="color:var(--text-muted); align-self:center;">Zero jitter in charts</span>
+          </div>
+        </div>
+
+        <!-- Pillar 3: Widow Elimination & Text Balancing -->
+        <div class="typo-card">
+          <div class="typo-card-title">
+            <span>⚖️</span> 3. Balanced Headlines (text-wrap: balance)
+          </div>
+          <p style="font-size:13px; color:var(--text-muted); line-height:1.55; margin-bottom:14px;">
+            Prevents awkward single-word orphan lines by calculating optimal line-breaks across all lines equally.
+          </p>
+          <div style="background:#0f0d0b; padding:14px; border-radius:12px; border:1px solid rgba(253,245,230,0.08); margin-bottom:10px;">
+            <h4 id="balanceDemoHead" style="font-size:18px; font-weight:700; color:var(--purple-amethyst); margin-bottom:6px; text-wrap:balance;">
+              Empowering Caregivers with Non-Negotiable Respite Windows
+            </h4>
+            <p style="font-size:13px; color:var(--cream); text-wrap:pretty; opacity:0.85;">
+              Protecting 3–4 hours of weekly respite prevents caregiver burnout and strengthens multi-generational empathy.
+            </p>
+          </div>
+          <button class="chime-btn" onclick="toggleTextBalance()" id="balanceBtn">
+            Balance: ON (text-wrap: balance)
+          </button>
+        </div>
+
+        <!-- Pillar 4: Text-to-Icon Typographic Badges -->
+        <div class="typo-card">
+          <div class="typo-card-title">
+            <span>🏷️</span> 4. Typographic Inline Tokens &amp; Ligatures
+          </div>
+          <p style="font-size:13px; color:var(--text-muted); line-height:1.55; margin-bottom:14px;">
+            Icons participate seamlessly within the text baseline without causing line-height reflow or baseline misalignment:
+          </p>
+          <div style="background:#0f0d0b; padding:16px; border-radius:12px; border:1px solid rgba(253,245,230,0.08); font-size:14px; line-height:1.8;">
+            In 
+            <span class="cute-chip amethyst" style="padding:2px 8px; font-size:11px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>
+              Creative Mode
+            </span>,
+            provocations spark novel leaps, while in
+            <span class="cute-chip honey" style="padding:2px 8px; font-size:11px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+              Care Mode
+            </span>,
+            compassionate pacing preserves elder vitality and dignity.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Pivot &amp; Pulse • Spark DSRP Variable Font • Sovereign Pure-Dart Typefoundry SFNT • Apache-2.0 / SIL OFL 1.1 • Phil Gear (ORCID: 0009-0008-1372-5381)
+    </footer>
+  </div>
+
+  <script>
+    // ── Web Audio Synthesizer (Harmonic Glass Chimes) ───────────────
+    let audioCtx = null;
+    let soundEnabled = false;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function toggleSound() {
+      initAudio();
+      soundEnabled = !soundEnabled;
+      const btn = document.getElementById('soundBtn');
+      const label = document.getElementById('soundLabel');
+      const icon = document.getElementById('soundIcon');
+      if (soundEnabled) {
+        btn.classList.add('active');
+        label.innerText = 'Ambient Audio: ON';
+        icon.innerText = '🔔';
+        playChime(528, 0.45); // 528Hz Solfeggio Love frequency
+      } else {
+        btn.classList.remove('active');
+        label.innerText = 'Ambient Audio: OFF';
+        icon.innerText = '🎵';
+      }
+    }
+
+    function playChime(freq, duration = 0.3) {
+      if (!soundEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.warn('Audio play error', e);
+      }
+    }
+
+    // ── Variable Font Engine ─────────────────────────────────────────
+    function updateFont(source) {
+      const wght = document.getElementById('slider-wght').value;
+      const wdth = document.getElementById('slider-wdth').value;
+      const slnt = document.getElementById('slider-slnt').value;
+      const opsz = document.getElementById('slider-opsz').value;
+      const soft = document.getElementById('slider-soft').value;
+      const grav = document.getElementById('slider-grav').value;
+
+      document.getElementById('val-wght').innerText = wght;
+      document.getElementById('val-wdth').innerText = wdth + '%';
+      document.getElementById('val-slnt').innerText = slnt + '°';
+      document.getElementById('val-opsz').innerText = opsz + 'pt';
+      document.getElementById('val-soft').innerText = soft;
+      document.getElementById('val-grav').innerText = grav;
+
+      document.getElementById('tupleReadout').innerText = 
+        `tuple: wght=${wght} wdth=${wdth}% slnt=${slnt}° opsz=${opsz} SOFT=${soft} GRAV=${grav}`;
+
+      const hero = document.getElementById('parchmentHero');
+      const body = document.getElementById('parchmentBody');
+
+      // Direct inline updates for instantaneous layout reflow
+      hero.style.fontWeight = wght;
+      hero.style.fontStretch = `${wdth}%`;
+      hero.style.fontStyle = slnt < 0 ? `oblique ${slnt}deg` : 'normal';
+      hero.style.fontVariationSettings = `'wght' ${wght}, 'wdth' ${wdth}, 'slnt' ${slnt}, 'opsz' ${opsz}, 'SOFT' ${soft}, 'GRAV' ${grav}`;
+
+      body.style.fontWeight = Math.max(300, wght - 200);
+      body.style.fontVariationSettings = `'wght' ${Math.max(300, wght - 200)}, 'wdth' ${wdth}, 'slnt' ${slnt}, 'opsz' 16, 'SOFT' ${soft}`;
+
+      // Update Mandala Sacred Geometry
+      updateMandala(wght, wdth, slnt, opsz);
+
+      // Acoustic chime on user interaction
+      if (source === 'user' && soundEnabled) {
+        const pentatonicScale = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25];
+        const noteIndex = Math.floor(((wght - 100) / 800) * (pentatonicScale.length - 1));
+        playChime(pentatonicScale[noteIndex], 0.22);
+      }
+    }
+
+    function handleSliderChange() {
+      document.querySelectorAll('.preset-pill').forEach(p => p.classList.remove('active'));
+      updateFont('user');
+    }
+
+    function updateMandala(wght, wdth, slnt, opsz) {
+      const boundary = document.getElementById('mandalaBoundary');
+      const orbit = document.getElementById('mandalaOrbit');
+      const arc = document.getElementById('mandalaArc');
+      const prism = document.getElementById('mandalaPrism');
+
+      if (boundary) {
+        boundary.setAttribute('stroke-width', (wght / 110).toFixed(1));
+      }
+      if (orbit) {
+        orbit.setAttribute('r', (50 + (wdth - 75) * 0.85).toFixed(1));
+      }
+      if (arc) {
+        const curveOffset = Math.abs(slnt) * 3.5;
+        arc.setAttribute('d', `M 54 100 Q 100 ${48 - curveOffset} 146 100 Q 100 ${152 + curveOffset} 54 100`);
+      }
+      if (prism) {
+        const rot = slnt * 3.2;
+        prism.setAttribute('transform', `rotate(${rot} 100 100)`);
+      }
+    }
+
+    function applyPreset(name, element) {
+      document.querySelectorAll('.preset-pill').forEach(p => p.classList.remove('active'));
+      if (element) element.classList.add('active');
+
+      initAudio();
+
+      if (name === 'lateral') {
+        setValues(750, 100, -8, 44, 0.3, 0.0);
+        playChime(659.25, 0.4); // E5
+      } else if (name === 'kinship') {
+        setValues(400, 100, 0, 18, 1.0, 0.5);
+        playChime(440.00, 0.4); // A4
+      } else if (name === 'systems') {
+        setValues(550, 88, 0, 24, 0.5, 0.0);
+        playChime(523.25, 0.4); // C5
+      } else if (name === 'clinical') {
+        setValues(800, 100, 0, 32, 0.0, 0.0);
+        playChime(587.33, 0.4); // D5
+      } else if (name === 'elder') {
+        setValues(500, 100, 0, 28, 0.9, 0.9);
+        playChime(329.63, 0.5); // E4
+      } else if (name === 'bionic') {
+        setValues(650, 95, -2, 20, 0.4, 0.1);
+        playChime(392.00, 0.3); // G4
+      }
+    }
+
+    function setValues(wght, wdth, slnt, opsz, soft, grav) {
+      document.getElementById('slider-wght').value = wght;
+      document.getElementById('slider-wdth').value = wdth;
+      document.getElementById('slider-slnt').value = slnt;
+      document.getElementById('slider-opsz').value = opsz;
+      document.getElementById('slider-soft').value = soft;
+      document.getElementById('slider-grav').value = grav;
+      updateFont('preset');
+    }
+
+    // ── Tab Switching ─────────────────────────────────────────────────
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-pill').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(c => c.classList.remove('active'));
+
+      const activeBtn = document.getElementById('tabBtn-' + tabId);
+      const activeContent = document.getElementById('tab-' + tabId);
+      if (activeBtn) activeBtn.classList.add('active');
+      if (activeContent) activeContent.classList.add('active');
+
+      if (soundEnabled) playChime(440, 0.15);
+    }
+
+    // ── Ambient Celestial Stardust Canvas ──────────────────────────────
+    const canvas = document.getElementById('stardustCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let w, h;
+
+    function resizeCanvas() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class StardustParticle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * w;
+        this.y = Math.random() * h;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedX = (Math.random() - 0.5) * 0.25;
+        this.speedY = (Math.random() - 0.5) * 0.25;
+        this.opacity = Math.random() * 0.55 + 0.15;
+        this.color = Math.random() > 0.6 ? '#9d7dfa' : (Math.random() > 0.5 ? '#f6ad55' : '#9ae6b4');
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > w || this.y < 0 || this.y > h) {
+          this.reset();
+        }
+      }
+      draw() {
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = this.opacity;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < 48; i++) {
+      particles.push(new StardustParticle());
+    }
+
+    function animateStardust() {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of particles) {
+        p.update();
+        p.draw();
+      }
+      requestAnimationFrame(animateStardust);
+    }
+    animateStardust();
+
+    // ── Typography & Icon Studio Functions ───────────────────────────
+    let autoStrokeEnabled = true;
+    let isTabular = true;
+    let isBalanced = true;
+
+    function updateIconSync() {
+      const wght = parseInt(document.getElementById('syncWghtSlider').value, 10);
+      document.getElementById('syncWghtVal').innerText = wght;
+      
+      if (autoStrokeEnabled) {
+        // Linearly map wght 100..900 to stroke 1.2px..3.0px
+        const stroke = (1.2 + (wght - 100) / 800 * 1.8).toFixed(1);
+        document.getElementById('syncStrokeSlider').value = stroke;
+        document.getElementById('syncStrokeVal').innerText = stroke + 'px';
+        applyIconStroke(stroke);
+      }
+    }
+
+    function updateManualStroke() {
+      const stroke = document.getElementById('syncStrokeSlider').value;
+      document.getElementById('syncStrokeVal').innerText = stroke + 'px';
+      autoStrokeEnabled = false;
+      const btn = document.getElementById('autoStrokeBtn');
+      btn.innerText = '🔗 Linked to Weight: OFF';
+      btn.classList.remove('active');
+      applyIconStroke(stroke);
+    }
+
+    function toggleAutoStroke() {
+      autoStrokeEnabled = !autoStrokeEnabled;
+      const btn = document.getElementById('autoStrokeBtn');
+      if (autoStrokeEnabled) {
+        btn.innerText = '🔗 Linked to Weight: ON';
+        btn.classList.add('active');
+        updateIconSync();
+      } else {
+        btn.innerText = '🔗 Linked to Weight: OFF';
+        btn.classList.remove('active');
+      }
+    }
+
+    function applyIconStroke(val) {
+      document.querySelectorAll('#iconMatrix svg').forEach(svg => {
+        svg.style.strokeWidth = val + 'px';
+      });
+    }
+
+    function inspectIcon(name, role) {
+      initAudio();
+      playChime(659.25, 0.25);
+      const readout = document.getElementById('iconReadout');
+      readout.innerHTML = `<span style="color:var(--gold-honey); font-weight:700;">${name}</span> • Purpose: <span style="color:var(--cream);">${role}</span> • Markup: <code>&lt;app-icon name="${name}"&gt;&lt;/app-icon&gt;</code>`;
+    }
+
+    function toggleNumMode() {
+      isTabular = !isTabular;
+      const btn = document.getElementById('numModeBtn');
+      const ticker = document.getElementById('liveTicker');
+      if (isTabular) {
+        btn.innerText = 'Mode: Tabular (tnum=1)';
+        ticker.style.fontFeatureSettings = "'tnum' 1, 'lnum' 1";
+      } else {
+        btn.innerText = 'Mode: Proportional (tnum=0)';
+        ticker.style.fontFeatureSettings = "'tnum' 0, 'lnum' 0";
+      }
+      playChime(440, 0.15);
+    }
+
+    function toggleTextBalance() {
+      isBalanced = !isBalanced;
+      const btn = document.getElementById('balanceBtn');
+      const head = document.getElementById('balanceDemoHead');
+      if (isBalanced) {
+        btn.innerText = 'Balance: ON (text-wrap: balance)';
+        head.style.textWrap = 'balance';
+      } else {
+        btn.innerText = 'Balance: OFF (ragged line endings)';
+        head.style.textWrap = 'auto';
+      }
+      playChime(523.25, 0.15);
+    }
+
+    // Live Ticker simulation for tabular lining numbers
+    setInterval(() => {
+      const ticker = document.getElementById('liveTicker');
+      if (!ticker) return;
+      const now = new Date();
+      const ms = String(now.getMilliseconds()).padStart(3, '0');
+      const timeStr = now.toTimeString().split(' ')[0] + '.' + ms;
+      const bpm = 70 + Math.floor(Math.sin(Date.now() / 1500) * 4);
+      ticker.innerText = `${timeStr} • ${bpm} BPM`;
+    }, 60);
+
+    // Initial render
+    updateFont('init');
+    updateIconSync();
+  </script>
+</body>
+</html>

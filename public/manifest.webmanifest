@@ -1,11 +1,13 @@
 {
-  "name": "PivotPulse",
-  "short_name": "PivotPulse",
-  "description": "AI-powered creative insight generator",
+  "name": "Pivot & Pulse",
+  "short_name": "Pivot & Pulse",
+  "description": "An interactive lateral thinking workbench, positive psychology companion, and intergenerational care planner.",
   "start_url": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#24211c",
   "theme_color": "#24211c",
+  "categories": ["health", "productivity", "utilities"],
   "icons": [
     {
       "src": "/favicon.svg",
@@ -17,7 +19,13 @@
       "src": "/favicon.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }

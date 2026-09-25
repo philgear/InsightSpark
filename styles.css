@@ -1,5 +1,43 @@
 @import 'tailwindcss';
 
+/* ── Spark DSRP Variable Typography (Derek & Laura Cabrera Systems Thinking) ─── */
+@font-face {
+  font-family: 'Spark DSRP';
+  src: url('/fonts/SparkDSRP-VF.woff2') format('woff2'),
+       url('/fonts/SparkDSRP-VF.ttf') format('truetype');
+  font-weight: 100 900;
+  font-stretch: 75% 100%;
+  font-style: oblique -10.5deg 0deg;
+  font-display: swap;
+}
+
+/* ── PocketGull Soft Sovereign Typography (Organic Warmth & Clinical Life-Safety) ─── */
+@font-face {
+  font-family: 'PocketGull Soft';
+  src: url('/fonts/PocketGull-Soft-Regular.woff2') format('woff2'),
+       url('/fonts/PocketGull-Soft-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PocketGull Soft';
+  src: url('/fonts/PocketGull-Soft-Bold.woff2') format('woff2'),
+       url('/fonts/PocketGull-Soft-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PocketGull Mono';
+  src: url('/fonts/PocketGullMono-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ── Global Interactivity ───────────────────────────────────────── */
 html {
   scroll-behavior: smooth;
@@ -8,8 +46,10 @@ html {
 }
 
 :root {
-  --font-serif: 'DM Serif Display', serif;
-  --font-sans: 'Lora', serif;
+  --font-vf: 'Spark DSRP', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Spark DSRP', Georgia, serif;
+  --font-sans: 'Spark DSRP', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'PocketGull Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* Standard Typography Scale */
   --font-size-sm: 0.75rem; /* 12px */
@@ -161,13 +201,14 @@ html {
 
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
   background-color: var(--bg-color);
   color: var(--text-color);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: var(--font-size-base);
   line-height: 1.618; /* Golden Ratio line height */
+  font-feature-settings: 'ss02' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1;
 }
 
 @layer base {
@@ -177,9 +218,90 @@ body {
   h4,
   h5,
   h6 {
-    font-family: 'DM Serif Display', serif;
-    font-weight: 400;
+    font-family: var(--font-serif);
+    font-weight: 700;
     font-style: normal;
+    letter-spacing: -0.015em;
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-mono);
+  }
+
+  /* ── DSRP Typographic Modifiers (Derek & Laura Cabrera Systems Framework) ─── */
+  /* D: Distinctions (Identity vs Other — High contrast, crisp glyph borders, ISMP medication safety) */
+  .dsrp-distinction {
+    font-variation-settings: 'wght' 700, 'opsz' 36, 'SOFT' 0.2;
+    letter-spacing: -0.015em;
+  }
+
+  /* S: Systems (Part vs Whole — Proportional modularity, rhythmic cadence, structural nesting) */
+  .dsrp-system {
+    font-variation-settings: 'wght' 500, 'wdth' 95, 'opsz' 16, 'SOFT' 0.5;
+    letter-spacing: 0.005em;
+  }
+
+  /* R: Relationships (Action vs Reaction — Dynamic kinetic slant, harmonic ligatures, synthesis bridges) */
+  .dsrp-relationship {
+    font-variation-settings: 'wght' 600, 'slnt' -8, 'SOFT' 0.8, 'BOUM' 0.6;
+  }
+
+  /* P: Perspectives (Point vs View — Deep tactile grounding, multi-generational empathy, elder respite) */
+  .dsrp-perspective {
+    font-variation-settings: 'wght' 450, 'opsz' 22, 'GRAV' 0.7, 'THRM' 0.8;
+  }
+
+  /* ── Modern Typographic Rhythm & Widow Elimination ─── */
+  h1, h2, h3, h4, .text-balance {
+    text-wrap: balance;
+  }
+
+  p, li, .text-pretty {
+    text-wrap: pretty;
+  }
+
+  /* ── Tabular Lining Numerals (Stable metrics, charts & timers) ─── */
+  .font-tabular,
+  .tabular-nums,
+  .vitals-metric,
+  .timer-display {
+    font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: 'tnum' 1, 'lnum' 1, 'cv08' 1, 'cv05' 1, 'ss02' 1;
+  }
+
+  /* ── Mode-Responsive Variable Typography ─── */
+  /* Creative (Pivot) Mode: Expressive, kinetic slant, crisp lateral leap */
+  .app-mode-creative h1,
+  .app-mode-creative h2 {
+    font-variation-settings: 'wght' 750, 'opsz' 36, 'slnt' -2.5, 'SOFT' 0.3;
+    letter-spacing: -0.02em;
+  }
+  .app-mode-creative h3,
+  .app-mode-creative h4 {
+    font-variation-settings: 'wght' 650, 'opsz' 24, 'slnt' -1.5, 'SOFT' 0.4;
+  }
+
+  /* Care (Pulse) Mode: Reassuring, upright, soft curves, elder-friendly high gravity */
+  .app-mode-care h1,
+  .app-mode-care h2 {
+    font-variation-settings: 'wght' 680, 'opsz' 32, 'slnt' 0, 'SOFT' 0.85, 'GRAV' 0.7;
+    letter-spacing: -0.005em;
+  }
+  .app-mode-care h3,
+  .app-mode-care h4 {
+    font-variation-settings: 'wght' 600, 'opsz' 22, 'slnt' 0, 'SOFT' 0.8, 'GRAV' 0.6;
+  }
+
+  /* ── Typographic Icon Harmony & Badges ─── */
+  .spark-icon-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-variation-settings: 'wght' 600, 'opsz' 14;
+    vertical-align: middle;
   }
 
   h1 {
@@ -449,38 +571,42 @@ body {
   opacity: 0.4;
 }
 
-.organic-shape {
-  border-radius: 2rem 1.5rem 2.5rem 1.25rem;
+/* ── Wiley / Vienna Secessionist Pebble Glass Cards ──────────────── */
+.organic-shape,
+.pebble-card {
+  border-radius: 28px 24px 30px 22px; /* Organic pebble silhouette from specimen */
   overflow: hidden;
   position: relative;
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(246, 173, 85, 0.22);
   background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at top left, rgba(253, 245, 230, 0.06) 0%, transparent 60%),
     var(--card-bg);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 35px rgba(157, 125, 250, 0.08);
 }
 
 .insight-card-magical {
-  padding: 1.5rem;
-  transition: all 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 1.75rem;
+  transition: all 400ms cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
   position: relative;
-  border-radius: 2rem 1.5rem 2.5rem 1.25rem;
+  border-radius: 28px 24px 30px 22px;
   background:
     linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.03) 0%,
-      rgba(255, 255, 255, 0.07) 50%,
+      rgba(255, 255, 255, 0.04) 0%,
+      rgba(255, 255, 255, 0.08) 50%,
       rgba(255, 255, 255, 0.03) 100%
     ),
     url('/assets/pattern-magical.svg');
   background-size:
     cover,
-    100px 100px;
+    120px 120px;
   background-position: center;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(246, 173, 85, 0.2);
 }
 
 .insight-card-magical::before {
@@ -584,6 +710,45 @@ body {
   }
 }
 
+/* ── Specimen-Inspired Cute Emblem Lantern & Halo ────────────────── */
+.app-logo-lantern {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 35% 35%, rgba(253, 245, 230, 0.18), rgba(36, 33, 28, 0.88));
+  border: 1px solid rgba(246, 173, 85, 0.45);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 16px rgba(246, 173, 85, 0.25);
+  border-radius: 14px;
+  padding: 3px;
+  transition: all 0.3s ease;
+}
+
+.app-logo-halo {
+  position: absolute;
+  inset: -6px;
+  border-radius: 20px;
+  background: radial-gradient(circle, rgba(157, 125, 250, 0.4) 0%, rgba(246, 173, 85, 0.25) 50%, transparent 75%);
+  filter: blur(8px);
+  z-index: -1;
+  pointer-events: none;
+  animation: haloPulse 5s ease-in-out infinite alternate;
+}
+
+@keyframes haloPulse {
+  0% { transform: scale(0.96); opacity: 0.55; }
+  100% { transform: scale(1.08); opacity: 0.95; }
+}
+
+.brand-ampersand {
+  font-family: 'Spark DSRP', Georgia, serif;
+  font-style: oblique -8deg;
+  font-weight: 400;
+  color: var(--strategy-chocolate, #f6ad55);
+  text-shadow: 0 0 16px rgba(246, 173, 85, 0.45);
+}
+
+/* ── WCAG 2.5.5 / 2.5.8 Touch Targets (Minimum 44x44px accessible hit area) ── */
 .header-chip {
   position: relative;
   display: flex;
@@ -591,7 +756,8 @@ body {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  min-height: 40px;
+  min-height: 44px;
+  min-width: 44px;
   border-radius: 1rem;
   font-size: 0.875rem;
   font-weight: 600;
@@ -599,6 +765,15 @@ body {
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   border: 1px solid transparent;
   background: transparent;
+}
+
+.action-btn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .header-chip:hover {
@@ -628,10 +803,15 @@ body {
 .organic-button {
   position: relative;
   overflow: hidden;
-  transition: all 500ms cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 1rem 0.75rem 1.25rem 0.5rem;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 350ms cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 1.25rem 1rem 1.35rem 0.95rem;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   background: var(--button-bg);
   border: 1px solid var(--border-color);
 }
@@ -639,11 +819,11 @@ body {
 .organic-button:hover,
 .organic-button:focus {
   background: var(--button-bg-hover);
-  border-color: var(--border-color-strong);
+  border-color: rgba(246, 173, 85, 0.45);
   box-shadow:
-    0 4px 15px -2px rgba(0, 0, 0, 0.1),
-    0 0 10px -2px var(--text-highlight);
-  transform: translateY(-1px);
+    0 6px 20px -2px rgba(0, 0, 0, 0.25),
+    0 0 12px rgba(246, 173, 85, 0.25);
+  transform: translateY(-2px);
 }
 
 .organic-button::after {

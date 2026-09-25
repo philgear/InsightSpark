@@ -73,8 +73,10 @@ app.use(helmet({
 
 // Custom middleware to dynamically remove X-Frame-Options set by Helmet,
 // allowing iframe embeds on pocketgull.app and philgear.dev (relying on CSP frame-ancestors).
+// Also enforce X-Robots-Tag: noai, noimageai to prohibit automated machine learning training.
 app.use((req, res, next) => {
   res.removeHeader('X-Frame-Options');
+  res.setHeader('X-Robots-Tag', 'noai, noimageai');
   next();
 });
 app.use(cors());
@@ -99,6 +101,7 @@ app.use('/api/', apiLimiter);
 // Initialize Gemini API
 const apiKey = process.env.GEMINI_API_KEY;
 const DEFAULT_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+
 
 function getModel(req) {
   return req?.headers?.['x-gemini-model'] || req?.body?.model || DEFAULT_MODEL;

@@ -1,18 +1,54 @@
 cff-version: 1.2.0
-message: "If you use this software in clinical or academic research, please cite it as below."
+message: "If you use this software, clinical care methodologies, or DPO preference datasets in academic or healthcare AI research, please cite it as below."
+title: "Pivot & Pulse (InsightSpark): A Lateral Thinking Workbench, Intergenerational Care Planner, and Healthcare AI Alignment Dataset"
+abstract: >-
+  Pivot & Pulse (InsightSpark) is an open-source, dual-mode lateral thinking workbench,
+  positive psychology companion, and intergenerational care planner. It synthesizes
+  Edward de Bono's lateral thinking provocations with Dr. Martin Seligman's PERMA+H
+  framework, multi-generational family kinship dynamics, and on-device confidential AI
+  (Chrome Built-in AI Gemini Nano and Local Gemma). The platform generates HL7 FHIR R4
+  clinical care bundles, structured 72-hour acute transition checklists, protected caregiver
+  respite schedules, and Direct Preference Optimization (DPO) pairwise preference datasets
+  in Hugging Face TRL JSONL and Apache Parquet formats to align healthcare language models
+  toward hope, agency, and systemic family resilience.
 authors:
   - family-names: "Gear"
     given-names: "Phil"
-title: "Pivot & Pulse (InsightSpark): A Lateral Thinking Workbench and Clinical Care Strategist"
-version: 1.0.0
-date-released: 2026-08-27
-url: "https://github.com/philgear/InsightSpark"
-repository-code: "https://github.com/philgear/InsightSpark"
+    orcid: "https://orcid.org/0009-0008-1372-5381"
+    affiliation: "InsightSpark Research"
+version: 2.1.1
+date-released: "2026-09-23"
 license: Apache-2.0
+repository-code: "https://github.com/philgear/InsightSpark"
+url: "https://github.com/philgear/InsightSpark"
 keywords:
   - lateral-thinking
+  - positive-psychology
+  - perma-plus-h
   - clinical-care-planning
+  - intergenerational-kinship
+  - caregiver-sustainability
+  - direct-preference-optimization
+  - dpo-dataset
+  - hl7-fhir-r4
+  - healthcare-ai-alignment
   - google-gemini
+  - gemini-nano
+  - on-device-ai
+  - apache-2-0
+  - parquet
   - d3-visualization
-  - angular
-  - hipaa-compliance
+  - angular-22
+preferred-citation:
+  type: software
+  title: "Pivot & Pulse (InsightSpark): A Lateral Thinking Workbench, Intergenerational Care Planner, and Healthcare AI Alignment Dataset"
+  authors:
+    - family-names: "Gear"
+      given-names: "Phil"
+      orcid: "https://orcid.org/0009-0008-1372-5381"
+  year: 2026
+  month: 9
+  version: 2.1.1
+  license: Apache-2.0
+  url: "https://github.com/philgear/InsightSpark"
+  repository-code: "https://github.com/philgear/InsightSpark"

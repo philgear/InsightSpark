@@ -13,13 +13,18 @@
       
       <!-- Left: Logo & Brand -->
       <div class="flex-1 flex justify-start">
-        <button (click)="setView('generator'); reset()" class="flex items-center gap-2 text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-(--bg-color) focus:ring-(--ring-color) rounded-lg p-1 -ml-1 transition-transform active:scale-95">
-          <div class="p-1 bg-white/10 backdrop-blur-md rounded-lg shadow-inner border border-(--border-accent) overflow-hidden">
-             <img [src]="logoPath()" alt="Pivot & Pulse Logo" class="h-10 w-10 object-contain transition-opacity duration-300" width="40" height="40">
+        <button (click)="setView('generator'); reset()" class="flex items-center gap-3 text-left focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-(--bg-color) focus:ring-(--ring-color) rounded-xl p-1 -ml-1 transition-transform active:scale-95 min-h-[44px] min-w-[44px]" aria-label="Pivot and Pulse Home">
+          <div class="relative">
+            <div class="app-logo-halo"></div>
+            <div class="app-logo-lantern">
+               <img [src]="logoPath()" alt="Pivot & Pulse Logo" class="h-9 w-9 object-contain transition-opacity duration-300" width="36" height="36">
+            </div>
           </div>
           <div class="flex flex-col justify-center">
-            <h1 class="font-serif leading-[0.9] tracking-tighter text-xl bg-clip-text text-transparent bg-linear-to-r from-(--text-color) via-(--text-highlight) to-(--text-accent) py-1">Pivot & Pulse</h1>
-            <p class="text-sm text-(--text-color-muted) hidden sm:block tracking-tight leading-none uppercase opacity-70">A Fluid Thinking Partner</p>
+            <h1 class="font-serif leading-[0.9] tracking-tighter text-xl bg-clip-text text-transparent bg-linear-to-r from-(--text-color) via-(--text-highlight) to-(--text-accent) py-1">
+              Pivot <span class="brand-ampersand">&amp;</span> Pulse
+            </h1>
+            <p class="text-xs text-(--text-color-muted) hidden sm:block tracking-tight leading-none uppercase opacity-80">A Fluid Thinking Partner</p>
           </div>
         </button>
       </div>
