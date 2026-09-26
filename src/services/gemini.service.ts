@@ -399,9 +399,25 @@ export class GeminiService {
       } else if (Array.isArray(obj['data'])) {
         rawList = obj['data'];
       } else {
-        const values = Object.values(obj);
-        if (values.length > 0 && values.some(v => v && typeof v === 'object' && ('strategyName' in v || 'insights' in v))) {
-          rawList = values.filter(v => v && typeof v === 'object');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const extractedFromEntries: any[] = [];
+        for (const [key, val] of Object.entries(obj)) {
+          if (Array.isArray(val)) {
+            for (const item of val) {
+              if (item && typeof item === 'object') {
+                if (!item.strategyName) item.strategyName = key;
+                extractedFromEntries.push(item);
+              }
+            }
+          } else if (val && typeof val === 'object') {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const item = val as Record<string, any>;
+            if (!item['strategyName']) item['strategyName'] = key;
+            extractedFromEntries.push(item);
+          }
+        }
+        if (extractedFromEntries.length > 0) {
+          rawList = extractedFromEntries;
         }
       }
     }

@@ -259,9 +259,23 @@ describe('Bug Hunter Audit: Security, Privacy & Stream Fuzzing Suite', () => {
         } else if (Array.isArray(obj['data'])) {
           rawList = obj['data'];
         } else {
-          const values = Object.values(obj);
-          if (values.length > 0 && values.some(v => v && typeof v === 'object' && ('strategyName' in v || 'insights' in v))) {
-            rawList = values.filter(v => v && typeof v === 'object');
+          const extractedFromEntries = [];
+          for (const [key, val] of Object.entries(obj)) {
+            if (Array.isArray(val)) {
+              for (const item of val) {
+                if (item && typeof item === 'object') {
+                  if (!item.strategyName) item.strategyName = key;
+                  extractedFromEntries.push(item);
+                }
+              }
+            } else if (val && typeof val === 'object') {
+              const item = val;
+              if (!item.strategyName) item.strategyName = key;
+              extractedFromEntries.push(item);
+            }
+          }
+          if (extractedFromEntries.length > 0) {
+            rawList = extractedFromEntries;
           }
         }
       }
@@ -333,6 +347,24 @@ describe('Bug Hunter Audit: Security, Privacy & Stream Fuzzing Suite', () => {
       const extracted = extractInsightResults(parsed, testStrategies, 'creative');
       assert.strictEqual(extracted.length, 1);
       assert.strictEqual(extracted[0].strategyName, 'The Butterfly Effect');
+    });
+
+    test('Should handle active collision strategy-keyed map from pivotpulse', () => {
+      const raw = JSON.stringify({
+        "The Butterfly Effect": [
+          { "strategyName": "The Butterfly Effect", "insights": [{ "text": "Micro-habit walk", "influence": "Vitality" }] }
+        ],
+        "Intergenerational Kinship": [
+          { "strategyName": "Intergenerational Kinship", "insights": [{ "text": "Weekly respite window", "influence": "Respite" }] }
+        ]
+      });
+      const parsed = parse(cleanJsonBuffer(raw));
+      const extracted = extractInsightResults(parsed, testStrategies, 'care');
+      assert.strictEqual(extracted.length, 2);
+      assert.strictEqual(extracted[0].strategyName, 'The Butterfly Effect');
+      assert.strictEqual(extracted[1].strategyName, 'Intergenerational Kinship');
+      assert.strictEqual(extracted[0].insights[0].text, 'Micro-habit walk');
+      assert.strictEqual(extracted[1].insights[0].text, 'Weekly respite window');
     });
   });
 });
