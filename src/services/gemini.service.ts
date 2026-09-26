@@ -15,7 +15,7 @@ function getStoredApiKey(): string {
   }
   if (!value) return '';
   try {
-    if (value === 'demo-key-active') {
+    if (['demo-key-active', 'chrome-on-device-builtin', 'local-ollama-active', 'webgpu-active', 'server-hosted-pass'].includes(value)) {
       return value;
     }
     return atob(value);
@@ -44,12 +44,16 @@ export class GeminiService {
   private getAuthHeaders(headers: Record<string, string> = {}): Record<string, string> {
     const userApiKey = getStoredApiKey();
     const authHeaders = { ...headers };
-    if (userApiKey) {
+    if (userApiKey && !['demo-key-active', 'chrome-on-device-builtin', 'local-ollama-active', 'webgpu-active', 'server-hosted-pass'].includes(userApiKey)) {
       authHeaders['x-gemini-api-key'] = userApiKey;
     }
     const userModel = localStorage.getItem('spark_model_val') || localStorage.getItem('user_gemini_model');
     if (userModel) {
       authHeaders['x-gemini-model'] = userModel;
+    }
+    const customOllamaHost = localStorage.getItem('spark_ollama_host');
+    if (customOllamaHost) {
+      authHeaders['x-ollama-host'] = customOllamaHost;
     }
     const userLang = localStorage.getItem('spark_lang_val') || localStorage.getItem('user_target_language');
     if (userLang) {
@@ -858,6 +862,21 @@ export class GeminiService {
             { text: "Cross-generational co-design: pair elementary school children with retired master gardeners to design self-guided sensory walking trails, weaving youth wonder with elder horticultural knowledge." },
             { text: "Create an oral history listening bench under shaded trellises, where visitors scan QR codes to hear stories recorded by neighborhood elders about the park's botanical heritage." }
           ];
+        } else if (sId === 'opposite') {
+          insights = [
+            { text: "Invert the entire water management model: instead of keeping floodwaters out of the park, design amphitheater retaining basins that intentionally submerge during peak rainfall, creating seasonal reflecting pools and kayak wetlands." },
+            { text: "Reverse the delivery dynamic: rather than making visitors walk to food hubs, mobile bicycle carts pedal freshly harvested produce directly through neighborhood streets as the flood barriers engage." }
+          ];
+        } else if (sId === 'superpower') {
+          insights = [
+            { text: "Assume zero-energy infinite pumping capacity: design passive siphons and hydraulic pressure wells that automatically aerate stagnant wetland water using the kinetic force of incoming stormwater." },
+            { text: "Envision hyper-accelerated biomimetic growth: introduce deep-rooted vetiver and mycorrhizal fungi networks that double soil absorption rates within 48 hours of seasonal flash flood warnings." }
+          ];
+        } else if (sId === 'fmea') {
+          insights = [
+            { text: "Pre-mortem critical risk: Silt clogging subterranean drainage pipes during high-turbidity floods. Guardrail: Install modular, surface-accessible gravel filtration beds that can be backwashed and serviced without heavy excavators." },
+            { text: "Pre-mortem secondary risk: Electrical failure to floodgate telemetry during severe storms. Guardrail: Implement counterweight gravitational release valves that trip automatically when water reaches a 3-foot threshold." }
+          ];
         }
       } else if (mode === 'care' && isDefaultCareQuery) {
         if (sId === 'what-if') {
@@ -869,6 +888,21 @@ export class GeminiService {
           insights = [
             { text: "Install lightweight, automatic drip-irrigation timers. This removes the physical burden of carrying heavy watering cans, which is the primary driver of falls in gardens.", influence: "Eliminates unsafe weight-bearing lifting and reduces fatigue by 40%." },
             { text: "Place a comfortable garden chair at 10-foot intervals along the path. Knowing a safe resting spot is nearby significantly reduces walking anxiety.", influence: "Provides immediate orthostatic recovery options and builds distance stamina." }
+          ];
+        } else if (sId === 'opposite') {
+          insights = [
+            { text: "Invert the activity schedule: rather than scheduling physical therapy in the morning fatigue window, schedule gentle garden potting in the early evening golden hour when muscles are naturally warm and family members are present to assist.", influence: "Reduces morning stiffness resistance and leverages natural family circulation." },
+            { text: "Flip the tool direction: instead of reaching outward into deep raised beds, mount swivel planter trays on the patio railing that swing directly inward to her seated position.", influence: "Preserves hip precautions while allowing full upper-body engagement." }
+          ];
+        } else if (sId === 'superpower') {
+          insights = [
+            { text: "Endow the garden with frictionless ergonomics: equip her with ultra-lightweight carbon-fiber telescoping trowels and self-reeling hose attachments that eliminate all lifting resistance.", influence: "Removes joint load while restoring independent autonomy and pride." },
+            { text: "Implement circadian vitality amplification: position blooming night-jasmine and aromatic lavender directly beside bedroom windows to foster deep restorative sleep and natural pain modulation.", influence: "PERMA Health & Vitality: elevates restorative sleep quality without pharmaceutical sedation." }
+          ];
+        } else if (sId === 'fmea') {
+          insights = [
+            { text: "Pre-mortem fall risk: Wet flagstones or garden hose tangles causing a secondary hip trauma. Guardrail: Lay non-slip rubberized cedar pathway runners and wall-mounted auto-retracting hose reels at waist height.", influence: "Eliminates the #1 environmental hazard for secondary orthopedic injury." },
+            { text: "Pre-mortem caregiver burnout: Primary family caregiver feeling solely responsible for supervision. Guardrail: Coordinate a weekly 3-hour shared garden club with neighbors to ensure protected caregiver respite.", influence: "Respite Invariant: shields the primary caregiver from fatigue while expanding the elder's social mesh." }
           ];
         } else if (sId === 'first-principles') {
           insights = [
@@ -888,12 +922,16 @@ export class GeminiService {
         }
       }
 
-      // Fallback if they customized the prompt or strategies
+      // Context-aware dynamic fallback for custom prompts or other strategies in Demo Mode
       if (insights.length === 0) {
         insights = [
           {
-            text: `[Demo Mode Preview for ${strategyName}] This is a high-quality placeholder. Connect your own Gemini API Key using the 🔑 button in the header to generate custom real-time insights for your prompts.`,
-            ...(mode === 'care' && { influence: 'Exposes how the strategy guides care recommendations and indicator mapping.' })
+            text: `[${strategyName} Breakthrough] Deconstruct the primary constraint: examine what happens if the core obstacle of "${problem.trim().slice(0, 50)}..." is inverted or bypassed entirely to discover an unexpected high-leverage leap.`,
+            ...(mode === 'care' && { influence: `Applies ${strategyName} to strengthen personal agency, kinship connection, and caregiver respite.` })
+          },
+          {
+            text: `[${strategyName} Traction Step] Anchor this leap with an immediate low-friction experiment: test a manageable 24-hour prototype before committing larger resources.`,
+            ...(mode === 'care' && { influence: `Provides an immediate low-risk step aligned with PERMA+H well-being.` })
           }
         ];
       }

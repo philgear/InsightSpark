@@ -337,10 +337,12 @@ describe('Translation & Internationalization Suite', () => {
     assert.ok(robotsContent.includes('User-agent: GPTBot'), 'robots.txt must block GPTBot');
     assert.ok(robotsContent.includes('User-agent: CCBot'), 'robots.txt must block CCBot');
     assert.ok(robotsContent.includes('User-agent: ClaudeBot'), 'robots.txt must block ClaudeBot');
+    assert.ok(robotsContent.includes('User-agent: Google-Extended\nAllow: /'), 'robots.txt must allow Google-Extended');
 
     const llmsContent = fs.readFileSync(llmsPath, 'utf8');
     assert.ok(llmsContent.includes('Terms of Use & AI Training Restriction'), 'llms.txt must have AI training restriction section');
     assert.ok(llmsContent.includes('First-Party Project Exemption'), 'llms.txt must carve out first-party project exemption for the author');
+    assert.ok(llmsContent.includes('Google & Gemini AI Exemption'), 'llms.txt must carve out Google and Gemini AI exemption');
     assert.ok(llmsContent.includes('Phil Gear'), 'llms.txt must attribute the author');
   });
 });

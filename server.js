@@ -73,10 +73,9 @@ app.use(helmet({
 
 // Custom middleware to dynamically remove X-Frame-Options set by Helmet,
 // allowing iframe embeds on pocketgull.app and philgear.dev (relying on CSP frame-ancestors).
-// Also enforce X-Robots-Tag: noai, noimageai to prohibit automated machine learning training.
+// AI crawler access is governed by public/robots.txt and public/llms.txt (welcoming Google & Gemini).
 app.use((req, res, next) => {
   res.removeHeader('X-Frame-Options');
-  res.setHeader('X-Robots-Tag', 'noai, noimageai');
   next();
 });
 app.use(cors());
@@ -310,8 +309,9 @@ function isLocalModel(model) {
   return typeof model === 'string' && (model.startsWith('ollama:') || model.startsWith('local:'));
 }
 
-function getOllamaUrl() {
-  const host = process.env.OLLAMA_HOST || 'http://localhost:11434';
+function getOllamaUrl(req = null) {
+  const customHost = req?.headers?.['x-ollama-host'] || req?.body?.ollamaHost;
+  const host = customHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
   return host.startsWith('http://') || host.startsWith('https://') ? host : `http://${host}`;
 }
 
@@ -330,10 +330,10 @@ function cleanJsonString(str) {
   return cleaned;
 }
 
-async function prewarmLocalModel(modelName = 'pivotpulse') {
+async function prewarmLocalModel(modelName = 'pivotpulse', req = null) {
   try {
     const localModel = modelName.replace(/^(ollama:|local:)/, '');
-    const ollamaUrl = getOllamaUrl();
+    const ollamaUrl = getOllamaUrl(req);
     const res = await fetch(`${ollamaUrl}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -353,9 +353,9 @@ async function prewarmLocalModel(modelName = 'pivotpulse') {
   }
 }
 
-async function generateJsonFromLocalOllama(modelName, prompt, systemInstruction) {
+async function generateJsonFromLocalOllama(modelName, prompt, systemInstruction, req = null) {
   const localModel = modelName.replace(/^(ollama:|local:)/, '');
-  const url = `${getOllamaUrl()}/api/generate`;
+  const url = `${getOllamaUrl(req)}/api/generate`;
 
   const response = await fetch(url, {
     method: 'POST',
@@ -383,9 +383,9 @@ async function generateJsonFromLocalOllama(modelName, prompt, systemInstruction)
   }
 }
 
-async function streamFromLocalOllama(modelName, prompt, systemInstruction, res) {
+async function streamFromLocalOllama(modelName, prompt, systemInstruction, res, req = null) {
   const localModel = modelName.replace(/^(ollama:|local:)/, '');
-  const ollamaUrl = getOllamaUrl();
+  const ollamaUrl = getOllamaUrl(req);
   
   const response = await fetch(`${ollamaUrl}/api/generate`, {
     method: 'POST',
@@ -462,14 +462,14 @@ app.get('/api/config', (req, res) => {
 
 app.get('/api/local-llm/status', async (req, res) => {
   try {
-    const ollamaUrl = getOllamaUrl();
+    const ollamaUrl = getOllamaUrl(req);
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 1200);
     const response = await fetch(`${ollamaUrl}/api/tags`, { signal: controller.signal });
     clearTimeout(timeout);
     if (response.ok) {
       const data = await response.json();
-      return res.json({ available: true, models: data.models || [] });
+      return res.json({ available: true, models: data.models || [], host: ollamaUrl });
     }
   } catch (e) {
     // Ollama not currently running on user's device
@@ -479,7 +479,7 @@ app.get('/api/local-llm/status', async (req, res) => {
 
 app.post('/api/local-llm/prewarm', async (req, res) => {
   const model = req.body?.model || 'pivotpulse';
-  const success = await prewarmLocalModel(model);
+  const success = await prewarmLocalModel(model, req);
   res.json({ success, model, state: success ? 'pre-warmed in VRAM' : 'unavailable' });
 });
 
@@ -561,7 +561,7 @@ app.post('/api/structure', [
     `;
 
     if (isLocalModel(targetModel)) {
-      const result = await generateJsonFromLocalOllama(targetModel, prompt, HIPAA_SYSTEM_INSTRUCTION);
+      const result = await generateJsonFromLocalOllama(targetModel, prompt, HIPAA_SYSTEM_INSTRUCTION, req);
       return res.json(result);
     }
 
@@ -696,7 +696,7 @@ app.post('/api/insights', [
     const systemInstruction = mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : undefined;
 
     if (isLocalModel(targetModel)) {
-      await streamFromLocalOllama(targetModel, prompt, systemInstruction, res);
+      await streamFromLocalOllama(targetModel, prompt, systemInstruction, res, req);
     } else {
       const responseStream = await genAI.models.generateContentStream({
           model: targetModel,
@@ -798,7 +798,7 @@ app.post('/api/care-plan', [
       `;
 
     if (isLocalModel(targetModel)) {
-      const result = await generateJsonFromLocalOllama(targetModel, prompt, HIPAA_SYSTEM_INSTRUCTION);
+      const result = await generateJsonFromLocalOllama(targetModel, prompt, HIPAA_SYSTEM_INSTRUCTION, req);
       return res.json(result);
     }
 
@@ -884,7 +884,7 @@ app.post('/api/creative-plan', [
       `;
 
     if (isLocalModel(targetModel)) {
-      const result = await generateJsonFromLocalOllama(targetModel, prompt, undefined);
+      const result = await generateJsonFromLocalOllama(targetModel, prompt, undefined, req);
       return res.json(result);
     }
 

@@ -30,7 +30,7 @@ function getStoredApiKey(): string {
   }
   if (!value) return '';
   try {
-    if (value === 'demo-key-active') {
+    if (['demo-key-active', 'chrome-on-device-builtin', 'local-ollama-active', 'webgpu-active', 'server-hosted-pass'].includes(value)) {
       return value;
     }
     return atob(value);
@@ -40,7 +40,7 @@ function getStoredApiKey(): string {
 }
 
 function setStoredApiKey(key: string): void {
-  if (key === 'demo-key-active') {
+  if (['demo-key-active', 'chrome-on-device-builtin', 'local-ollama-active', 'webgpu-active', 'server-hosted-pass'].includes(key)) {
     localStorage.setItem('spark_cfg_val', key);
   } else {
     localStorage.setItem('spark_cfg_val', btoa(key));
@@ -183,6 +183,7 @@ export class AppComponent implements OnDestroy {
   // API Key State
   userApiKey = signal<string>(getStoredApiKey());
   showKeyOverlay = computed(() => !this.userApiKey());
+  showAdvancedProviders = signal<boolean>(false);
 
   // On-Device AI Availability State
   chromeAiAvailable = signal<boolean>(false);
@@ -527,12 +528,30 @@ export class AppComponent implements OnDestroy {
     this.activateDemoPresetIfEmpty();
   }
 
+  useWebGpuAi() {
+    localStorage.setItem('spark_model_val', 'on-device-nano');
+    setStoredApiKey('webgpu-active');
+    this.userApiKey.set('webgpu-active');
+    this.activateDemoPresetIfEmpty();
+  }
+
+  useHostedCloud() {
+    localStorage.setItem('spark_model_val', 'gemini-3.8-flash');
+    setStoredApiKey('server-hosted-pass');
+    this.userApiKey.set('server-hosted-pass');
+    this.activateDemoPresetIfEmpty();
+  }
+
   useLocalOllama(model = 'pivotpulse') {
     const chosenModel = this.ollamaModels().find(m => m.includes('pivotpulse')) || (this.ollamaModels().length > 0 ? this.ollamaModels()[0] : model);
     localStorage.setItem('spark_model_val', `ollama:${chosenModel}`);
     setStoredApiKey('local-ollama-active');
     this.userApiKey.set('local-ollama-active');
     this.activateDemoPresetIfEmpty();
+  }
+
+  toggleAdvancedProviders() {
+    this.showAdvancedProviders.update(v => !v);
   }
 
   private activateDemoPresetIfEmpty() {

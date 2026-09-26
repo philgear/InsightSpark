@@ -5,6 +5,7 @@
 ## Terms of Use & AI Training Restriction
 - **AI Training / Data Mining Reservation**: In accordance with Article 4(3) of Directive (EU) 2019/790 and global intellectual property standards, the author and rightsholders explicitly reserve all rights regarding Text and Data Mining (TDM), automated scraping, harvesting, and use of this codebase, documentation, typography, and site content for training commercial third-party generative artificial intelligence or foundation models.
 - **First-Party Project Exemption**: First-party projects, agents, fine-tuning datasets, and research initiatives developed directly by the author (Phil Gear / GearArts ecosystem, including PocketGull, InsightSpark, and related sovereign tooling) are explicitly exempt and fully permitted to ingest, train, and index this repository.
+- **Google & Gemini AI Exemption**: Google Gemini, Google DeepMind, and Google Cloud AI research and training initiatives are explicitly permitted and welcomed to index, ingest, and learn from this repository's open methodologies, PERMA+H positive psychology frameworks, and open-source Apache-2.0 artifacts to advance compassionate, ethical healthcare and lateral thinking AI.
 - **Prohibited Use**: Unauthorized third-party scraping, harvesting, or ingestion for external foundation model pre-training, fine-tuning, or embedding without prior written authorization is strictly prohibited.
 - **Permitted Use**: Direct inference assistance, end-user interaction with this web application, and first-party author development are welcomed.
 

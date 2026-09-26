@@ -17,7 +17,7 @@ function getStoredApiKey(): string {
   }
   if (!value) return '';
   try {
-    if (value === 'demo-key-active') {
+    if (['demo-key-active', 'chrome-on-device-builtin', 'local-ollama-active', 'webgpu-active', 'server-hosted-pass'].includes(value)) {
       return value;
     }
     return atob(value);
@@ -27,7 +27,7 @@ function getStoredApiKey(): string {
 }
 
 function setStoredApiKey(key: string): void {
-  if (key === 'demo-key-active') {
+  if (['demo-key-active', 'chrome-on-device-builtin', 'local-ollama-active', 'webgpu-active', 'server-hosted-pass'].includes(key)) {
     localStorage.setItem('spark_cfg_val', key);
   } else {
     localStorage.setItem('spark_cfg_val', btoa(key));
@@ -369,6 +369,120 @@ function setStoredThinkingBudget(budget: number): void {
             <span class="inline-block text-[10px] uppercase font-bold tracking-wider mt-3 px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 w-fit">Google Gemma</span>
           </button>
         </div>
+
+        <!-- Live Engine Diagnostics & Open Models Console -->
+        <div class="mt-5 pt-4 border-t border-(--border-color)/60 space-y-4">
+          <!-- WebGPU / In-Browser RAM Console -->
+          <div class="p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-cyan-300 flex items-center gap-1.5 font-mono">
+                  <span class="h-2 w-2 rounded-full bg-cyan-400" [class.animate-pulse]="webGpuAvailable()"></span>
+                  WebGPU On-Device Engine
+                </span>
+                <span class="text-[10px] px-2 py-0.5 rounded font-mono"
+                      [class.bg-emerald-500/20]="webGpuAvailable()"
+                      [class.text-emerald-300]="webGpuAvailable()"
+                      [class.bg-amber-500/20]="!webGpuAvailable()"
+                      [class.text-amber-300]="!webGpuAvailable()">
+                  {{ webGpuAvailable() ? 'Hardware GPU Available' : 'Software Fallback' }}
+                </span>
+              </div>
+              <p class="text-xs text-(--text-color-muted)">
+                Runs models directly in browser memory via WebGPU / Chrome Prompt API. 0 bytes leave your machine.
+              </p>
+            </div>
+            <button (click)="activateWebGpu()" 
+                    type="button"
+                    [class.bg-cyan-600]="userModel() === 'on-device-nano'"
+                    [class.text-white]="userModel() === 'on-device-nano'"
+                    [class.bg-white/10]="userModel() !== 'on-device-nano'"
+                    class="py-2 px-3.5 rounded-xl text-xs font-bold border border-cyan-500/40 hover:bg-cyan-500/30 transition-all shrink-0 cursor-pointer">
+              {{ userModel() === 'on-device-nano' ? '✓ WebGPU In-Memory Active' : 'Switch to WebGPU' }}
+            </button>
+          </div>
+
+          <!-- Open Models via Localhost / Ollama Console -->
+          <div class="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-purple-300 flex items-center gap-1.5 font-mono">
+                  <span class="h-2 w-2 rounded-full bg-purple-400" [class.animate-pulse]="ollamaAvailable()"></span>
+                  Open Models & Workstation GPU
+                </span>
+                <span class="text-[10px] px-2 py-0.5 rounded font-mono"
+                      [class.bg-emerald-500/20]="ollamaAvailable()"
+                      [class.text-emerald-300]="ollamaAvailable()"
+                      [class.bg-stone-500/20]="!ollamaAvailable()"
+                      [class.text-stone-400]="!ollamaAvailable()">
+                  {{ ollamaAvailable() ? 'Ollama Bridge Connected' : 'Ollama Offline' }}
+                </span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button (click)="prewarmVram('pivotpulse')" 
+                        type="button"
+                        class="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/40 transition-colors cursor-pointer flex items-center gap-1">
+                  <span>{{ prewarmStatus() === 'ready' ? '⚡ Locked in VRAM' : (prewarmStatus() === 'prewarming' ? 'Warming...' : 'Pre-Warm VRAM') }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Discovered Models or Quick Selection -->
+            <div>
+              <span class="text-[11px] font-semibold text-(--text-color-muted) block mb-1.5">Quick-Select Open Model:</span>
+              <div class="flex flex-wrap gap-1.5">
+                @for (m of (ollamaModels().length > 0 ? ollamaModels() : ['pivotpulse', 'gemma2:2b', 'llama3.2:3b', 'qwen2.5:3b', 'mistral:7b']); track m) {
+                  <button (click)="selectOpenModel(m)" 
+                          type="button"
+                          [class.bg-purple-600]="userModel() === 'ollama:' + m || (m === 'pivotpulse' && userModel().includes('pivotpulse'))"
+                          [class.text-white]="userModel() === 'ollama:' + m || (m === 'pivotpulse' && userModel().includes('pivotpulse'))"
+                          [class.bg-black/40]="userModel() !== 'ollama:' + m && !(m === 'pivotpulse' && userModel().includes('pivotpulse'))"
+                          class="px-2.5 py-1 rounded-lg text-xs font-mono border border-purple-500/30 hover:border-purple-400 transition-all cursor-pointer">
+                    {{ m }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Custom Open Model Input & Host Address -->
+            <div class="pt-2 border-t border-purple-500/20 grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+              <div>
+                <label for="custom-ollama-input" class="block text-[11px] font-medium text-(--text-color-muted) mb-1">Custom Open Model Name</label>
+                <div class="flex gap-1.5">
+                  <input #customModelBox
+                         id="custom-ollama-input"
+                         type="text" 
+                         placeholder="e.g., deepseek-r1:8b, phi3, smollm2" 
+                         [value]="customModelInput()"
+                         class="flex-1 bg-black/40 border border-purple-500/30 rounded-lg py-1.5 px-2.5 text-xs text-stone-200 font-mono focus:outline-none focus:ring-1 focus:ring-purple-400"
+                         (keyup.enter)="selectOpenModel(customModelBox.value)">
+                  <button (click)="selectOpenModel(customModelBox.value)" 
+                          type="button"
+                          class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-purple-600 text-white hover:bg-purple-500 transition-colors cursor-pointer">
+                    Use
+                  </button>
+                </div>
+              </div>
+              <div>
+                <label for="ollama-host-input" class="block text-[11px] font-medium text-(--text-color-muted) mb-1">Ollama Host Address (Local or LAN)</label>
+                <div class="flex gap-1.5">
+                  <input #hostBox
+                         id="ollama-host-input"
+                         type="text" 
+                         [value]="ollamaHost()"
+                         placeholder="http://localhost:11434"
+                         class="flex-1 bg-black/40 border border-purple-500/30 rounded-lg py-1.5 px-2.5 text-xs text-stone-200 font-mono focus:outline-none focus:ring-1 focus:ring-purple-400"
+                         (keyup.enter)="updateOllamaHost(hostBox.value)">
+                  <button (click)="updateOllamaHost(hostBox.value)" 
+                          type="button"
+                          class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-purple-600 text-white hover:bg-purple-500 transition-colors cursor-pointer">
+                    Connect
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Hyperparameter Fine-Tuning: Temperature & Reasoning Budget -->
@@ -622,5 +736,53 @@ export class HelpComponent implements OnInit {
   updateThinkingBudget(val: number) {
     this.userThinkingBudget.set(val);
     setStoredThinkingBudget(val);
+  }
+
+  ollamaHost = signal(localStorage.getItem('spark_ollama_host') || 'http://localhost:11434');
+  customModelInput = signal(localStorage.getItem('spark_custom_ollama_model') || '');
+  prewarmStatus = signal<'idle' | 'prewarming' | 'ready' | 'error'>('idle');
+
+  activateWebGpu() {
+    this.updateModel('on-device-nano');
+    setStoredApiKey('webgpu-active');
+    this.userApiKey.set('webgpu-active');
+  }
+
+  selectOpenModel(modelName: string) {
+    if (!modelName || !modelName.trim()) return;
+    const trimmed = modelName.trim();
+    const fullModel = trimmed.startsWith('ollama:') ? trimmed : `ollama:${trimmed}`;
+    this.updateModel(fullModel);
+    localStorage.setItem('spark_custom_ollama_model', trimmed);
+    this.customModelInput.set(trimmed);
+    setStoredApiKey('local-ollama-active');
+    this.userApiKey.set('local-ollama-active');
+  }
+
+  updateOllamaHost(url: string) {
+    const trimmed = url.trim() || 'http://localhost:11434';
+    this.ollamaHost.set(trimmed);
+    localStorage.setItem('spark_ollama_host', trimmed);
+    this.refreshOllamaCapabilities();
+  }
+
+  async prewarmVram(modelName = 'pivotpulse') {
+    this.prewarmStatus.set('prewarming');
+    try {
+      const ok = await this.geminiService.prewarmLocalVram(modelName);
+      this.prewarmStatus.set(ok ? 'ready' : 'error');
+    } catch {
+      this.prewarmStatus.set('error');
+    }
+  }
+
+  async refreshOllamaCapabilities() {
+    try {
+      const caps = await this.geminiService.checkOnDeviceCapabilities();
+      this.ollamaAvailable.set(caps.ollamaAvailable);
+      this.ollamaModels.set(caps.ollamaModels);
+    } catch {
+      // ignore
+    }
   }
 }

@@ -106,10 +106,14 @@
   
   <!-- Demo Mode Banner -->
   @if (userApiKey() === 'demo-key-active') {
-    <div role="status" class="bg-amber-500/10 border-b border-amber-500/20 text-amber-500 p-2.5 flex justify-center items-center gap-3 text-xs font-semibold tracking-wide uppercase non-printable">
-      <app-icon name="zap" [size]="14"></app-icon>
-      <span>You are running in Demo Mode with mock data</span>
-      <button (click)="clearApiKey()" class="bg-amber-500 text-black px-3 py-1.5 rounded-full font-bold tracking-tight text-[11px] uppercase hover:bg-amber-400 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-amber-500">Connect API Key</button>
+    <div role="status" class="bg-amber-500/10 border-b border-amber-500/20 text-amber-500 p-2.5 flex flex-wrap justify-center items-center gap-3 text-xs font-semibold tracking-wide uppercase non-printable">
+      <div class="flex items-center gap-1.5">
+        <app-icon name="zap" [size]="14"></app-icon>
+        <span>Demo Mode Active (Simulated Responses)</span>
+      </div>
+      <button (click)="clearApiKey()" class="bg-amber-500 text-black px-3.5 py-1.5 rounded-full font-bold tracking-tight text-[11px] uppercase hover:bg-amber-400 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-amber-500 cursor-pointer">
+        Switch to Live AI ⚡
+      </button>
     </div>
   }
 
@@ -1140,71 +1144,124 @@
         
         <h2 class="font-serif text-3xl mb-1.5 tracking-tight">Pivot & Pulse</h2>
         <p class="text-sm text-(--text-color-muted) mb-5 max-w-md">
-          Welcome to your fluid thinking partner for creative innovation & intergenerational care strategy. Choose how you'd like to power your session:
+          Your fluid partner for lateral thinking & intergenerational care strategy. Choose how to begin:
         </p>
 
-        <!-- On-Device AI Quick-Launch Card (If Detected) -->
-        @if (chromeAiAvailable()) {
-          <div class="w-full mb-4 p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-left flex items-center justify-between gap-3">
-            <div class="flex-1 min-w-0">
-              <div class="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>Chrome Built-in AI Detected</span>
+        <!-- Two 1-Click Hero Launch Cards -->
+        <div class="w-full grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-4">
+          <!-- Card 1: In-Browser RAM / WebGPU -->
+          <button (click)="useWebGpuAi()" 
+                  type="button"
+                  class="p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer group bg-gradient-to-br from-cyan-950/40 via-cyan-900/10 to-transparent border-cyan-500/40 hover:border-cyan-400 hover:scale-[1.02] shadow-lg">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-bold text-cyan-300 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                  <span class="h-2 w-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                  In-Browser RAM
+                </span>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-200 border border-cyan-500/30">
+                  {{ webGpuAvailable() ? 'WebGPU Ready' : 'Zero Network' }}
+                </span>
               </div>
-              <div class="text-[11px] text-(--text-color-muted) truncate">Gemini Nano on-device • 100% Private • Zero API Key</div>
+              <h3 class="font-bold text-base text-white group-hover:text-cyan-200 transition-colors">
+                Private On-Device AI
+              </h3>
+              <p class="text-xs text-stone-300/80 mt-1 leading-relaxed">
+                Runs 100% inside your browser memory. Zero API keys, zero network data transmission.
+              </p>
             </div>
-            <button (click)="useChromeOnDeviceAi()" 
-                    class="py-2 px-3.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-md shrink-0 cursor-pointer">
-              Launch On-Device
-            </button>
-          </div>
-        }
+            <div class="mt-4 pt-3 border-t border-cyan-500/20 flex items-center justify-between text-xs font-semibold text-cyan-300">
+              <span>Launch In-Browser</span>
+              <span>&rarr;</span>
+            </div>
+          </button>
 
-        @if (ollamaAvailable()) {
-          <div class="w-full mb-4 p-3.5 bg-cyan-500/10 border border-cyan-500/30 rounded-2xl text-left flex items-center justify-between gap-3">
-            <div class="flex-1 min-w-0">
-              <div class="text-xs font-bold text-cyan-400 flex items-center gap-1.5">
-                <span class="h-2 w-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                <span>Local Ollama Detected (localhost:11434)</span>
+          <!-- Card 2: Hosted Cloud Pass -->
+          <button (click)="useHostedCloud()" 
+                  type="button"
+                  class="p-4 rounded-2xl border text-left flex flex-col justify-between transition-all cursor-pointer group bg-gradient-to-br from-amber-950/30 via-orange-950/10 to-transparent border-amber-500/40 hover:border-amber-400 hover:scale-[1.02] shadow-lg">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1.5 font-mono">
+                  <span class="h-2 w-2 rounded-full bg-amber-400"></span>
+                  Cloud Accelerated
+                </span>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-200 border border-amber-500/30">
+                  Instant Pass
+                </span>
               </div>
-              <div class="text-[11px] text-(--text-color-muted) truncate">{{ ollamaModels().join(', ') || 'Gemma 2' }} • Offline execution</div>
+              <h3 class="font-bold text-base text-white group-hover:text-amber-200 transition-colors">
+                Hosted Cloud Speed
+              </h3>
+              <p class="text-xs text-stone-300/80 mt-1 leading-relaxed">
+                Instant start via our secure HIPAA-compliant edge proxy. Powered by Gemini 3.8 / 2.5 Flash.
+              </p>
+            </div>
+            <div class="mt-4 pt-3 border-t border-amber-500/20 flex items-center justify-between text-xs font-semibold text-amber-300">
+              <span>Start Instantly</span>
+              <span>&rarr;</span>
+            </div>
+          </button>
+        </div>
+
+        <!-- On-Device Local Ollama Quick-Launch Card (If Detected) -->
+        @if (ollamaAvailable()) {
+          <div class="w-full mb-4 p-3.5 bg-purple-500/10 border border-purple-500/30 rounded-2xl text-left flex items-center justify-between gap-3">
+            <div class="flex-1 min-w-0">
+              <div class="text-xs font-bold text-purple-300 flex items-center gap-1.5 font-mono">
+                <span class="h-2 w-2 rounded-full bg-purple-400 animate-pulse"></span>
+                <span>Local Ollama Ready (localhost:11434)</span>
+              </div>
+              <div class="text-[11px] text-(--text-color-muted) truncate">
+                {{ ollamaModels().join(', ') || 'pivotpulse' }} • Workstation GPU VRAM
+              </div>
             </div>
             <button (click)="useLocalOllama()" 
-                    class="py-2 px-3.5 rounded-xl text-xs font-bold bg-cyan-600 hover:bg-cyan-500 text-white transition-all shadow-md shrink-0 cursor-pointer">
-              Launch Local Gemma
+                    type="button"
+                    class="py-2 px-3.5 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white transition-all shadow-md shrink-0 cursor-pointer">
+              Launch Local Models
             </button>
           </div>
         }
 
-        <div class="w-full flex flex-col gap-3.5">
-          <!-- Gemini Cloud API Key Input -->
-          <div class="relative w-full">
-            <input #apiKeyInput 
-                   type="password" 
-                   placeholder="Enter Gemini API Key (AI_...)" 
-                   class="w-full bg-black/20 border border-(--border-color) rounded-xl py-3 px-4 text-center focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-(--text-color) placeholder-(--text-color-muted) transition-all font-mono text-sm"
-                   (keyup.enter)="saveApiKey(apiKeyInput.value)">
-          </div>
-
-          <button (click)="saveApiKey(apiKeyInput.value)" 
-                  class="w-full py-3 px-6 rounded-xl font-bold bg-(--text-accent) text-(--setup-btn-text) hover:opacity-90 active:scale-95 transition-all shadow-lg shadow-(--text-accent)/20 focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
-            Save & Connect Gemini Cloud
-          </button>
-
+        <!-- Secondary Launch & Demo Strip -->
+        <div class="w-full flex items-center justify-between gap-2 pt-2 px-1">
           <button (click)="activateDemoMode()" 
-                  class="w-full py-2.5 px-6 rounded-xl font-semibold bg-white/5 border border-white/10 text-(--text-color) hover:bg-white/10 active:scale-95 transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer text-sm">
-            Try Demo Mode (Instant Preview)
+                  type="button"
+                  class="text-xs font-semibold text-amber-400 hover:text-amber-200 hover:underline flex items-center gap-1.5 cursor-pointer">
+            <span>✨ Try Demo Mode (Instant Sandbox)</span>
           </button>
 
+          <button (click)="toggleAdvancedProviders()" 
+                  type="button"
+                  class="text-xs text-(--text-color-muted) hover:text-(--text-color) transition-colors flex items-center gap-1 cursor-pointer">
+            <span>{{ showAdvancedProviders() ? 'Hide Advanced ▲' : 'Custom Key & Open Models ▼' }}</span>
+          </button>
         </div>
 
-        <!-- Free API Key Help Text -->
-        <div class="mt-4 text-xs text-(--text-color-muted)">
-          Need a key? Get one for free at 
-          <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" class="text-(--text-accent) hover:underline font-semibold">
-            Google AI Studio (ai.dev)
-          </a>.
-        </div>
+        @if (showAdvancedProviders()) {
+          <div class="w-full mt-2 p-4 rounded-2xl bg-black/30 border border-(--border-color) space-y-3.5 text-left animate-fade-in">
+            <div>
+              <label for="welcome-api-key-input" class="block text-xs font-semibold text-(--text-color) mb-1.5">Bring Your Own Gemini API Key (Optional)</label>
+              <div class="flex gap-2">
+                <input #apiKeyInput 
+                       id="welcome-api-key-input"
+                       type="password" 
+                       placeholder="Enter Gemini API Key (AI_...)" 
+                       class="flex-1 bg-black/40 border border-(--border-color) rounded-xl py-2.5 px-3 text-xs focus:ring-2 focus:ring-(--ring-color) text-(--text-color) font-mono"
+                       (keyup.enter)="saveApiKey(apiKeyInput.value)">
+                <button (click)="saveApiKey(apiKeyInput.value)" 
+                        type="button"
+                        class="py-2.5 px-4 rounded-xl text-xs font-bold bg-(--text-accent) text-(--setup-btn-text) hover:opacity-90 cursor-pointer shrink-0">
+                  Save Key
+                </button>
+              </div>
+              <div class="mt-1.5 text-[11px] text-(--text-color-muted)">
+                Need a personal key? Free at <a href="https://aistudio.google.com/" target="_blank" rel="noopener noreferrer" class="text-(--text-accent) underline">Google AI Studio (ai.dev)</a>.
+              </div>
+            </div>
+          </div>
+        }
 
         <!-- Privacy & Safety Micro-Badges -->
         <div class="mt-4 grid grid-cols-2 gap-2 text-left w-full pt-3 border-t border-(--border-color)">
