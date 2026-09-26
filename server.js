@@ -315,6 +315,21 @@ function getOllamaUrl() {
   return host.startsWith('http://') || host.startsWith('https://') ? host : `http://${host}`;
 }
 
+function cleanJsonString(str) {
+  if (!str) return '{}';
+  let cleaned = str.trim();
+  cleaned = cleaned.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/\s*```$/, '').trim();
+  const firstBrace = cleaned.search(/[{\[]/);
+  if (firstBrace > 0) {
+    cleaned = cleaned.slice(firstBrace);
+  }
+  const lastBrace = Math.max(cleaned.lastIndexOf('}'), cleaned.lastIndexOf(']'));
+  if (lastBrace !== -1 && lastBrace < cleaned.length - 1) {
+    cleaned = cleaned.slice(0, lastBrace + 1);
+  }
+  return cleaned;
+}
+
 async function generateJsonFromLocalOllama(modelName, prompt, systemInstruction) {
   const localModel = modelName.replace(/^(ollama:|local:)/, '');
   const url = `${getOllamaUrl()}/api/generate`;
@@ -339,7 +354,7 @@ async function generateJsonFromLocalOllama(modelName, prompt, systemInstruction)
   try {
     return JSON.parse(data.response);
   } catch (err) {
-    const cleaned = data.response.replace(/```json/g, '').replace(/```/g, '').trim();
+    const cleaned = cleanJsonString(data.response);
     return JSON.parse(cleaned);
   }
 }
@@ -552,10 +567,11 @@ app.post('/api/insights', [
       return res.status(400).json({ errors: errors.array() });
     }
 
+    const targetModel = getModel(req);
     const customApiKey = req.headers['x-gemini-api-key'];
     const genAI = customApiKey ? new GoogleGenAI({ apiKey: customApiKey }) : ai;
-    if (!genAI) {
-      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or contact the administrator.' });
+    if (!genAI && !isLocalModel(targetModel)) {
+      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or switch to a local model.' });
     }
     const { problem, strategies, mode, gist, healthSnapshot } = req.body;
 
@@ -646,7 +662,6 @@ app.post('/api/insights', [
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    const targetModel = getModel(req);
     const systemInstruction = mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : undefined;
 
     if (isLocalModel(targetModel)) {

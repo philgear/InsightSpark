@@ -240,10 +240,12 @@ export class GeminiService {
             const fullResponse = await session.prompt(promptText);
             session.destroy?.();
             
-            const parsed = parse(fullResponse);
-            if (Array.isArray(parsed)) {
-              if (onUpdate) onUpdate(parsed);
-              return parsed;
+            const cleaned = this.cleanJsonBuffer(fullResponse);
+            const parsed = parse(cleaned);
+            const extracted = this.extractInsightResults(parsed, strategies, mode);
+            if (extracted.length > 0) {
+              if (onUpdate) onUpdate(extracted);
+              return extracted;
             }
           } catch (nanoErr) {
             console.warn('Chrome Built-in AI execution error, falling back to server pipeline:', nanoErr);
@@ -301,23 +303,13 @@ export class GeminiService {
                     buffer += data.text;
                     if (onUpdate) {
                       try {
-                        const partial = parse(buffer);
-                        
-                        // Normalize strategy names on the client
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        const normalizedResults = partial.map((result: any) => {
-                          const originalStrategy = strategies.find(s => {
-                            const sName = mode === 'care' ? s.careModeName || s.name : s.name;
-                            return sName.toLowerCase() === (result.strategyName || '').toLowerCase();
-                          });
-                          if (originalStrategy) {
-                            result.strategyName = mode === 'care' ? (originalStrategy.careModeName || originalStrategy.name) : originalStrategy.name;
-                          }
-                          return result;
-                        });
-                        
-                        finalResults = normalizedResults;
-                        onUpdate(normalizedResults);
+                        const cleaned = this.cleanJsonBuffer(buffer);
+                        const partial = parse(cleaned);
+                        const normalizedResults = this.extractInsightResults(partial, strategies, mode);
+                        if (normalizedResults.length > 0) {
+                          finalResults = normalizedResults;
+                          onUpdate(normalizedResults);
+                        }
                       } catch {
                          // Ignore partial parse errors, just wait for next chunk
                       }
@@ -335,21 +327,28 @@ export class GeminiService {
         
         // Final parsing attempt to ensure we get everything if onUpdate wasn't called on the last chunk
         try {
-           const finalParsed = parse(buffer);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const normalizedResults = finalParsed.map((result: any) => {
-              const originalStrategy = strategies.find(s => {
-                const sName = mode === 'care' ? s.careModeName || s.name : s.name;
-                return sName.toLowerCase() === (result.strategyName || '').toLowerCase();
-              });
-              if (originalStrategy) {
-                result.strategyName = mode === 'care' ? (originalStrategy.careModeName || originalStrategy.name) : originalStrategy.name;
-              }
-              return result;
-           });
-           finalResults = normalizedResults;
+           const cleaned = this.cleanJsonBuffer(buffer);
+           const finalParsed = parse(cleaned);
+           const normalizedResults = this.extractInsightResults(finalParsed, strategies, mode);
+           if (normalizedResults.length > 0) {
+             finalResults = normalizedResults;
+           }
         } catch(e) {
            console.error("Final parse failed", e);
+        }
+
+        if (finalResults.length === 0 && buffer.trim().length > 0) {
+          const lines = buffer.split('\n').map(l => l.trim().replace(/^[-*•\d.]+\s*/, '')).filter(l => l.length > 10);
+          if (lines.length > 0) {
+            const fallbackStrategyName = strategies[0] 
+              ? (mode === 'care' ? strategies[0].careModeName || strategies[0].name : strategies[0].name)
+              : 'Synthesized Insight';
+            finalResults = [{
+              strategyName: fallbackStrategyName,
+              insights: lines.slice(0, 3).map(text => ({ text }))
+            }];
+            if (onUpdate) onUpdate(finalResults);
+          }
         }
 
         return finalResults;
@@ -360,6 +359,84 @@ export class GeminiService {
       const errMsg = (error as Error).message || "Failed to generate any insights. Please check your connection or try again.";
       throw new Error(errMsg, { cause: error });
     }
+  }
+
+  private cleanJsonBuffer(buf: string): string {
+    let cleaned = buf.trim();
+    if (cleaned.startsWith('```json')) {
+      cleaned = cleaned.replace(/^```json\s*/i, '');
+    } else if (cleaned.startsWith('```')) {
+      cleaned = cleaned.replace(/^```\s*/, '');
+    }
+    if (cleaned.endsWith('```')) {
+      cleaned = cleaned.replace(/\s*```$/, '');
+    }
+    const firstBrace = cleaned.search(/[{[]/);
+    if (firstBrace > 0) {
+      cleaned = cleaned.slice(firstBrace);
+    }
+    return cleaned;
+  }
+
+  private extractInsightResults(parsed: unknown, strategies: CreativeStrategy[], mode: 'creative' | 'care'): InsightResult[] {
+    if (!parsed) return [];
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let rawList: any[] = [];
+    if (Array.isArray(parsed)) {
+      rawList = parsed;
+    } else if (typeof parsed === 'object' && parsed !== null) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const obj = parsed as Record<string, any>;
+      if (obj['strategyName'] && Array.isArray(obj['insights'])) {
+        rawList = [obj];
+      } else if (Array.isArray(obj['insights'])) {
+        rawList = obj['insights'];
+      } else if (Array.isArray(obj['strategies'])) {
+        rawList = obj['strategies'];
+      } else if (Array.isArray(obj['results'])) {
+        rawList = obj['results'];
+      } else if (Array.isArray(obj['data'])) {
+        rawList = obj['data'];
+      } else {
+        const values = Object.values(obj);
+        if (values.length > 0 && values.some(v => v && typeof v === 'object' && ('strategyName' in v || 'insights' in v))) {
+          rawList = values.filter(v => v && typeof v === 'object');
+        }
+      }
+    }
+
+    if (!Array.isArray(rawList)) return [];
+
+    return rawList
+      .filter(item => item && typeof item === 'object')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .map((result: any) => {
+        const originalStrategy = strategies.find(s => {
+          const sName = mode === 'care' ? s.careModeName || s.name : s.name;
+          return sName.toLowerCase() === (result.strategyName || '').toLowerCase();
+        });
+        const finalStrategyName = originalStrategy
+          ? (mode === 'care' ? (originalStrategy.careModeName || originalStrategy.name) : originalStrategy.name)
+          : (result.strategyName || (strategies[0] ? (mode === 'care' ? strategies[0].careModeName || strategies[0].name : strategies[0].name) : 'Insight'));
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let normalizedInsights: any[] = [];
+        if (Array.isArray(result.insights)) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          normalizedInsights = result.insights.map((ins: any) => {
+            if (typeof ins === 'string') return { text: ins };
+            return ins;
+          });
+        } else if (typeof result.insights === 'string') {
+          normalizedInsights = [{ text: result.insights }];
+        }
+
+        return {
+          strategyName: finalStrategyName,
+          insights: normalizedInsights
+        } as InsightResult;
+      });
   }
 
   private generateCarePlanCacheKey(problem: string, insights: SavedInsight[]): string {

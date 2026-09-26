@@ -221,5 +221,120 @@ describe('Bug Hunter Audit: Security, Privacy & Stream Fuzzing Suite', () => {
       assert.strictEqual(mockLocalStorage.getItem(key), null, 'Malformed key should have been purged from storage');
     });
   });
+
+  describe('7. Stream Parsing & Non-Array LLM Response Extraction', () => {
+    function cleanJsonBuffer(buf) {
+      let cleaned = buf.trim();
+      if (cleaned.startsWith('```json')) {
+        cleaned = cleaned.replace(/^```json\s*/i, '');
+      } else if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/^```\s*/, '');
+      }
+      if (cleaned.endsWith('```')) {
+        cleaned = cleaned.replace(/\s*```$/, '');
+      }
+      const firstBrace = cleaned.search(/[{\[]/);
+      if (firstBrace > 0) {
+        cleaned = cleaned.slice(firstBrace);
+      }
+      return cleaned;
+    }
+
+    function extractInsightResults(parsed, strategies, mode) {
+      if (!parsed) return [];
+
+      let rawList = [];
+      if (Array.isArray(parsed)) {
+        rawList = parsed;
+      } else if (typeof parsed === 'object' && parsed !== null) {
+        const obj = parsed;
+        if (obj['strategyName'] && Array.isArray(obj['insights'])) {
+          rawList = [obj];
+        } else if (Array.isArray(obj['insights'])) {
+          rawList = obj['insights'];
+        } else if (Array.isArray(obj['strategies'])) {
+          rawList = obj['strategies'];
+        } else if (Array.isArray(obj['results'])) {
+          rawList = obj['results'];
+        } else if (Array.isArray(obj['data'])) {
+          rawList = obj['data'];
+        } else {
+          const values = Object.values(obj);
+          if (values.length > 0 && values.some(v => v && typeof v === 'object' && ('strategyName' in v || 'insights' in v))) {
+            rawList = values.filter(v => v && typeof v === 'object');
+          }
+        }
+      }
+
+      if (!Array.isArray(rawList)) return [];
+
+      return rawList
+        .filter(item => item && typeof item === 'object')
+        .map(result => {
+          const originalStrategy = strategies.find(s => {
+            const sName = mode === 'care' ? s.careModeName || s.name : s.name;
+            return sName.toLowerCase() === (result.strategyName || '').toLowerCase();
+          });
+          const finalStrategyName = originalStrategy
+            ? (mode === 'care' ? (originalStrategy.careModeName || originalStrategy.name) : originalStrategy.name)
+            : (result.strategyName || 'Insight');
+
+          let normalizedInsights = [];
+          if (Array.isArray(result.insights)) {
+            normalizedInsights = result.insights.map(ins => {
+              if (typeof ins === 'string') return { text: ins };
+              return ins;
+            });
+          } else if (typeof result.insights === 'string') {
+            normalizedInsights = [{ text: result.insights }];
+          }
+
+          return {
+            strategyName: finalStrategyName,
+            insights: normalizedInsights
+          };
+        });
+    }
+
+    const testStrategies = [
+      { id: 'butterfly', name: 'The Butterfly Effect', careModeName: 'The Butterfly Effect' },
+      { id: 'kinship-triad', name: 'Intergenerational Kinship', careModeName: 'Intergenerational Kinship' }
+    ];
+
+    test('Should safely extract insights from an object with { insights: [...] } wrapping', () => {
+      const raw = '{"insights": [{"strategyName": "The Butterfly Effect", "insights": [{"text": "Micro-habit"}]}]}';
+      const parsed = parse(cleanJsonBuffer(raw));
+      const extracted = extractInsightResults(parsed, testStrategies, 'creative');
+      assert.strictEqual(extracted.length, 1);
+      assert.strictEqual(extracted[0].strategyName, 'The Butterfly Effect');
+      assert.strictEqual(extracted[0].insights[0].text, 'Micro-habit');
+    });
+
+    test('Should safely extract insights from markdown code blocks with ```json', () => {
+      const raw = '```json\n[{"strategyName": "Intergenerational Kinship", "insights": ["Family respite"]}]\n```';
+      const parsed = parse(cleanJsonBuffer(raw));
+      const extracted = extractInsightResults(parsed, testStrategies, 'care');
+      assert.strictEqual(extracted.length, 1);
+      assert.strictEqual(extracted[0].strategyName, 'Intergenerational Kinship');
+      assert.strictEqual(extracted[0].insights[0].text, 'Family respite');
+    });
+
+    test('Should safely handle conversational intro before JSON payload', () => {
+      const raw = 'Here are the insights you requested:\n[{"strategyName": "The Butterfly Effect", "insights": [{"text": "Pacing"}]}]';
+      const parsed = parse(cleanJsonBuffer(raw));
+      const extracted = extractInsightResults(parsed, testStrategies, 'creative');
+      assert.strictEqual(extracted.length, 1);
+      assert.strictEqual(extracted[0].insights[0].text, 'Pacing');
+    });
+
+    test('Should handle single strategy object without array wrapping', () => {
+      const raw = '{"strategyName": "The Butterfly Effect", "insights": [{"text": "Singular idea"}]}';
+      const parsed = parse(cleanJsonBuffer(raw));
+      const extracted = extractInsightResults(parsed, testStrategies, 'creative');
+      assert.strictEqual(extracted.length, 1);
+      assert.strictEqual(extracted[0].strategyName, 'The Butterfly Effect');
+    });
+  });
 });
+
 
