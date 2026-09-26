@@ -27,7 +27,7 @@ function getLocalUrl() {
   return host.startsWith('http://') || host.startsWith('https://') ? host : `http://${host}`;
 }
 const DEFAULT_LOCAL_URL = getLocalUrl();
-const DEFAULT_MODEL = 'llama3.2:3b'; // Fast 100+ tps local default
+const DEFAULT_MODEL = 'pivotpulse'; // Unified Multi-Task on-device model
 
 /**
  * Smart Context Builder: Assembles structured, compressed context slots

@@ -6,7 +6,7 @@ Trains a single foundation model (Llama-3.2-3B or Gemma-2-9B) across all 48 task
 (Weight-Decomposed Low-Rank Adaptation).
 
 Usage:
-  python scripts/train_dpo_unified.py --data datasets/multitask-dpo.parquet --model unsloth/Llama-3.2-3B-Instruct --output models/llama3.2-3b-insightspark-dora
+  python scripts/train_dpo_unified.py --data datasets/multitask-dpo.parquet --model unsloth/Llama-3.2-3B-Instruct --output models/pivotpulse-dora
 """
 
 import os
@@ -115,7 +115,7 @@ def main():
     parser = argparse.ArgumentParser(description="InsightSpark Unified Multi-Task DPO Trainer")
     parser.add_argument("--data", default="datasets/multitask-dpo.parquet", help="Parquet dataset path")
     parser.add_argument("--model", default="Llama-3.2-3B-Instruct", help="Base model identifier")
-    parser.add_argument("--output", default="models/llama3.2-3b-insightspark-dora", help="Output directory")
+    parser.add_argument("--output", default="models/pivotpulse-dora", help="Output directory")
 
     args = parser.parse_args()
 

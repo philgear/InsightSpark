@@ -310,9 +310,43 @@ function isLocalModel(model) {
   return typeof model === 'string' && (model.startsWith('ollama:') || model.startsWith('local:'));
 }
 
+function getOllamaUrl() {
+  const host = process.env.OLLAMA_HOST || 'http://localhost:11434';
+  return host.startsWith('http://') || host.startsWith('https://') ? host : `http://${host}`;
+}
+
+async function generateJsonFromLocalOllama(modelName, prompt, systemInstruction) {
+  const localModel = modelName.replace(/^(ollama:|local:)/, '');
+  const url = `${getOllamaUrl()}/api/generate`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: localModel,
+      prompt: `${systemInstruction ? systemInstruction + '\n\n' : ''}${prompt}`,
+      format: 'json',
+      stream: false,
+      options: { temperature: 0.2 }
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Local Ollama error (${response.status}): Make sure 'ollama serve' is running with model '${localModel}'.`);
+  }
+
+  const data = await response.json();
+  try {
+    return JSON.parse(data.response);
+  } catch (err) {
+    const cleaned = data.response.replace(/```json/g, '').replace(/```/g, '').trim();
+    return JSON.parse(cleaned);
+  }
+}
+
 async function streamFromLocalOllama(modelName, prompt, systemInstruction, res) {
   const localModel = modelName.replace(/^(ollama:|local:)/, '');
-  const ollamaUrl = process.env.OLLAMA_HOST || 'http://localhost:11434';
+  const ollamaUrl = getOllamaUrl();
   
   const response = await fetch(`${ollamaUrl}/api/generate`, {
     method: 'POST',
@@ -388,7 +422,7 @@ app.get('/api/config', (req, res) => {
 
 app.get('/api/local-llm/status', async (req, res) => {
   try {
-    const ollamaUrl = process.env.OLLAMA_HOST || 'http://localhost:11434';
+    const ollamaUrl = getOllamaUrl();
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 1200);
     const response = await fetch(`${ollamaUrl}/api/tags`, { signal: controller.signal });
@@ -425,10 +459,11 @@ app.post('/api/structure', [
       return res.status(400).json({ errors: errors.array() });
     }
 
+    const targetModel = getModel(req);
     const customApiKey = req.headers['x-gemini-api-key'];
     const genAI = customApiKey ? new GoogleGenAI({ apiKey: customApiKey }) : ai;
-    if (!genAI) {
-      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or contact the administrator.' });
+    if (!genAI && !isLocalModel(targetModel)) {
+      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or switch to a local model.' });
     }
     const { problem } = req.body;
 
@@ -478,6 +513,11 @@ app.post('/api/structure', [
         - Ensure the output is clean, concise, and uses person-centered, accessible language.
         ${getLanguageInstruction(req)}
     `;
+
+    if (isLocalModel(targetModel)) {
+      const result = await generateJsonFromLocalOllama(targetModel, prompt, HIPAA_SYSTEM_INSTRUCTION);
+      return res.json(result);
+    }
 
     const response = await genAI.models.generateContent({
         model: getModel(req),
@@ -655,10 +695,11 @@ app.post('/api/care-plan', [
       return res.status(400).json({ errors: errors.array() });
     }
 
+    const targetModel = getModel(req);
     const customApiKey = req.headers['x-gemini-api-key'];
     const genAI = customApiKey ? new GoogleGenAI({ apiKey: customApiKey }) : ai;
-    if (!genAI) {
-      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or contact the administrator.' });
+    if (!genAI && !isLocalModel(targetModel)) {
+      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or switch to a local model.' });
     }
     const { problem, insights } = req.body;
 
@@ -710,6 +751,11 @@ app.post('/api/care-plan', [
         ${getLanguageInstruction(req)}
       `;
 
+    if (isLocalModel(targetModel)) {
+      const result = await generateJsonFromLocalOllama(targetModel, prompt, HIPAA_SYSTEM_INSTRUCTION);
+      return res.json(result);
+    }
+
     const response = await genAI.models.generateContent({
         model: getModel(req),
         contents: prompt,
@@ -740,10 +786,11 @@ app.post('/api/creative-plan', [
       return res.status(400).json({ errors: errors.array() });
     }
 
+    const targetModel = getModel(req);
     const customApiKey = req.headers['x-gemini-api-key'];
     const genAI = customApiKey ? new GoogleGenAI({ apiKey: customApiKey }) : ai;
-    if (!genAI) {
-      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or contact the administrator.' });
+    if (!genAI && !isLocalModel(targetModel)) {
+      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or switch to a local model.' });
     }
     const { problem, insights } = req.body;
 
@@ -789,6 +836,11 @@ app.post('/api/creative-plan', [
         - All elements should be direct, logical, and highly actionable.
         ${getLanguageInstruction(req)}
       `;
+
+    if (isLocalModel(targetModel)) {
+      const result = await generateJsonFromLocalOllama(targetModel, prompt, undefined);
+      return res.json(result);
+    }
 
     const response = await genAI.models.generateContent({
         model: getModel(req),
