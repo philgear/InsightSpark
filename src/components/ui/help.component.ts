@@ -298,49 +298,53 @@ function setStoredThinkingBudget(budget: number): void {
             <span class="inline-block text-[10px] uppercase font-bold tracking-wider mt-3 px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 w-fit">Deep Reasoning</span>
           </button>
 
-          <!-- Chrome Built-in AI (Gemini Nano on Device) -->
+          <!-- On-Device Browser AI (Gemini Nano & WebGPU) -->
           <button (click)="updateModel('on-device-nano')"
-                  [class.bg-(--text-accent)]="userModel() === 'on-device-nano'"
-                  [class.text-(--primary-cta-text)]="userModel() === 'on-device-nano'"
-                  [class.bg-(--button-bg)]="userModel() !== 'on-device-nano'"
-                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'on-device-nano'"
+                  [class.bg-(--text-accent)]="userModel() === 'on-device-nano' || userModel() === 'window.ai'"
+                  [class.text-(--primary-cta-text)]="userModel() === 'on-device-nano' || userModel() === 'window.ai'"
+                  [class.bg-(--button-bg)]="userModel() !== 'on-device-nano' && userModel() !== 'window.ai'"
+                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'on-device-nano' && userModel() !== 'window.ai'"
                   class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
             <div>
               <div class="font-bold text-sm flex items-center gap-1.5">
-                <span>Chrome On-Device AI</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono">100% PRIVATE</span>
+                <span>In-Browser RAM (window.ai)</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono">CLIENT RAM</span>
               </div>
-              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Runs Gemini Nano locally on your device NPU/GPU via Chrome Prompt API. 0 data sent.</div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Runs on-device inside visitor browser RAM/NPU via Chrome Prompt API or WebGPU. 0 network calls.</div>
             </div>
-            <div class="flex items-center gap-1.5 mt-3">
+            <div class="flex flex-wrap items-center gap-1.5 mt-3">
               @if (chromeAiAvailable()) {
                 <span class="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 w-fit">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Available
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Nano Ready
+                </span>
+              } @else if (webGpuAvailable()) {
+                <span class="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 w-fit">
+                  <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span> WebGPU Active
                 </span>
               } @else {
-                <span class="inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 w-fit">Chrome 127+ API</span>
+                <span class="inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 w-fit">Chrome 127+ / Safari 17.4</span>
               }
             </div>
           </button>
 
-          <!-- Local Gemma on-device (Ollama) -->
-          <button (click)="updateModel('ollama:gemma2')"
-                  [class.bg-(--text-accent)]="userModel() === 'ollama:gemma2' || userModel().startsWith('ollama:')"
-                  [class.text-(--primary-cta-text)]="userModel() === 'ollama:gemma2' || userModel().startsWith('ollama:')"
-                  [class.bg-(--button-bg)]="userModel() !== 'ollama:gemma2' && !userModel().startsWith('ollama:')"
-                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'ollama:gemma2' && !userModel().startsWith('ollama:')"
+          <!-- Workstation VRAM Engine: pivotpulse (Ollama) -->
+          <button (click)="updateModel('ollama:pivotpulse')"
+                  [class.bg-(--text-accent)]="userModel() === 'ollama:pivotpulse' || userModel() === 'pivotpulse' || (userModel().startsWith('ollama:') && !userModel().includes('gemma2'))"
+                  [class.text-(--primary-cta-text)]="userModel() === 'ollama:pivotpulse' || userModel() === 'pivotpulse' || (userModel().startsWith('ollama:') && !userModel().includes('gemma2'))"
+                  [class.bg-(--button-bg)]="userModel() !== 'ollama:pivotpulse' && userModel() !== 'pivotpulse' && (!userModel().startsWith('ollama:') || userModel().includes('gemma2'))"
+                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'ollama:pivotpulse' && userModel() !== 'pivotpulse' && (!userModel().startsWith('ollama:') || userModel().includes('gemma2'))"
                   class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
             <div>
               <div class="font-bold text-sm flex items-center gap-1.5">
-                <span>Local Gemma (Ollama)</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono">LOCAL</span>
+                <span>pivotpulse (GPU VRAM)</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">HOT VRAM</span>
               </div>
-              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Runs Gemma 2/3 on your local PC/Mac (localhost:11434) with zero server hops.</div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Pre-warmed in workstation GPU VRAM (keep_alive: -1). ~100 tps with zero cloud quota.</div>
             </div>
             <div class="flex items-center gap-1.5 mt-3">
               @if (ollamaAvailable()) {
                 <span class="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 w-fit">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Connected
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Pre-Warmed in VRAM
                 </span>
               } @else {
                 <span class="inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-black/20 text-current w-fit">Ollama Daemon</span>
@@ -568,6 +572,7 @@ export class HelpComponent implements OnInit {
   chromeAiAvailable = signal(false);
   ollamaAvailable = signal(false);
   ollamaModels = signal<string[]>([]);
+  webGpuAvailable = signal(false);
   
   // Categorized languages
   sisterCityLanguages = this.translationService.supportedLanguages.filter(l => l.isSisterCity || l.code === 'en');
@@ -579,6 +584,7 @@ export class HelpComponent implements OnInit {
       this.chromeAiAvailable.set(caps.chromeAiAvailable);
       this.ollamaAvailable.set(caps.ollamaAvailable);
       this.ollamaModels.set(caps.ollamaModels);
+      this.webGpuAvailable.set(caps.webGpuAvailable);
     } catch {
       // Ignore capability check failure
     }

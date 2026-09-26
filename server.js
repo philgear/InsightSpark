@@ -330,6 +330,29 @@ function cleanJsonString(str) {
   return cleaned;
 }
 
+async function prewarmLocalModel(modelName = 'pivotpulse') {
+  try {
+    const localModel = modelName.replace(/^(ollama:|local:)/, '');
+    const ollamaUrl = getOllamaUrl();
+    const res = await fetch(`${ollamaUrl}/api/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: localModel,
+        prompt: '',
+        keep_alive: -1
+      })
+    });
+    if (res.ok) {
+      console.log(`⚡ [VRAM] Pre-warmed model '${localModel}' in GPU memory (keep_alive: permanent)`);
+      return true;
+    }
+    return false;
+  } catch (err) {
+    return false;
+  }
+}
+
 async function generateJsonFromLocalOllama(modelName, prompt, systemInstruction) {
   const localModel = modelName.replace(/^(ollama:|local:)/, '');
   const url = `${getOllamaUrl()}/api/generate`;
@@ -342,6 +365,7 @@ async function generateJsonFromLocalOllama(modelName, prompt, systemInstruction)
       prompt: `${systemInstruction ? systemInstruction + '\n\n' : ''}${prompt}`,
       format: 'json',
       stream: false,
+      keep_alive: -1,
       options: { temperature: 0.2 }
     })
   });
@@ -370,7 +394,8 @@ async function streamFromLocalOllama(modelName, prompt, systemInstruction, res) 
       model: localModel,
       prompt: `${systemInstruction ? systemInstruction + '\n\n' : ''}${prompt}`,
       format: 'json',
-      stream: true
+      stream: true,
+      keep_alive: -1
     })
   });
 
@@ -450,6 +475,12 @@ app.get('/api/local-llm/status', async (req, res) => {
     // Ollama not currently running on user's device
   }
   return res.json({ available: false, models: [] });
+});
+
+app.post('/api/local-llm/prewarm', async (req, res) => {
+  const model = req.body?.model || 'pivotpulse';
+  const success = await prewarmLocalModel(model);
+  res.json({ success, model, state: success ? 'pre-warmed in VRAM' : 'unavailable' });
 });
 
 // Parquet Dataset Direct Binary Export
@@ -1554,4 +1585,5 @@ app.get('{/*any}', (req, res) => {
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
+  prewarmLocalModel('pivotpulse');
 });

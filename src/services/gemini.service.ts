@@ -225,9 +225,9 @@ export class GeminiService {
       const results = await this._withRetries(async () => {
         const selectedModel = localStorage.getItem('spark_model_val') || localStorage.getItem('user_gemini_model');
         
-        // On-device execution branch: Chrome Built-in AI (Gemini Nano)
+        // On-device execution branch: Chrome Built-in AI (Gemini Nano via window.ai)
         const win = window as unknown as { ai?: { languageModel?: { create: (opts: { systemPrompt: string }) => Promise<{ prompt: (p: string) => Promise<string>; destroy?: () => void }> } } };
-        if (selectedModel === 'on-device-nano' && typeof win?.ai?.languageModel?.create === 'function') {
+        if ((selectedModel === 'on-device-nano' || selectedModel === 'window.ai') && typeof win?.ai?.languageModel?.create === 'function') {
           try {
             const systemPrompt = mode === 'care'
               ? 'You are a compassionate, HIPAA-compliant care support partner. Provide creative, positive psychology insights for health goals in valid JSON format matching schema: [{"strategyName": string, "insights": [{"text": string, "influence": string}]}].'
@@ -1017,12 +1017,13 @@ export class GeminiService {
   }
 
   /**
-   * Checks on-device local AI availability (Chrome Prompt API & Local Ollama)
+   * Checks on-device local AI availability (Chrome Prompt API, Local Ollama, WebGPU)
    */
   async checkOnDeviceCapabilities(): Promise<{
     chromeAiAvailable: boolean;
     ollamaAvailable: boolean;
     ollamaModels: string[];
+    webGpuAvailable: boolean;
   }> {
     let chromeAiAvailable = false;
     try {
@@ -1034,6 +1035,16 @@ export class GeminiService {
       }
     } catch {
       chromeAiAvailable = false;
+    }
+
+    let webGpuAvailable = false;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (typeof navigator !== 'undefined' && 'gpu' in navigator && (navigator as any).gpu) {
+        webGpuAvailable = true;
+      }
+    } catch {
+      webGpuAvailable = false;
     }
 
     let ollamaAvailable = false;
@@ -1050,6 +1061,26 @@ export class GeminiService {
       ollamaAvailable = false;
     }
 
-    return { chromeAiAvailable, ollamaAvailable, ollamaModels };
+    return { chromeAiAvailable, ollamaAvailable, ollamaModels, webGpuAvailable };
+  }
+
+  /**
+   * Pre-warms the local model in workstation GPU VRAM (keep_alive: permanent)
+   */
+  async prewarmLocalVram(model = 'pivotpulse'): Promise<boolean> {
+    try {
+      const res = await fetch('/api/local-llm/prewarm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return !!data.success;
+      }
+    } catch {
+      // ignore
+    }
+    return false;
   }
 }

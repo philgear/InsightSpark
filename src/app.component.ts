@@ -188,6 +188,7 @@ export class AppComponent implements OnDestroy {
   chromeAiAvailable = signal<boolean>(false);
   ollamaAvailable = signal<boolean>(false);
   ollamaModels = signal<string[]>([]);
+  webGpuAvailable = signal<boolean>(false);
   onDeviceChecked = signal<boolean>(false);
   // Care Roles State (combines built-in CARE_ROLES + user-defined custom roles)
   careRoles = computed<CareRole[]>(() => [...CARE_ROLES, ...this.storageService.customRoles()]);
@@ -507,7 +508,13 @@ export class AppComponent implements OnDestroy {
       this.chromeAiAvailable.set(caps.chromeAiAvailable);
       this.ollamaAvailable.set(caps.ollamaAvailable);
       this.ollamaModels.set(caps.ollamaModels);
+      this.webGpuAvailable.set(caps.webGpuAvailable);
       this.onDeviceChecked.set(true);
+
+      if (caps.ollamaAvailable) {
+        // Pre-warm pivotpulse in GPU VRAM upon initial visit (0ms latency for visitor)
+        this.geminiService.prewarmLocalVram('pivotpulse');
+      }
     } catch {
       this.onDeviceChecked.set(true);
     }
@@ -520,8 +527,8 @@ export class AppComponent implements OnDestroy {
     this.activateDemoPresetIfEmpty();
   }
 
-  useLocalOllama(model = 'gemma2') {
-    const chosenModel = this.ollamaModels().length > 0 ? this.ollamaModels()[0] : model;
+  useLocalOllama(model = 'pivotpulse') {
+    const chosenModel = this.ollamaModels().find(m => m.includes('pivotpulse')) || (this.ollamaModels().length > 0 ? this.ollamaModels()[0] : model);
     localStorage.setItem('spark_model_val', `ollama:${chosenModel}`);
     setStoredApiKey('local-ollama-active');
     this.userApiKey.set('local-ollama-active');
