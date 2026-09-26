@@ -12,7 +12,8 @@
     "lint": "ng lint",
     "test": "npx tsx --test tests/*.test.js",
     "test:e2e": "playwright test",
-    "agents": "node scripts/manage_custom_agents.js"
+    "agents": "node scripts/manage_custom_agents.js",
+    "agent:edge": "node scripts/smart_context_agent.js"
   },
   "dependencies": {
     "@angular/build": "^22.1.0",
