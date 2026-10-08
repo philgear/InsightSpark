@@ -69,8 +69,77 @@ def print_training_recipe(model_name: str, dataset_path: str, output_dir: str):
     print("=" * 75 + "\n")
 
 
+def generate_unsloth_script_stub(model_name: str, output_dir: str):
+    """Generates the Unsloth 2x faster, 70% less VRAM fine-tuning pipeline."""
+    code = f'''
+# --- Unsloth 2x Faster DPO / DoRA Pipeline --------------------------------
+# pip install "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git"
+# pip install --no-deps trl peft accelerate bitsandbytes
+
+import torch
+from unsloth import FastLanguageModel, PatchDPOTrainer
+from datasets import load_dataset
+from trl import DPOTrainer, DPOConfig
+
+# 1. Patch Hugging Face DPO Trainer for 2x speedup and 70% memory reduction
+PatchDPOTrainer()
+
+max_seq_length = 2048
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name="{model_name}",
+    max_seq_length=max_seq_length,
+    load_in_4bit=True,
+)
+
+# 2. DoRA / LoRA targeting all linear attention and MLP projections
+model = FastLanguageModel.get_peft_model(
+    model,
+    r=16,
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"],
+    lora_alpha=32,
+    lora_dropout=0, # Unsloth supports optimized 0 dropout
+    bias="none",
+    use_gradient_checkpointing="unsloth", # 30% longer context
+    random_state=3407,
+    use_dora=True, # Weight-Decomposed Low-Rank Adaptation
+)
+
+# 3. Load Multi-Task Preferences
+dataset = load_dataset("parquet", data_files="datasets/multitask-dpo.parquet")
+
+dpo_config = DPOConfig(
+    output_dir="{output_dir}",
+    learning_rate=5e-6,
+    per_device_train_batch_size=2,
+    gradient_accumulation_steps=8,
+    num_train_epochs=3,
+    beta=0.1,
+    fp16=not torch.cuda.is_bf16_supported(),
+    bf16=torch.cuda.is_bf16_supported(),
+    logging_steps=5,
+    save_strategy="epoch",
+    optim="adamw_8bit",
+    seed=3407,
+)
+
+# dpo_trainer = DPOTrainer(
+#     model=model,
+#     ref_model=None,
+#     args=dpo_config,
+#     train_dataset=dataset["train"],
+#     tokenizer=tokenizer,
+#     max_length=1024,
+#     max_prompt_length=512,
+# )
+# dpo_trainer.train()
+# model.save_pretrained_merged("{output_dir}_merged", tokenizer, save_method="merged_16bit")
+# model.save_pretrained_gguf("{output_dir}_gguf", tokenizer, quantization_method="q4_k_m")
+'''
+    return code
+
+
 def generate_trl_script_stub(model_name: str, output_dir: str):
-    """Prints the executable Python block for Hugging Face TRL DPOTrainer."""
+    """Prints the executable standard Hugging Face TRL DPOTrainer block."""
     code = f'''
 # --- Executable Hugging Face TRL Pipeline ----------------------------------
 # pip install torch transformers trl peft datasets bitsandbytes accelerate
@@ -133,8 +202,9 @@ training_args = DPOConfig(
 def main():
     parser = argparse.ArgumentParser(description="InsightSpark Unified Multi-Task DPO Trainer")
     parser.add_argument("--data", default="datasets/multitask-dpo.parquet", help="Parquet dataset path")
-    parser.add_argument("--model", default="Llama-3.2-3B-Instruct", help="Base model identifier")
+    parser.add_argument("--model", default="unsloth/Llama-3.2-3B-Instruct", help="Base model identifier")
     parser.add_argument("--output", default="models/pivotpulse-dora", help="Output directory")
+    parser.add_argument("--unsloth", action="store_true", default=True, help="Generate Unsloth optimized pipeline (default: True)")
 
     args = parser.parse_args()
 
@@ -146,7 +216,10 @@ def main():
     else:
         print(f"[WARN] Parquet file not found at {args.data}. Run scripts/generate_multitask_dpo.js first.")
 
-    print(generate_trl_script_stub(args.model, args.output))
+    if args.unsloth:
+        print(generate_unsloth_script_stub(args.model, args.output))
+    else:
+        print(generate_trl_script_stub(args.model, args.output))
 
 
 if __name__ == "__main__":
