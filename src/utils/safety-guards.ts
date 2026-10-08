@@ -14,6 +14,13 @@ export interface AcuteTriageAlert {
   guidance: string;
 }
 
+export interface PoliticalNeutralityAlert {
+  isPoliticalViolation: boolean;
+  category: 'campaigning' | 'disinformation' | 'radicalization' | 'astroturfing';
+  reason: string;
+  guidance: string;
+}
+
 // 1. Acute Medical Emergency Regex Patterns
 const STROKE_REGEX = /\b(?:face\s+(?:droop|drooping)|slurred\s+speech|arm\s+(?:weakness|numbness)|sudden\s+(?:numbness|paralysis)|loss\s+of\s+balance)\b/i;
 const CARDIAC_RESP_REGEX = /\b(?:chest\s+(?:pain|pressure|tightness)|can['’]?t\s+breathe|shortness\s+of\s+breath|severe\s+allergic\s+reaction|anaphylaxis|loss\s+of\s+consciousness|unconscious)\b/i;
@@ -63,7 +70,50 @@ export function scanForAcuteTriage(rawText: string | null | undefined): AcuteTri
   return null;
 }
 
-// 3. Deep HIPAA Safe Harbor PII/PHI Regexes
+// 3. Political Motivations, Partisan Agendas, Disinformation, & Astroturfing Regex Patterns
+const POLITICAL_CAMPAIGN_REGEX = /\b(?:smear\s+campaign|attack\s+ad|voter\s+suppression|rig\s+(?:the\s+)?election|discredit\s+the\s+(?:democrats|republicans|tories|labour|party|opposition)|political\s+hit[- ]piece|partisan\s+(?:attack|propaganda|smear)|defeat\s+(?:the\s+)?(?:gop|dnc|liberals|conservatives))\b/i;
+const ASTROTURFING_DISINFO_REGEX = /\b(?:astroturf(?:ing)?|manufacture\s+(?:false\s+)?grassroots|manufactured\s+outrage|coordinated\s+inauthentic|fake\s+grassroots\s+movement|bot\s+farm|deepfake\s+campaign|disinformation\s+campaign|influence\s+operation)\b/i;
+const RADICALIZATION_SUBVERSION_REGEX = /\b(?:overthrow\s+(?:the\s+)?government|civil\s+war\s+insurrection|subvert\s+(?:the\s+)?election|political\s+violence|weaponize\s+(?:political\s+)?division|radicalize\s+voters)\b/i;
+
+/**
+ * Deterministic pre-flight scanner for dark political motivations, propaganda, and partisan weaponization.
+ * Enforces strict civic neutrality and protects the platform's wellness/care focus.
+ */
+export function scanForPoliticalAgendas(rawText: string | null | undefined): PoliticalNeutralityAlert | null {
+  if (!rawText || typeof rawText !== 'string') return null;
+  const text = rawText.length > 2000 ? rawText.slice(0, 2000) : rawText;
+
+  if (ASTROTURFING_DISINFO_REGEX.test(text)) {
+    return {
+      isPoliticalViolation: true,
+      category: 'astroturfing',
+      reason: 'Disinformation & Astroturfing Detected',
+      guidance: 'InsightSpark is an apolitical workbench dedicated strictly to intergenerational care, positive psychology (PERMA+H), and lateral creative problem-solving. Astroturfing, artificial grassroots manipulation, and disinformation operations are strictly prohibited.'
+    };
+  }
+
+  if (RADICALIZATION_SUBVERSION_REGEX.test(text)) {
+    return {
+      isPoliticalViolation: true,
+      category: 'radicalization',
+      reason: 'Political Subversion & Radicalization Detected',
+      guidance: 'InsightSpark cannot be used to coordinate political subversion, insurrection, election tampering, or partisan radicalization.'
+    };
+  }
+
+  if (POLITICAL_CAMPAIGN_REGEX.test(text)) {
+    return {
+      isPoliticalViolation: true,
+      category: 'campaigning',
+      reason: 'Partisan Political Campaigning Detected',
+      guidance: 'InsightSpark is an apolitical workbench designed for family caregiving sustainability, personal well-being, and constructive creative ideation. Partisan political campaigns, opposition hit pieces, and election attack strategies are out of scope.'
+    };
+  }
+
+  return null;
+}
+
+// 4. Deep HIPAA Safe Harbor PII/PHI Regexes
 const EMAIL_REGEX = /(?:\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,10}\b|\b[a-zA-Z0-9._%+-]+\s*(?:\[at\]|\(at\)|@)\s*[a-zA-Z0-9.-]+\s*(?:\[dot\]|\(dot\)|\.)\s*[a-zA-Z]{2,10}\b)/gi;
 const PHONE_REGEX = /(?:\+\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g;
 const SSN_REGEX = /\b\d{3}[-\s.]\d{2}[-\s.]\d{4}\b/g;

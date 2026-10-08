@@ -32,7 +32,17 @@ Because generation features rely on the **Google Gemini API**, the inputs you se
 
 ---
 
-## 4. Your Control Over Your Data
+## 4. Consumer Health Data Disclosures (Washington MHMDA & State Laws)
+
+Under state consumer health privacy frameworks, including the **Washington My Health My Data Act (MHMDA)** and **Nevada SB 370**:
+*   **No Sale or Monetization:** We do **not** sell, license, share, or monetize consumer health data or personal wellness inquiries.
+*   **No Geofencing or Location Profiling:** The Application does **not** employ geofencing around medical facilities or collect precise geolocation data.
+*   **No Commercial Profiling:** We do **not** create consumer profiles, target advertisements, or transmit personal inquiries to data brokers.
+*   **Ephemeral Processing Only:** Inquiries are evaluated in volatile RAM solely to deliver real-time AI responses and are permanently discarded from server memory upon response stream closure.
+
+---
+
+## 5. Your Control Over Your Data
 
 Since all data lives on your device, you are in absolute control:
 *   To delete your stored API Key, click the key icon (🔑) in the header.
@@ -40,6 +50,7 @@ Since all data lives on your device, you are in absolute control:
 
 ---
 
-## 5. Contact and Open Source Sovereignty
+## 6. Contact and Open Source Sovereignty
 
 As an open, localized thinking companion, you can audit, run, or host the code yourself to ensure maximum privacy isolation.
+

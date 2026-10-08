@@ -8,11 +8,13 @@
 
 [![CI](https://github.com/philgear/InsightSpark/actions/workflows/ci.yml/badge.svg)](https://github.com/philgear/InsightSpark/actions/workflows/ci.yml)
 [![CodeQL Analysis](https://github.com/philgear/InsightSpark/actions/workflows/codeql.yml/badge.svg)](https://github.com/philgear/InsightSpark/actions/workflows/codeql.yml)
+[![Security: 0 Vulnerabilities](https://img.shields.io/badge/Security-0_Vulnerabilities-brightgreen?logo=security&logoColor=white)](https://github.com/philgear/InsightSpark/security)
+[![Observatory: Grade A+](https://img.shields.io/badge/Observatory-Grade_A%2B-brightgreen)](https://observatory.mozilla.org/)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![ORCID](https://img.shields.io/badge/ORCID-0009--0008--1372--5381-A6CE39?logo=orcid&logoColor=white)](https://orcid.org/0009-0008-1372-5381)
 [![Angular](https://img.shields.io/badge/Angular-v22.1.0-DD0031?logo=angular&logoColor=white)](https://angular.dev/)
 [![Express](https://img.shields.io/badge/Express-v5.2.1-000000?logo=express&logoColor=white)](https://expressjs.com/)
-[![Tests](https://img.shields.io/badge/Tests-50_Passing-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-73_Passing-brightgreen)](tests/)
 [![D3.js](https://img.shields.io/badge/D3.js-v7.9.0-F9A03F?logo=d3.js&logoColor=white)](https://d3js.org/)
 [![Google Gemini](https://img.shields.io/badge/Google_Gemini-v2.8.0-8E75C2?logo=google-gemini&logoColor=white)](https://deepmind.google/technologies/gemini/)
 [![Gemma](https://img.shields.io/badge/Gemma_2-On--Device_%26_Local-4285F4?logo=google&logoColor=white)](https://ai.google.dev/gemma)
@@ -109,7 +111,7 @@ graph TD
     Proxy -->|"Ephemeral RAM Only"| Cloud
 ```
 
-*   **Frontend ([src](./src)):** Built on Angular with signals for reactive state, D3.js for force-directed conceptual graphs, Web Speech API for voice/audio, and Tailwind CSS for glassmorphic design.
+*   **Frontend ([src](./src)):** Built on Angular with signals for reactive state, D3.js for force-directed conceptual graphs, Web Speech API for voice/audio, and pure static CSS for glassmorphic design.
 *   **Backend ([server.js](./server.js)):** A lightweight Express middleware proxy managing input sanitization, security headers (Helmet), Ollama bridges, and streaming Gemini SSE feeds with zero disk retention.
 
 ---
@@ -200,6 +202,10 @@ If you use Pivot & Pulse (InsightSpark), its clinical care methodologies, or the
 - AI services powered by **Google Gemini** & **Google Gemma**.
 - Lateral Thinking methodologies inspired by **[Edward de Bono](https://en.wikipedia.org/wiki/Edward_de_Bono)** (resources available at [debono.com](https://www.debono.com)).
 - Positive Psychology & PERMA+H framework inspired by **[Dr. Martin E.P. Seligman](https://en.wikipedia.org/wiki/Martin_Seligman)** and the UPenn Positive Psychology Center — explore Dr. Seligman's official Coursera specialization: **[Foundations of Positive Psychology Specialization by Dr. Martin Seligman on Coursera](https://www.coursera.org/specializations/positivepsychology)** (and Course 1: *[Positive Psychology: Martin E. P. Seligman’s Visionary Science](https://www.coursera.org/learn/positive-psychology-visionary-science)*).
+- Universal Systems Thinking patterns inspired by the cognitive science research of **[Drs. Derek & Laura Cabrera](https://www.cabreraresearch.org/)** (Cornell University / Cabrera Research Lab).
+- **⚖️ Academic Non-Affiliation Notice:** Pivot & Pulse is an independent, open-source educational and cognitive research workbench. It is not affiliated with, sponsored by, or endorsed by Cabrera Research Lab, Systems Thinking Standards Institute (STSI), Cornell University, or De Bono Thinking Systems. Citations to scholarly literature are provided for educational attribution under doctrine of Fair Use.
+- **🏷️ Registered Trademarks:** HL7®, HEALTH LEVEL SEVEN®, and FHIR® are the registered trademarks of Health Level Seven International and the use of these trademarks does not constitute an endorsement by HL7. Google, Gemini, and Gemma are trademarks of Google LLC. Llama is a trademark of Meta Platforms, Inc.
+- **🩺 Clinical Decision Support & Life-Safety Notice:** Pivot & Pulse is not a medical device (SaMD) and does not provide medical diagnosis, clinical treatment, or prescription therapy. Always consult qualified clinical healthcare providers. In an acute emergency, call 911 immediately or call/text the 988 Suicide & Crisis Lifeline.
 
 ---
 

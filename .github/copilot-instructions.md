@@ -21,7 +21,7 @@ Pivot & Pulse is an interactive lateral thinking workbench and medical care plan
 - **State management:** Angular signals (not NgRx or services with BehaviorSubject)
 - **Components:** Standalone components only — no NgModules
 - **Visualization:** D3.js v7 for force-directed graphs
-- **Styling:** Tailwind CSS via PostCSS
+- **Styling:** Pure static CSS & utility stylesheet (zero Tailwind or PostCSS build dependencies)
 - **Data persistence:** Browser `localStorage` only — never send user data to external storage
 - **PII Scanner:** Client-side regex-based scanner that checks for PHI/PII before any API call
 
@@ -45,7 +45,7 @@ Pivot & Pulse is an interactive lateral thinking workbench and medical care plan
 - Keep commit messages concise and descriptive
 
 ### Styling
-- Use Tailwind utility classes in templates
+- Use existing utility classes and custom properties (`var(--...)`) in templates
 - Component-specific styles in co-located CSS files
 - Design tokens: dark moody palette (`#24211c` base), rose/mauve accents, Art Nouveau aesthetic
 

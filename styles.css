@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import './src/tailwind.static.css';
 
 /* ── Spark DSRP Variable Typography (Derek & Laura Cabrera Systems Thinking) ─── */
 @font-face {
@@ -124,6 +124,10 @@ html {
   --strategy-respite-pacing: var(--strategy-green);
   --strategy-ethical-dignity: var(--strategy-chocolate);
   --strategy-environmental-safety: var(--strategy-thistle);
+  --strategy-boundary-dissolution: #9d1f3b;
+  --strategy-system-fractal: #6c7a68;
+  --strategy-feedback-loop: #e8b9c8;
+  --strategy-perspective-inversion: #fdd87a;
 
   /* Icon Assignments */
   --strategy-icon-what-if: var(--icon-purple);
@@ -143,6 +147,10 @@ html {
   --strategy-icon-sensory-bridge: var(--icon-chocolate);
   --strategy-icon-found-kinship: var(--icon-thistle);
   --strategy-icon-time-dilation: var(--icon-green);
+  --strategy-icon-boundary-dissolution: #e05c6b;
+  --strategy-icon-system-fractal: #9ae6b4;
+  --strategy-icon-feedback-loop: #f6ad55;
+  --strategy-icon-perspective-inversion: #fde047;
   --strategy-icon-fmea: var(--icon-green);
   --strategy-icon-critical-path: var(--icon-thistle);
   --strategy-icon-perma-strengths: var(--icon-green);
@@ -153,6 +161,40 @@ html {
 
   --logo-url: url('/assets/logo-dark.svg');
   accent-color: var(--text-accent);
+}
+
+/* ── DSRP 4-Quadrant Systems Thinking Grid & Badges ─── */
+.dsrp-quadrant-card {
+  position: relative;
+  border-radius: 12px;
+  padding: 1.125rem 1.25rem;
+  background: var(--card-bg-subtle);
+  border: 1px solid var(--border-color);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.dsrp-quadrant-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-color-strong);
+}
+.dsrp-badge-d {
+  background-color: rgba(157, 31, 59, 0.18);
+  color: #ff6b81;
+  border-color: rgba(157, 31, 59, 0.4);
+}
+.dsrp-badge-s {
+  background-color: rgba(108, 122, 104, 0.2);
+  color: #9ae6b4;
+  border-color: rgba(108, 122, 104, 0.45);
+}
+.dsrp-badge-r {
+  background-color: rgba(232, 185, 200, 0.18);
+  color: #f6ad55;
+  border-color: rgba(232, 185, 200, 0.4);
+}
+.dsrp-badge-p {
+  background-color: rgba(253, 216, 122, 0.18);
+  color: #fdd87a;
+  border-color: rgba(253, 216, 122, 0.4);
 }
 
 .light-theme {

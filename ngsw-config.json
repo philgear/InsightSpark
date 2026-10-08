@@ -31,7 +31,6 @@
       "updateMode": "lazy",
       "resources": {
         "urls": [
-          "https://cdn-tailwindcss.vercel.app/**",
           "https://d3js.org/**",
           "https://esm.sh/**",
           "https://fonts.gstatic.com/**",

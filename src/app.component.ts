@@ -9,6 +9,7 @@ import { StorageService, Theme } from './services/storage.service';
 import { TranslationService, SUPPORTED_LANGUAGES_LIST } from './services/translation.service';
 import { PocketgullIntegrationService } from './services/pocketgull-integration.service';
 import { CreativeStrategy, InsightItem, InsightResult, SavedInsight, STRATEGIES, CarePlan, SavedCarePlan, StructuredProblem, CreativePlan, SavedCreativePlan, CareRole } from './models/creative-types';
+import { STARTER_SCENARIOS, StarterScenario } from './models/starter-scenarios';
 import { AgenticResult, AgenticPhase, AGENTIC_PHASES } from './models/agent-types';
 import { IconComponent } from './components/ui/icon.component';
 import { HelpComponent } from './components/ui/help.component';
@@ -16,7 +17,7 @@ import { GraphViewComponent } from './components/ui/graph-view.component';
 import { LojongCleansingComponent } from './components/ui/lojong-cleansing.component';
 import { SpeechService } from './services/speech.service';
 import { WebMcpDiagnosticService } from './services/webmcp-diagnostic.service';
-import { scanForAcuteTriage, getClientPiiWarning, autoScrubPII, AcuteTriageAlert } from './utils/safety-guards';
+import { scanForAcuteTriage, scanForPoliticalAgendas, getClientPiiWarning, autoScrubPII, AcuteTriageAlert, PoliticalNeutralityAlert } from './utils/safety-guards';
 
 function getStoredApiKey(): string {
   let value = localStorage.getItem('spark_cfg_val');
@@ -223,6 +224,31 @@ export class AppComponent implements OnDestroy {
   anchorStrategies = computed(() => this.availableStrategies().filter(s => s.category === 'anchor'));
   selectedStrategyIds = signal<Set<string>>(new Set());
   copiedId = signal<string | null>(null);
+
+  // Starter Scenarios & Randomizer State
+  starterScenarios = signal<StarterScenario[]>(STARTER_SCENARIOS);
+  activeScenario = signal<StarterScenario | null>(null);
+  activeScenarioFilter = signal<string | null>(null);
+
+  availableStarterCategories = computed(() => {
+    const mode = this.appMode();
+    const scenarios = this.starterScenarios().filter(s => s.mode === mode);
+    const map = new Map<string, { category: string; label: string; icon: string }>();
+    for (const s of scenarios) {
+      if (!map.has(s.category)) {
+        map.set(s.category, { category: s.category, label: s.categoryLabel, icon: s.categoryIcon });
+      }
+    }
+    return Array.from(map.values());
+  });
+
+  filteredStarterScenarios = computed(() => {
+    const mode = this.appMode();
+    const filter = this.activeScenarioFilter();
+    const list = this.starterScenarios().filter(s => s.mode === mode);
+    if (!filter) return list;
+    return list.filter(s => s.category === filter);
+  });
 
   onImageSelected(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -471,13 +497,14 @@ export class AppComponent implements OnDestroy {
             </div>
             <div class="triad-card">
               <h4>👵👴 Grandparents</h4>
-              <p>Heritage stories, garden rituals & dignity</p>
+              <p>Heritage stories, living traditions & dignity</p>
             </div>
           </div>
 
           ${sectionsHtml}
 
           <div class="footer">
+            <p style="margin-bottom: 4px; font-weight: 500;">For wellness, educational & positive psychology support only (not a medical device). In an emergency dial 911 or call/text 988 Lifeline.</p>
             <p>Pin to refrigerator or family corkboard • Zero-data retained on servers • Open-source under Apache-2.0</p>
           </div>
           <script>
@@ -554,15 +581,46 @@ export class AppComponent implements OnDestroy {
     this.showAdvancedProviders.update(v => !v);
   }
 
+  randomizeChallenge(category?: string) {
+    const mode = this.appMode();
+    let pool = this.starterScenarios().filter(s => s.mode === mode);
+    const targetFilter = category !== undefined ? category : this.activeScenarioFilter();
+    if (targetFilter) {
+      const filtered = pool.filter(s => s.category === targetFilter);
+      if (filtered.length > 0) pool = filtered;
+    }
+    if (pool.length === 0) return;
+    const currentId = this.activeScenario()?.id;
+    const candidates = pool.length > 1 ? pool.filter(s => s.id !== currentId) : pool;
+    const picked = candidates[Math.floor(Math.random() * candidates.length)];
+    this.applyScenario(picked);
+  }
+
+  applyScenario(scenario: StarterScenario) {
+    this.activeScenario.set(scenario);
+    this.problemInput.set(scenario.prompt);
+    if (scenario.recommendedStrategies?.length) {
+      this.selectedStrategyIds.set(new Set(scenario.recommendedStrategies));
+    }
+    this.insights.set(null);
+    this.carePlan.set(null);
+    this.creativePlan.set(null);
+    this.structuredProblem.set(null);
+    this.agenticResult.set(null);
+  }
+
+  setScenarioFilter(category: string | null) {
+    this.activeScenarioFilter.set(category);
+    this.randomizeChallenge(category || undefined);
+  }
+
+  clearActiveScenario() {
+    this.activeScenario.set(null);
+  }
+
   private activateDemoPresetIfEmpty() {
     if (!this.problemInput()) {
-      if (this.appMode() === 'creative') {
-        this.problemInput.set('Designing a self-sustaining municipal park that doubles as a flood barrier and a local agricultural hub.');
-        this.selectedStrategyIds.set(new Set(['butterfly', 'combinatorial', 'kinship-triad']));
-      } else {
-        this.problemInput.set('Improve daily movement and emotional connection for a 75-year-old grandmother recovering from a hip fracture who loves gardening.');
-        this.selectedStrategyIds.set(new Set(['what-if', 'butterfly', 'kinship-triad']));
-      }
+      this.randomizeChallenge();
     }
   }
 
@@ -622,12 +680,14 @@ export class AppComponent implements OnDestroy {
   }
 
   acuteTriageAlert = computed<AcuteTriageAlert | null>(() => scanForAcuteTriage(this.problemInput()));
+  politicalAlert = computed<PoliticalNeutralityAlert | null>(() => scanForPoliticalAgendas(this.problemInput()));
   piiWarning = computed<string | null>(() => getClientPiiWarning(this.problemInput()));
 
   isGenerateDisabled = computed(() => 
     this.problemInput().trim().length < 5 || 
     this.isLoading() || 
     (!!this.acuteTriageAlert() && !this.triageAcknowledged()) || 
+    !!this.politicalAlert() || 
     !!this.piiWarning() || 
     this.charCount() > this.maxCharLimit
   );
@@ -1142,7 +1202,7 @@ export class AppComponent implements OnDestroy {
            formatSection("Guidance & Education", plan.guidanceAndEducation) +
            formatSection("Positive Achievements", plan.positiveAchievements) +
            formatSection("Recommendations", plan.recommendations) +
-           `\n— Generated via Pivot & Pulse (designed by Phil Gear), powered by Google Gemini (Open-source under Apache-2.0). Inspired by Edward de Bono's lateral thinking principles.`;
+           `\n— Generated via Pivot & Pulse (designed by Phil Gear), powered by Google Gemini (Open-source under Apache-2.0).\n[Notice: For wellness, educational & positive psychology support only. Not a medical device. Always consult licensed clinicians for medical diagnosis or treatment. In an acute emergency, call 911 or contact 988 Lifeline.]`;
   }
 
   copyCarePlan(plan?: CarePlan, problem?: string) {

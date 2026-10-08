@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { CreativeStrategy, InsightResult, SavedInsight, CarePlan, StructuredProblem, CreativePlan, SavedItem } from '../models/creative-types';
+import { STARTER_SCENARIOS } from '../models/starter-scenarios';
 import { StrategySelection, DebateEntry, RefinedInsight, AgenticResult, AgenticPhase } from '../models/agent-types';
 import { parse } from 'partial-json';
 
@@ -137,6 +138,30 @@ export class GeminiService {
 
   async structureHealthGoal(problem: string, image?: { mimeType: string; data: string }): Promise<StructuredProblem> {
     if (this.isDemoMode()) {
+      const pLower = problem.toLowerCase();
+      const matched = STARTER_SCENARIOS.find(s => 
+        s.prompt === problem ||
+        pLower.includes(s.category) ||
+        pLower.includes(s.title.toLowerCase())
+      );
+      if (matched && matched.domainContext) {
+        return {
+          title: matched.title,
+          condition: `Active Vitality & ${matched.categoryLabel}`,
+          goal: matched.gist,
+          barriers: [
+            "Fear of fatigue or overexertion during active sessions",
+            "Need for ergonomic adaptations and safe seated stations",
+            "Protecting caregiver stamina and scheduled weekly respite"
+          ],
+          dsrp: {
+            identityDistinctions: matched.domainContext.identityAssets,
+            systemicEcosystem: matched.domainContext.ecosystem,
+            relationalBridge: matched.domainContext.relational,
+            triadPerspectives: matched.domainContext.perspectives
+          }
+        };
+      }
       return {
         title: "Hip Recovery & Gardening Connection",
         condition: "Post-hip fracture recovery",
@@ -145,7 +170,13 @@ export class GeminiService {
           "Fear of falling or re-injury",
           "Inability to bend down or lift heavy watering cans",
           "Fatigue and limited standing tolerance"
-        ]
+        ],
+        dsrp: {
+          identityDistinctions: "Lifelong master gardener and community mentor — 100% unaffected passion for botany, propagation, and seed catalog curation to fuel rehabilitation.",
+          systemicEcosystem: "Circadian pacing: morning hip stiffness mitigated by 10-minute warm compress + chamomile tea, balancing parasympathetic vagal tone and protecting restorative deep sleep architecture.",
+          relationalBridge: "Granddaughter assists with elevated potting bench soil transfers; spouse handles heavy watering cans, breaking the isolation-pain-immobility feedback loop.",
+          triadPerspectives: "Clinician (biomechanical hip precautions & gradual weight bearing) + Patient (morning apprehension and fear of falling) + Future Self (walking kneeling-free in the summer sunflower garden in 6 months)."
+        }
       };
     }
     const cacheKey = problem.trim() + (image ? `|img:${image.data.substring(0, 32)}` : '');
@@ -469,6 +500,48 @@ export class GeminiService {
       throw new Error("No insights provided to generate a care plan.");
     }
     if (this.isDemoMode()) {
+      const pLower = problem.toLowerCase();
+      const matched = STARTER_SCENARIOS.find(s => 
+        s.prompt === problem ||
+        pLower.includes(s.category) ||
+        pLower.includes(s.title.toLowerCase())
+      );
+      if (matched && matched.domainContext) {
+        return {
+          personGoal: matched.gist,
+          keyInterventions: matched.domainContext.sampleInterventions,
+          monitoringPlan: [
+            `Track daily engagement and flow scores during ${matched.categoryLabel} sessions.`,
+            `Observe posture comfort and fatigue cues with 15-minute natural pacing intervals.`,
+            `Verify caregiver weekly respite hours to guarantee protected rest.`
+          ],
+          guidanceAndEducation: [
+            `Introduce ergonomic adaptations and seated stations to eliminate prolonged physical strain.`,
+            `Prioritize connection, storytelling, and micro-mastery over speed or perfection.`,
+            `Empower the person with autonomous choice over timing, partners, and activity selection.`
+          ],
+          positiveAchievements: [
+            `Celebrate completion of the first weekly ${matched.categoryLabel} session with family.`,
+            `Acknowledge successful micro-mastery without pain or exhaustion.`,
+            `Recognize the multi-generational bond and joy shared across family circles.`
+          ],
+          recommendations: [
+            `Schedule recurring sessions at the same comfortable time of day.`,
+            `Maintain a dedicated, clutter-free space with accessible tools and adaptive seating.`,
+            `Keep a lighthearted reflection journal capturing memorable stories, insights, or laughs.`
+          ],
+          transitionChecklist: [
+            `Verify 72-hour safety clearance: confirm path, lighting, and seating stability.`,
+            `Reconcile activity timing with medication schedules to prevent peak fatigue windows.`,
+            `Establish direct contact protocol between family coordinator and clinical team.`
+          ],
+          respiteClosureChecklist: [
+            `Schedule dedicated 3-hour weekly respite window for primary caregiver.`,
+            `Confirm secondary family partner or neighbor volunteer handoff.`,
+            `Check in on caregiver fatigue metrics weekly to adjust support pacing.`
+          ]
+        };
+      }
       return {
         personGoal: "Re-engage in modified gardening activities to safely build mobility and lift mood post-hip recovery.",
         keyInterventions: [
@@ -877,6 +950,70 @@ export class GeminiService {
             { text: "Pre-mortem critical risk: Silt clogging subterranean drainage pipes during high-turbidity floods. Guardrail: Install modular, surface-accessible gravel filtration beds that can be backwashed and serviced without heavy excavators." },
             { text: "Pre-mortem secondary risk: Electrical failure to floodgate telemetry during severe storms. Guardrail: Implement counterweight gravitational release valves that trip automatically when water reaches a 3-foot threshold." }
           ];
+        } else if (sId === 'boundary-dissolution') {
+          insights = [
+            { text: "Erase the boundary between park visitors and botanical stewards: transform bench backs into modular seed-starter racks where everyday visitors nurture native wetland plants in situ." },
+            { text: "Dissolve the park perimeter: replace fences with permeable bio-swales that bleed effortlessly into surrounding sidewalks, absorbing street runoff into an unbordered urban sponge." }
+          ];
+        } else if (sId === 'system-fractal') {
+          insights = [
+            { text: "Zoom to the parent river basin: rather than engineering local retaining ponds, coordinate upstream agricultural runoff wetlands to absorb flash surges before they reach urban park boundaries." },
+            { text: "Fractal modularity: design miniature bioswales in street curbs that replicate the large central wetland at 1:100 scale, multiplying flood retention exponentially across the city grid." }
+          ];
+        } else if (sId === 'feedback-loop') {
+          insights = [
+            { text: "Close the regenerative energy loop: divert midday solar canopy excess into kinetic water fountain pumps that store gravitational potential energy for nighttime illuminated walking paths." },
+            { text: "Self-reinforcing adoption loop: every completed community plot yields free compost and native seeds for adjacent plots, accelerating neighborhood ownership and stewardship." }
+          ];
+        } else if (sId === 'perspective-inversion') {
+          insights = [
+            { text: "Through the eyes of an urban sparrow: design vertical canopy layers with native berry shrubs and roosting nooks, using avian biodiversity as natural pest control and acoustic dampening." },
+            { text: "Through the lens of a 9th-century monastic archivist: craft stone-etched contemplative sundials and drought-tolerant medicinal herb quadrants built to endure multi-century climate fluctuations." }
+          ];
+        }
+      } else if (mode === 'care' && STARTER_SCENARIOS.some(sc => sc.prompt === problem || textLower.includes(sc.category) || textLower.includes(sc.title.toLowerCase())) && !isDefaultCareQuery) {
+        const matched = STARTER_SCENARIOS.find(sc => sc.prompt === problem || textLower.includes(sc.category) || textLower.includes(sc.title.toLowerCase()))!;
+        const ctx = matched.domainContext;
+        if (sId === 'what-if') {
+          insights = [
+            { text: `What if success is measured by joyful participation and laughter in ${matched.categoryLabel}, rather than physical performance speed?`, influence: "P (Positive Emotion): Re-centers the human spirit and intrinsic joy." },
+            { text: `What if we adapt the home environment so ${matched.gist}`, influence: "Accomplishment (A): Micro-mastery." }
+          ];
+        } else if (sId === 'butterfly') {
+          insights = [
+            { text: ctx ? ctx.sampleInterventions[0] : `Introduce a gentle 10-minute micro-habit around ${matched.categoryLabel}.`, influence: "Agency (A): Smallest friction-free adjustment with highest cascading confidence." },
+            { text: ctx && ctx.sampleInterventions[1] ? ctx.sampleInterventions[1] : "Schedule active moments during peak vitality hours with a warm tea handoff.", influence: "Vitality (+H): Sustainable physical stamina." }
+          ];
+        } else if (sId === 'kinship-triad') {
+          insights = [
+            { text: ctx ? ctx.relational : `Involve multiple generations in ${matched.categoryLabel} rituals so the elder is mentor, not passive recipient.`, influence: "Relationships (R): Distributes family care joyfully while protecting caregiver respite." },
+            { text: `Create a dedicated weekly family circle celebrating shared memories and creative milestones in ${matched.categoryLabel}.`, influence: "Meaning (M): Dignity and intergenerational heritage." }
+          ];
+        } else if (sId === 'burnout-shield') {
+          insights = [
+            { text: "Establish a non-negotiable weekly 3-hour respite window for the primary family caregiver while a secondary partner or volunteer accompanies the session.", influence: "Vitality (+H): Protects caregiver sustainability and prevents emotional exhaustion." },
+            { text: "Share care duties across the family circle with explicit handoff times.", influence: "Relationships (R): Respite invariant." }
+          ];
+        } else if (sId === 'sensory-bridge') {
+          insights = [
+            { text: ctx ? ctx.ecosystem : `Design a sensory sanctuary for ${matched.categoryLabel} with ergonomic seating and warm lighting.`, influence: "Engagement (E): Creates tactile, auditory, and environmental safety." },
+            { text: "Incorporate calming acoustic elements and warm natural lighting to ease nervous system guarding.", influence: "Vitality (+H): Parasympathetic restoration." }
+          ];
+        } else if (sId === 'via-strengths' || sId === 'perma-strengths') {
+          insights = [
+            { text: ctx ? ctx.identityAssets : `Anchor self-worth in mastery of ${matched.categoryLabel} and lived wisdom.`, influence: "Meaning (M): Amplifies enduring signature strengths separate from physical limitations." },
+            { text: `Celebrate daily micro-mastery milestones in ${matched.categoryLabel}.`, influence: "Accomplishment (A): Flourishing." }
+          ];
+        } else if (sId === 'fmea-risk' || sId === 'fmea') {
+          insights = [
+            { text: `Pre-mortem fatigue hazard: Overexertion during ${matched.categoryLabel}. Guardrail: Enforce 15-minute gentle seated checkpoints with hydration.`, influence: "Safety: Prevents post-exertional crash." },
+            { text: "Pre-mortem isolation: Caregiver or elder carrying the emotional load alone. Guardrail: Weekly shared check-in with family circle.", influence: "Relational support: Respite protection." }
+          ];
+        } else {
+          insights = [
+            { text: ctx && ctx.sampleInterventions[2] ? ctx.sampleInterventions[2] : `Integrate ${matched.categoryLabel} with ergonomic adaptations and gentle pacing.`, influence: "Well-being: Grounded practical step." },
+            { text: ctx ? ctx.perspectives : "Harmonizes safety guidelines, lived experience, and flourishing.", influence: "Perspectives (P): Triad alignment." }
+          ];
         }
       } else if (mode === 'care' && isDefaultCareQuery) {
         if (sId === 'what-if') {
@@ -918,6 +1055,26 @@ export class GeminiService {
           insights = [
             { text: "Establish a 3-Generation Garden Circle: Granddaughter draws color markers and plays music, Grandmother shares heirloom planting wisdom at table height, and Mother receives 45 minutes of peaceful respite.", influence: "Distributes care joyfully across generations, preventing caregiver burnout while honoring elder dignity." },
             { text: "Create a Heritage Seed Album: Grandson photographs and labels daily sprouting progress on a tablet while Grandfather demonstrates traditional wooden seed trays.", influence: "Connects generational curiosity and craftsmanship into a shared micro-mastery milestone." }
+          ];
+        } else if (sId === 'boundary-dissolution') {
+          insights = [
+            { text: "The Patient is Not the Pathology: Separate the hip trauma from her lifelong identity as an expert horticulturist. Re-engage her editorial eye by having her curate the neighborhood autumn seed catalog from a comfortable armchair.", influence: "Distinctions (D): Anchors self-worth and motivation in unaffected cognitive passions." },
+            { text: "Dissolve the boundary between physical rehabilitation and joyful hobby: treat soil mixing, bulb sorting, and seedling propagation as natural fine-motor dexterity and core stabilization micro-actions.", influence: "Distinctions (D): Erases the sterile clinical border, transforming therapy into genuine joy." }
+          ];
+        } else if (sId === 'system-fractal') {
+          insights = [
+            { text: "Ecosystem of Recovery: Balance autonomic vagal tone before physical movement. Practice 4-7-8 diaphragmatic breathwork beside a lavender diffuser for 5 minutes prior to standing up, downregulating cortisol and easing muscle guarding.", influence: "Systems (S): Restores parasympathetic balance, reducing autonomic pain hypersensitivity before movement." },
+            { text: "Circadian Sleep Architecture: Optimize the 24-hour cycle. Schedule 15 minutes of morning sun on the porch to reinforce melatonin onset, safeguarding restorative deep sleep architecture for orthopedic tissue remodeling.", influence: "Systems (S): Leverages circadian rhythms to accelerate cellular tissue repair." }
+          ];
+        } else if (sId === 'feedback-loop') {
+          insights = [
+            { text: "The Relational Care Bridge: Break the pain-fear-immobility feedback loop. When hesitation strikes, have a family partner join in a seated rhythmic clapping or foot-tapping song to bypass gait freezing at the lowest friction point.", influence: "Relationships (R): Dismantles the vicious pain-fear cycle through shared human warmth." },
+            { text: "Intergenerational Micro-Task Bridge: Pair the 10-year-old grandchild with watering tasks while grandmother provides gentle direction, turning clinical care into playful family bonding and protecting caregiver respite.", influence: "Relationships (R): PERMA Relationships: transforms recovery into multi-generational joy." }
+          ];
+        } else if (sId === 'perspective-inversion') {
+          insights = [
+            { text: "The Triad Perspective Shift: Align the 3 vital lenses. Balance the Orthopedist's 90-degree flexion rule with the Patient's fear of re-injury through the Future Self's lens: envisioning walking effortlessly at her granddaughter's spring graduation.", influence: "Perspectives (P): Harmonizes biomechanical safety with emotional reality and future-oriented hope." },
+            { text: "The Plant's Perspective: Reframe recovery through perennial roots. Remind her that dormant winter roots establish the strongest spring blooms—patience and micro-steps are active growth, not stagnation.", influence: "Perspectives (P): Shifts mindset from frustration to organic, compassionate patience." }
           ];
         }
       }

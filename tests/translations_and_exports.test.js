@@ -191,17 +191,17 @@ describe('Translation & Internationalization Suite', () => {
     }
   });
 
-  test('Complete strategy registry contains 24 models (17 provocations, 7 anchors)', async () => {
+  test('Complete strategy registry contains 28 models (21 provocations, 7 anchors)', async () => {
     const { STRATEGIES } = await import('../src/models/creative-types.ts');
-    assert.strictEqual(STRATEGIES.length, 24, 'Must have exactly 24 strategies');
+    assert.strictEqual(STRATEGIES.length, 28, 'Must have exactly 28 strategies');
 
     const provocations = STRATEGIES.filter(s => s.category !== 'anchor');
     const anchors = STRATEGIES.filter(s => s.category === 'anchor');
 
-    assert.strictEqual(provocations.length, 17, 'Must have exactly 17 divergent provocations');
+    assert.strictEqual(provocations.length, 21, 'Must have exactly 21 divergent provocations');
     assert.strictEqual(anchors.length, 7, 'Must have exactly 7 systems rigor anchors');
 
-    // Verify new provocations
+    // Verify recent provocations
     const newProvocationIds = ['sensory-bridge', 'found-kinship', 'time-dilation'];
     for (const id of newProvocationIds) {
       const s = STRATEGIES.find(item => item.id === id);
@@ -209,6 +209,42 @@ describe('Translation & Internationalization Suite', () => {
       assert.ok(s.careModeName, `New provocation ${id} must have careModeName`);
       assert.ok(s.agentPersona, `New provocation ${id} must have agentPersona`);
     }
+
+    // Verify DSRP 4-Quadrant Power Cards
+    const dsrpCards = [
+      { id: 'boundary-dissolution', name: 'Boundary Dissolution', careName: 'Identity vs. Pathology', color: '#9D1F3B' },
+      { id: 'system-fractal', name: 'System Fractal (Parts & Wholes)', careName: 'Ecosystem of Recovery', color: '#6C7A68' },
+      { id: 'feedback-loop', name: 'Unseen Ties & Feedback Loops', careName: 'Relational Care Bridge', color: '#E8B9C8' },
+      { id: 'perspective-inversion', name: 'Perspective Inversion', careName: 'Triad Perspective Shift', color: '#FDD87A' }
+    ];
+
+    for (const card of dsrpCards) {
+      const s = STRATEGIES.find(item => item.id === card.id);
+      assert.ok(s, `DSRP strategy card ${card.id} must exist in registry`);
+      assert.strictEqual(s.name, card.name);
+      assert.strictEqual(s.careModeName, card.careName);
+      assert.strictEqual(s.color, card.color);
+      assert.ok(s.description.length > 20, `Strategy ${card.id} must have a rich creative prompt`);
+      assert.ok(s.careModeDescription.length > 20, `Strategy ${card.id} must have a rich care description`);
+      assert.ok(s.agentPersona.length > 20, `Strategy ${card.id} must have an agent persona`);
+    }
+  });
+
+  test('GeminiService in Demo Mode returns DSRP 4-quadrant structured problem', async () => {
+    const { GeminiService } = await import('../src/services/gemini.service.ts');
+    const service = new GeminiService();
+    globalThis.localStorage = {
+      getItem: (key) => key === 'spark_cfg_val' ? 'demo-key-active' : null,
+      setItem: () => {},
+      removeItem: () => {}
+    };
+
+    const structured = await service.structureHealthGoal('Test Knee and Garden Connection');
+    assert.ok(structured.dsrp, 'StructuredProblem must include dsrp quadrants in Demo Mode');
+    assert.ok(structured.dsrp.identityDistinctions.includes('gardener'), 'Quadrant D must emphasize identity over pathology');
+    assert.ok(structured.dsrp.systemicEcosystem.includes('vagal tone') || structured.dsrp.systemicEcosystem.includes('sleep'), 'Quadrant S must map circadian/vagal ecosystem');
+    assert.ok(structured.dsrp.relationalBridge.includes('loop'), 'Quadrant R must map relational bridge & breaking loop');
+    assert.ok(structured.dsrp.triadPerspectives.includes('Clinician') && structured.dsrp.triadPerspectives.includes('Future Self'), 'Quadrant P must triangulate triad perspectives');
   });
 
   test('FHIR R4 Bundle Builder maps Care Transition & Respite Checklists to ServiceRequest activities', () => {

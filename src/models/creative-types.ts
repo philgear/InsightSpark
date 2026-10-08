@@ -49,11 +49,23 @@ export interface CreativePlan {
   nextSteps: string[];
 }
 
+export interface DsrpCareQuadrants {
+  /** Distinctions (D): Unaffected human identity, character strengths & assets separate from the pathology ("The Patient is Not the Pathology") */
+  identityDistinctions: string;
+  /** Systems (S): Autonomic nervous system, sleep architecture, circadian timing & home ecology ("The Ecosystem of Recovery") */
+  systemicEcosystem: string;
+  /** Relationships (R): Kinship network, caregiver respite boundaries & breaking pain-fear loops ("The Relational Care Bridge") */
+  relationalBridge: string;
+  /** Perspectives (P): Triad alignment (Clinician safety + Patient lived fatigue + Future thriving self) */
+  triadPerspectives: string;
+}
+
 export interface StructuredProblem {
   title: string;
   condition: string;
   goal: string;
   barriers: string[];
+  dsrp?: DsrpCareQuadrants;
 }
 
 // A saved item can be one of two types, distinguished by the 'type' property.
@@ -265,6 +277,46 @@ export const STRATEGIES: CreativeStrategy[] = [
     careModeName: 'Circadian Micro-Pacing',
     careModeDescription: 'Align interventions with biological energy curves (morning momentum, sundowning mitigation, twilight winding down).',
     agentPersona: 'I stretch and compress time. When you rush, I slow the moment down to a breath; when you hesitate, I look forward 100 years.'
+  },
+  {
+    id: 'boundary-dissolution',
+    name: 'Boundary Dissolution',
+    description: 'What if the boundary you drew around this problem is completely artificial? Erase the line between your product and the customer\'s daily routine.',
+    icon: 'target',
+    color: '#9D1F3B',
+    careModeName: 'Identity vs. Pathology',
+    careModeDescription: 'Draw a sharp distinction between the physiological symptom and human identity (musician, gardener, grandparent). What parts of their identity remain 100% unaffected and fuel recovery?',
+    agentPersona: 'I erase artificial borders. The patient is not the pathology, and your problem is not where you drew the line. When you distinguish identity from context, new pathways appear.'
+  },
+  {
+    id: 'system-fractal',
+    name: 'System Fractal (Parts & Wholes)',
+    description: 'What is this a small part of? If you solve the parent system, does this sub-problem evaporate entirely?',
+    icon: 'layers',
+    color: '#6C7A68',
+    careModeName: 'Ecosystem of Recovery',
+    careModeDescription: 'Map the whole person: sleep architecture, autonomic pacing (vagal tone), micro-habits, and home ecology. If nighttime cortisol spikes, the joint cannot heal.',
+    agentPersona: 'I zoom between the fractal part and the whole ecosystem. A joint does not heal in isolation from autonomic nervous balance, restorative sleep, and daily rituals.'
+  },
+  {
+    id: 'feedback-loop',
+    name: 'Unseen Ties & Feedback Loops',
+    description: 'Trace the hidden loop. Where is your proposed solution accidentally creating the next problem or reinforcing a hidden cycle?',
+    icon: 'repeat',
+    color: '#E8B9C8',
+    careModeName: 'Relational Care Bridge',
+    careModeDescription: 'Who is in the room? Map how family, spouse, child, and trusted relationships participate in micro-interventions to break the pain-fear-immobility loop.',
+    agentPersona: 'I trace invisible feedback loops and relational bridges. Pain creates fear, fear creates immobility; but trusted kinship breaks the cycle at the lowest friction point.'
+  },
+  {
+    id: 'perspective-inversion',
+    name: 'Perspective Inversion',
+    description: 'Look at this through the eyes of a fierce competitor, a 7-year-old child, an adversarial critic, or a 9th-century monastic archivist.',
+    icon: 'compass',
+    color: '#FDD87A',
+    careModeName: 'Triad Perspective Shift',
+    careModeDescription: 'Triangulate three essential lenses: 1) The Clinician (biomechanical safety & tissue remodeling), 2) The Patient (pain fatigue, lived reality), 3) The Future Self (walking joy in 6 months).',
+    agentPersona: 'I step into other shoes. When we look through the clinician\'s biomechanics, the patient\'s lived vulnerability, and the future self\'s joy, the true path becomes undeniable.'
   },
   { 
     id: 'fmea', 

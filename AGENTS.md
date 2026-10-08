@@ -8,7 +8,7 @@ Welcome to **Pivot & Pulse (InsightSpark)**, an interactive lateral thinking wor
 
 *   **Frontend Framework:** Angular 22 (Standalone Components only; **NO** legacy `NgModule`).
 *   **State Management:** Angular Reactive Signals (`signal()`, `computed()`, `effect()`) for all dynamic UI state.
-*   **Styling:** Tailwind CSS with custom glassmorphic variables and color tokens (`var(--...)`).
+*   **Styling:** Static CSS with custom glassmorphic variables and color tokens (`var(--...)`), using pure native stylesheets (zero Tailwind or PostCSS build dependencies).
 *   **Visualizations:** D3.js (v7.9+) force-directed graphs and responsive SVG rendering.
 *   **Speech & Living Room Audio:** Native Web Speech API for voice dictation and synthesized text-to-speech (TTS) playback.
 *   **Backend Proxy:** Express 5 (`server.js`) serving as a stateless middleware proxy with zero disk retention of prompts or PII.
@@ -41,6 +41,16 @@ Welcome to **Pivot & Pulse (InsightSpark)**, an interactive lateral thinking wor
 Every generated Care Plan must provide concrete, closed-loop checklists for:
 1.  **Care Transitions (72h / 30d):** Post-acute discharge or stage-transition handoffs (medication reconciliation, environmental safety checks, follow-up contact handoffs).
 2.  **Caregiver Respite Safeguards:** Non-negotiable weekly respite schedules (3–4 hours/week minimum) and designated handoff partners.
+
+### D. Strict Civic Neutrality & Anti-Dark-Politics Directives
+*   **Prohibition on Dark Political Engineering:** Never use the workbench, models, or datasets for partisan election campaigns, opposition hit-pieces, astroturfing, manufactured grassroots outrage, coordinated disinformation operations, or political radicalization.
+*   **Deterministic Shielding:** All input queries MUST pass the `PoliticalNeutralityGuard` pre-flight interceptor before LLM dispatch.
+*   **Apolitical Grounding:** When addressing civic or community challenges, all generated insights MUST remain objective, apolitical, depolarizing, and anchored strictly in constructive human-centered design and stakeholder empathy.
+
+### E. Civil Rights, Non-Discrimination & Algorithmic Fairness Directives (ACA § 1557 / 45 CFR § 92.210)
+*   **Prohibition on Discriminatory Decision-Making:** Never employ, recommend, or design algorithmic scoring, insurance rationing heuristics, or disparate-impact profiling based on race, color, national origin, ethnicity, sex, gender identity, sexual orientation, age, religion, or disability.
+*   **Voluntary Wellness & Anti-Gatekeeping Standard:** Generated care frameworks and reflection cards must always function as empowering, voluntary wellness scaffolds. They must NEVER be formatted as automated gates to deny healthcare services, clinical resources, or public benefits.
+*   **Disability Autonomy Invariant ("Nothing About Me Without Me"):** All multi-generational plans must preserve individual autonomy, dignity, and voluntary agency, outlawing coercive paternalism or custodial deprivation of rights.
 
 ---
 

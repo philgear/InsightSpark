@@ -180,7 +180,16 @@ if (!apiKey) {
   ai = new GoogleGenAI({ apiKey });
 }
 
+const CIVIC_NEUTRALITY_INSTRUCTION = `
+You are a creative, rigorous, and apolitical ideation partner. 
+Your core directives for civic neutrality and public safety are:
+1. Strict Civic & Political Neutrality: Never generate partisan political campaigning, election interference, attack messaging, opposition smears, or ideological polarization.
+2. Anti-Astroturfing & Anti-Disinformation: Never assist in fabricating artificial grassroots movements, synthetic outrage, sockpuppet campaigns, bot-farm strategies, or deceptive influence operations.
+3. Constructive Depolarization: If a problem touches upon public policy or civic systems, anchor strictly in balanced, evidence-based systems thinking (DSRP), stakeholder empathy, and constructive human well-being, without adopting partisan bias or ideological extremism.
+`;
+
 const HIPAA_SYSTEM_INSTRUCTION = `
+${CIVIC_NEUTRALITY_INSTRUCTION}
 You are a compassionate, knowledgeable, and HIPAA-compliant care support AI partner. Your primary function is to provide creative and supportive insights for an individual's care based on a de-identified health goal. 
 
 Your core principles are:
@@ -192,10 +201,11 @@ Your core principles are:
 
 Direct Preference Optimization (DPO) Alignment Rubric:
 - PREFER (Chosen): Asset-based inquiry, environmental micro-adaptations, caregiver respite, questions to empower the patient in clinical visits, actionable hope.
-- REJECT (Penalized): Prescriptive medical diagnosis, pathologizing deficit language ("patient failed to..."), overwhelming checklists, fear-based motivation.
+- REJECT (Penalized): Prescriptive medical diagnosis, pathologizing deficit language ("patient failed to..."), overwhelming checklists, fear-based motivation, partisan or political weaponization.
 
-Crucial Safety Instruction:
-Under no circumstances should you ever repeat, store, or include any Personally Identifiable Information (PII) such as names, dates, addresses, or specific identifiers in your response. Your output must be completely anonymous and focused solely on the abstract health challenge.
+Crucial Safety & Civic Neutrality Instructions:
+1. Under no circumstances should you ever repeat, store, or include any Personally Identifiable Information (PII) such as names, dates, addresses, or specific identifiers in your response. Your output must be completely anonymous and focused solely on the abstract health challenge.
+2. Strict Civic & Political Neutrality: InsightSpark is strictly an apolitical workbench. Never incorporate partisan political rhetoric, election campaign agendas, dark political psychology, ideological polarization, culture-war tropes, or conspiratorial propaganda into your insights or plans. If prompted with political subtexts, re-anchor entirely in universal, human-centered well-being, empathy, and constructive problem-solving.
 `;
 
 // Scan string for acute medical emergencies and suicide/crisis distress
@@ -264,8 +274,57 @@ function scanForPII(text) {
   return foundPII;
 }
 
-// Pre-flight safety interceptor for acute medical and crisis distress
+// Scan string for political campaigning, astroturfing, and radicalization
+function scanForPoliticalAgendas(text) {
+  if (!text || typeof text !== 'string') return null;
+  const input = text.length > 2000 ? text.slice(0, 2000) : text;
+
+  const astroturfingRegex = /\b(?:astroturf(?:ing)?|manufacture\s+(?:false\s+)?grassroots|manufactured\s+outrage|coordinated\s+inauthentic|fake\s+grassroots\s+movement|bot\s+farm|deepfake\s+campaign|disinformation\s+campaign|influence\s+operation)\b/i;
+  if (astroturfingRegex.test(input)) {
+    return {
+      isPoliticalViolation: true,
+      category: 'astroturfing',
+      reason: 'Disinformation & Astroturfing Detected',
+      guidance: 'InsightSpark is an apolitical workbench dedicated strictly to intergenerational care, positive psychology (PERMA+H), and lateral creative problem-solving. Astroturfing, artificial grassroots manipulation, and disinformation operations are strictly prohibited.'
+    };
+  }
+
+  const radicalizationRegex = /\b(?:overthrow\s+(?:the\s+)?government|civil\s+war\s+insurrection|subvert\s+(?:the\s+)?election|political\s+violence|weaponize\s+(?:political\s+)?division|radicalize\s+voters)\b/i;
+  if (radicalizationRegex.test(input)) {
+    return {
+      isPoliticalViolation: true,
+      category: 'radicalization',
+      reason: 'Political Subversion & Radicalization Detected',
+      guidance: 'InsightSpark cannot be used to coordinate political subversion, insurrection, election tampering, or partisan radicalization.'
+    };
+  }
+
+  const politicalCampaignRegex = /\b(?:smear\s+campaign|attack\s+ad|voter\s+suppression|rig\s+(?:the\s+)?election|discredit\s+the\s+(?:democrats|republicans|tories|labour|party|opposition)|political\s+hit[- ]piece|partisan\s+(?:attack|propaganda|smear)|defeat\s+(?:the\s+)?(?:gop|dnc|liberals|conservatives))\b/i;
+  if (politicalCampaignRegex.test(input)) {
+    return {
+      isPoliticalViolation: true,
+      category: 'campaigning',
+      reason: 'Partisan Political Campaigning Detected',
+      guidance: 'InsightSpark is an apolitical workbench designed for family caregiving sustainability, personal well-being, and constructive creative ideation. Partisan political campaigns, opposition hit pieces, and election attack strategies are out of scope.'
+    };
+  }
+
+  return null;
+}
+
+// Pre-flight safety interceptor for acute medical, crisis distress, and political motivations
 function checkPreFlightSafety(text, req = null) {
+  const politicalAlert = scanForPoliticalAgendas(text);
+  if (politicalAlert) {
+    return {
+      status: 400,
+      json: {
+        error: `Civic Neutrality Guard: ${politicalAlert.reason}. ${politicalAlert.guidance}`,
+        politicalAlert
+      }
+    };
+  }
+
   if (req && (req.body?.triageAcknowledged === true || req.headers?.['x-triage-acknowledged'] === 'true')) {
     return null;
   }
@@ -309,10 +368,37 @@ function isLocalModel(model) {
   return typeof model === 'string' && (model.startsWith('ollama:') || model.startsWith('local:'));
 }
 
+const SAFE_OLLAMA_HOSTNAMES = Object.freeze({
+  'localhost': 'localhost',
+  '127.0.0.1': '127.0.0.1',
+  '[::1]': '[::1]',
+  '::1': '[::1]',
+  'host.docker.internal': 'host.docker.internal'
+});
+
 function getOllamaUrl(req = null) {
+  const defaultHost = process.env.OLLAMA_HOST || 'http://localhost:11434';
   const customHost = req?.headers?.['x-ollama-host'] || req?.body?.ollamaHost;
-  const host = customHost || process.env.OLLAMA_HOST || 'http://localhost:11434';
-  return host.startsWith('http://') || host.startsWith('https://') ? host : `http://${host}`;
+  if (!customHost || typeof customHost !== 'string') {
+    return defaultHost;
+  }
+
+  try {
+    const raw = customHost.includes('://') ? customHost : `http://${customHost}`;
+    const parsed = new URL(raw);
+    const hostKey = parsed.hostname.toLowerCase();
+    const safeHost = SAFE_OLLAMA_HOSTNAMES[hostKey];
+    if (!safeHost) {
+      return defaultHost;
+    }
+
+    const safeProto = parsed.protocol === 'https:' ? 'https:' : 'http:';
+    const portNum = Number.parseInt(parsed.port, 10);
+    const safePort = Number.isInteger(portNum) && portNum > 0 && portNum <= 65535 ? `:${portNum}` : ':11434';
+    return `${safeProto}//${safeHost}${safePort}`;
+  } catch {
+    return defaultHost;
+  }
 }
 
 function cleanJsonString(str) {
@@ -540,13 +626,36 @@ app.post('/api/structure', [
             type: Type.ARRAY,
             items: { type: Type.STRING },
             description: "A list of 2-3 potential barriers or challenges to achieving the goal, as identified from the input. Example: ['Fear of movement', 'Limited access to physical therapy', 'History of slow healing']."
+          },
+          dsrp: {
+            type: Type.OBJECT,
+            description: "DSRP 4-Quadrant Systems Thinking breakdown of the health goal.",
+            properties: {
+              identityDistinctions: {
+                type: Type.STRING,
+                description: "Distinctions (D): 'The Patient is Not the Pathology'. Unaffected human identity, lifelong passions, and core assets separate from the symptom (e.g. musician, avid gardener, grandparent) to fuel recovery."
+              },
+              systemicEcosystem: {
+                type: Type.STRING,
+                description: "Systems (S): 'The Ecosystem of Recovery'. Map whole-person physiology: sleep architecture, autonomic pacing (vagal tone), circadian rhythms, and living room floor dynamics."
+              },
+              relationalBridge: {
+                type: Type.STRING,
+                description: "Relationships (R): 'The Relational Care Bridge'. How spouse, children, chosen family, and caregiver respite partners break the pain-fear-immobility loop through shared micro-interventions."
+              },
+              triadPerspectives: {
+                type: Type.STRING,
+                description: "Perspectives (P): 'The Triad Perspective Shift'. Triangulate 3 lenses: 1) Clinician (biomechanics & safe tissue remodeling), 2) Patient (pain fatigue & morning anxiety), 3) Future Self (walking joy 6 months out)."
+              }
+            },
+            required: ['identityDistinctions', 'systemicEcosystem', 'relationalBridge', 'triadPerspectives']
           }
         },
-        required: ['title', 'condition', 'goal', 'barriers']
+        required: ['title', 'condition', 'goal', 'barriers', 'dsrp']
     };
 
     const prompt = `
-        Analyze the following de-identified health goal. Your task is to chunk the information into a structured JSON object.
+        Analyze the following de-identified health goal using Derek & Laura Cabrera's DSRP Systems Thinking framework and Seligman's PERMA+H positive psychology. Your task is to chunk the information into a structured JSON object.
 
         **Health Goal Input:**
         "${problem}"
@@ -556,6 +665,11 @@ app.post('/api/structure', [
         - Populate the JSON object according to the schema.
         - The 'title' should be very short and serve as a quick summary.
         - The 'condition', 'goal', and 'barriers' should be extracted or inferred from the input text.
+        - Populate the 'dsrp' 4-quadrant systems synthesis:
+          * Distinctions (D): 'The Patient is Not the Pathology' — separate human identity and core passions from the physiological diagnosis.
+          * Systems (S): 'The Ecosystem of Recovery' — whole-person physiology (sleep architecture, autonomic vagal pacing, circadian rhythms, home ergonomics).
+          * Relationships (R): 'The Relational Care Bridge' — intergenerational allies, caregiver respite protection, and interrupting pain-fear-immobility cycles.
+          * Perspectives (P): 'The Triad Perspective Shift' — align Clinician biomechanical safety, Patient lived fatigue/fear, and Future thriving self.
         - Ensure the output is clean, concise, and uses person-centered, accessible language.
         ${getLanguageInstruction(req)}
     `;
@@ -693,7 +807,7 @@ app.post('/api/insights', [
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    const systemInstruction = mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : undefined;
+    const systemInstruction = mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : CIVIC_NEUTRALITY_INSTRUCTION;
 
     if (isLocalModel(targetModel)) {
       await streamFromLocalOllama(targetModel, prompt, systemInstruction, res, req);
@@ -778,7 +892,7 @@ app.post('/api/care-plan', [
     const insightText = insights.map(i => `- ${i.text}`).join('\n');
 
     const prompt = `
-        Your task is to synthesize an actionable support plan based on a primary health goal and a set of key insights. Adhere strictly to your core principles of being person-centric, positive, simple, and actionable.
+        Your task is to synthesize an actionable, dignity-first support plan based on a primary health goal and a set of key insights. Ground your synthesis in Derek & Laura Cabrera's DSRP Systems Thinking framework, Martin Seligman's PERMA+H positive psychology, and the "Zero-Distortion" principle of precision systems medicine.
 
         **Primary Health Goal:**
         "${problem}"
@@ -788,12 +902,12 @@ app.post('/api/care-plan', [
 
         **Instructions:**
         Generate a JSON object that strictly follows the provided schema.
-        - Each section must contain concise, positive, and actionable items.
-        - "positiveAchievements" should highlight milestones to celebrate and motivate the person.
-        - "recommendations" should propose supportive next steps.
-        - "transitionChecklist" should outline 2-3 critical checks to safely close the transition period (e.g., 72-hour hospital-to-home, new mobility milestone, medication alignment).
-        - "respiteClosureChecklist" should identify 2-3 non-negotiable weekly respite checkpoints ensuring the primary caregiver receives dedicated guilt-free relief.
-        - All text must be easily understood by individuals and their families, avoiding clinical jargon.
+        - **Zero-Distortion Principle:** Outlaw generic medical boilerplate (e.g. "exercise 30 minutes a day"). Craft bespoke, micro-actionable interventions that meet the individual exactly where they are today.
+        - **Multimodal Somatic Synergy:** In keyInterventions and guidance, incorporate autonomic nervous system balance (vagal tone, 4-7-8 diaphragmatic breathwork, sensory grounding), circadian sleep architecture, and living space ergonomics.
+        - **PERMA+H Grounding:** Ground positiveAchievements and guidance in Positive Emotion, Engagement/Flow, Relationships, Meaning, Accomplishment, and Health/Vitality.
+        - **Transition Closure Guardrail:** "transitionChecklist" must outline 2-3 concrete checks to safely close the transition window (72h hospital-to-home, stage-transition handoffs, medication reconciliation, fall hazard scans).
+        - **Caregiver Respite Shield:** "respiteClosureChecklist" must identify 2-3 non-negotiable weekly respite checkpoints (3–4 hrs/week minimum) ensuring dedicated, guilt-free relief for primary caregivers.
+        - All text must be easily understood by individuals and their families, avoiding sterile clinical jargon.
         ${getLanguageInstruction(req)}
       `;
 
@@ -884,7 +998,7 @@ app.post('/api/creative-plan', [
       `;
 
     if (isLocalModel(targetModel)) {
-      const result = await generateJsonFromLocalOllama(targetModel, prompt, undefined, req);
+      const result = await generateJsonFromLocalOllama(targetModel, prompt, CIVIC_NEUTRALITY_INSTRUCTION, req);
       return res.json(result);
     }
 
@@ -892,6 +1006,7 @@ app.post('/api/creative-plan', [
         model: getModel(req),
         contents: prompt,
         config: {
+          systemInstruction: CIVIC_NEUTRALITY_INSTRUCTION,
           responseMimeType: 'application/json',
           responseSchema: creativePlanSchema,
           temperature: getTemperature(req, 0.5),
@@ -1352,7 +1467,7 @@ app.post('/api/agent/pipeline', [
       model: getModel(req),
       contents: `${gist ? `Guiding principle: "${gist}"\n\n` : ''}Problem: "${problem}"\n\nApply each strategy:\n${strategyText}\n\nFor each, provide 2-3 distinct, actionable insights.`,
       config: {
-        systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : undefined,
+        systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : CIVIC_NEUTRALITY_INSTRUCTION,
         responseMimeType: 'application/json',
         responseSchema: insightsSchema,
         temperature: 0.8,
@@ -1530,7 +1645,7 @@ app.post('/api/agent/:strategyId', [
       model: getModel(req),
       contents: prompt,
       config: {
-        systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : undefined,
+        systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : CIVIC_NEUTRALITY_INSTRUCTION,
         responseMimeType: 'application/json',
         responseSchema: schema,
         temperature: 0.8,

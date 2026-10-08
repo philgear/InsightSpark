@@ -18,6 +18,12 @@ import { Component, input } from '@angular/core';
       [class]="class()">
       
       @switch (name()) {
+        @case ('music') {
+          <path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle>
+        }
+        @case ('tool') {
+          <path d="m14.7 10.8 5.7-5.7a2 2 0 0 0-2.8-2.8l-5.7 5.7"></path><path d="M3.7 20.3a2.1 2.1 0 0 0 3 0l6.3-6.3-3-3-6.3 6.3a2.1 2.1 0 0 0 0 3Z"></path>
+        }
         @case ('sun') {
           <circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path>
         }
@@ -206,6 +212,15 @@ import { Component, input } from '@angular/core';
         }
         @case ('mandala') {
           <circle cx="12" cy="12" r="3"></circle><path d="M12 2a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5z"></path><path d="M12 14a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5z"></path><path d="M2 12a5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5z"></path><path d="M14 12a5 5 0 0 1 5-5 5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5z"></path>
+        }
+        @case ('target') {
+          <circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle>
+        }
+        @case ('layers') {
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline>
+        }
+        @case ('repeat') {
+          <path d="m17 2 4 4-4 4"></path><path d="M3 11v-1a4 4 0 0 1 4-4h14"></path><path d="m7 22-4-4 4-4"></path><path d="M21 13v1a4 4 0 0 1-4 4H3"></path>
         }
         @default {
            <circle cx="12" cy="12" r="10"></circle>

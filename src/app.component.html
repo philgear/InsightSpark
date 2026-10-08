@@ -287,6 +287,66 @@
                       }
                     </ul>
                   </div>
+
+                  @if (problem.dsrp; as dsrp) {
+                    <div class="mt-6 pt-5 border-t border-(--border-color)">
+                      <div class="flex items-center gap-2 mb-3">
+                        <app-icon name="mandala" [size]="18" class="text-(--text-accent)"></app-icon>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-(--text-accent)">
+                          4-Quadrant Systems Thinking & Cognitive Patterns
+                        </h4>
+                      </div>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Quadrant D: Distinctions -->
+                        <div class="dsrp-quadrant-card border-l-4 border-l-[#9D1F3B]">
+                          <div class="flex items-center gap-2 mb-1.5">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border dsrp-badge-d">
+                              <app-icon name="target" [size]="11"></app-icon>
+                              <span>D • Distinctions</span>
+                            </span>
+                            <span class="text-xs font-semibold text-(--text-color-muted)">Patient &ne; Pathology</span>
+                          </div>
+                          <p class="text-xs/relaxed text-(--text-color)">{{ dsrp.identityDistinctions }}</p>
+                        </div>
+
+                        <!-- Quadrant S: Systems -->
+                        <div class="dsrp-quadrant-card border-l-4 border-l-[#6C7A68]">
+                          <div class="flex items-center gap-2 mb-1.5">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border dsrp-badge-s">
+                              <app-icon name="layers" [size]="11"></app-icon>
+                              <span>S • Systems</span>
+                            </span>
+                            <span class="text-xs font-semibold text-(--text-color-muted)">Ecosystem of Recovery</span>
+                          </div>
+                          <p class="text-xs/relaxed text-(--text-color)">{{ dsrp.systemicEcosystem }}</p>
+                        </div>
+
+                        <!-- Quadrant R: Relationships -->
+                        <div class="dsrp-quadrant-card border-l-4 border-l-[#E8B9C8]">
+                          <div class="flex items-center gap-2 mb-1.5">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border dsrp-badge-r">
+                              <app-icon name="repeat" [size]="11"></app-icon>
+                              <span>R • Relationships</span>
+                            </span>
+                            <span class="text-xs font-semibold text-(--text-color-muted)">Relational Care Bridge</span>
+                          </div>
+                          <p class="text-xs/relaxed text-(--text-color)">{{ dsrp.relationalBridge }}</p>
+                        </div>
+
+                        <!-- Quadrant P: Perspectives -->
+                        <div class="dsrp-quadrant-card border-l-4 border-l-[#FDD87A]">
+                          <div class="flex items-center gap-2 mb-1.5">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border dsrp-badge-p">
+                              <app-icon name="compass" [size]="11"></app-icon>
+                              <span>P • Perspectives</span>
+                            </span>
+                            <span class="text-xs font-semibold text-(--text-color-muted)">Triad Alignment</span>
+                          </div>
+                          <p class="text-xs/relaxed text-(--text-color)">{{ dsrp.triadPerspectives }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  }
                 </div>
               }
 
@@ -568,8 +628,82 @@
             <div class="max-w-4xl mx-auto animate-pop pb-8">
               <div class="flex flex-col mist-stagger">
 
-                <!-- Step 1: Main Input -->
+                <!-- Step 1: Main Input & Positive Activity Sparks -->
                 <div class="step-pour" [class.active-step]="problemInput().length > 5">
+                  <div class="flex items-center justify-between gap-3 mb-2 flex-wrap">
+                    <label for="problem-input" class="text-xs font-bold uppercase tracking-wider text-(--text-accent) flex items-center gap-1.5">
+                      <app-icon [name]="appMode() === 'care' ? 'heart' : 'sparkles'" [size]="14"></app-icon>
+                      <span>{{ appMode() === 'care' ? 'Positive Life & Care Goal' : 'Lateral Thinking Challenge' }}</span>
+                    </label>
+
+                    <!-- Surprise Me / Spark Button -->
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <button (click)="randomizeChallenge()"
+                              type="button"
+                              class="text-xs font-semibold py-1 px-2.5 rounded-lg border border-(--border-color) bg-(--card-bg-subtle) hover:bg-(--button-bg-hover) text-(--text-color) transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                              title="Shuffle and explore a positive real-world scenario">
+                        <app-icon name="dice" [size]="14" class="text-(--text-accent)"></app-icon>
+                        <span>Surprise Me</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Quick Category Sparks (Theme Chips) -->
+                  <div class="flex items-center gap-1.5 mb-2.5 overflow-x-auto pb-1 scrollbar-none non-printable">
+                    <button (click)="setScenarioFilter(null)"
+                            type="button"
+                            class="text-[11px] font-medium py-1 px-2.5 rounded-full border transition-all cursor-pointer whitespace-nowrap"
+                            [class.bg-(--text-accent)]="activeScenarioFilter() === null"
+                            [class.text-(--bg-color)]="activeScenarioFilter() === null"
+                            [class.border-(--text-accent)]="activeScenarioFilter() === null"
+                            [class.bg-(--card-bg)]="activeScenarioFilter() !== null"
+                            [class.text-(--text-color-muted)]="activeScenarioFilter() !== null"
+                            [class.border-(--border-color)]="activeScenarioFilter() !== null">
+                      All Sparks
+                    </button>
+                    @for (cat of availableStarterCategories(); track cat.category) {
+                      <button (click)="setScenarioFilter(cat.category)"
+                              type="button"
+                              class="text-[11px] font-medium py-1 px-2.5 rounded-full border transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap"
+                              [class.bg-(--text-accent)]="activeScenarioFilter() === cat.category"
+                              [class.text-(--bg-color)]="activeScenarioFilter() === cat.category"
+                              [class.border-(--text-accent)]="activeScenarioFilter() === cat.category"
+                              [class.bg-(--card-bg)]="activeScenarioFilter() !== cat.category"
+                              [class.text-(--text-color-muted)]="activeScenarioFilter() !== cat.category"
+                              [class.border-(--border-color)]="activeScenarioFilter() !== cat.category">
+                        <app-icon [name]="cat.icon" [size]="11"></app-icon>
+                        <span>{{ cat.label }}</span>
+                      </button>
+                    }
+                  </div>
+
+                  <!-- Active Scenario Badge (if chosen from a spark) -->
+                  @if (activeScenario(); as sc) {
+                    <div class="mb-2 p-2 px-3 bg-(--card-bg-subtle) border border-(--border-color)/80 rounded-lg flex items-center justify-between gap-2 text-xs">
+                      <div class="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
+                        <span class="p-1 rounded bg-(--text-accent)/10 text-(--text-accent)">
+                          <app-icon [name]="sc.categoryIcon" [size]="13"></app-icon>
+                        </span>
+                        <span class="font-bold text-(--text-color)">{{ sc.title }}</span>
+                        <span class="text-(--text-color-muted) hidden sm:inline">&mdash; {{ sc.gist }}</span>
+                      </div>
+                      <div class="flex items-center gap-1 shrink-0">
+                        <button (click)="randomizeChallenge(sc.category)" 
+                                type="button" 
+                                class="p-1 text-(--text-color-muted) hover:text-(--text-color) rounded hover:bg-(--button-bg-hover)" 
+                                title="Next idea in this category">
+                          <app-icon name="refresh" [size]="13"></app-icon>
+                        </button>
+                        <button (click)="clearActiveScenario()" 
+                                type="button" 
+                                class="p-1 text-(--text-color-muted) hover:text-(--text-color) rounded hover:bg-(--button-bg-hover)" 
+                                title="Clear preset">
+                          <app-icon name="x" [size]="13"></app-icon>
+                        </button>
+                      </div>
+                    </div>
+                  }
+
                   <div class="relative">
                     <textarea #problemTextarea
                       id="problem-input"
@@ -580,11 +714,13 @@
                       rows="4"
                       [placeholder]="appMode() === 'creative' ? 'Describe your challenge, idea, or question...' : 'Describe a de-identified health goal or support challenge...'"
                       class="w-full p-4 text-base bg-(--card-bg) border rounded-xl focus:ring-2 focus:ring-(--ring-color) focus:outline-none transition-all resize-y shadow-lg"
-                      [class.border-(--border-color-strong)]="!piiWarning() && (!acuteTriageAlert() || triageAcknowledged())"
-                      [class.border-amber-500/60]="!triageAcknowledged() && !!acuteTriageAlert()"
-                      [class.focus:ring-amber-500/50]="!triageAcknowledged() && !!acuteTriageAlert()"
-                      [class.border-amber-500/60]="!acuteTriageAlert() && !!piiWarning()"
-                      [class.focus:ring-amber-500/50]="!acuteTriageAlert() && !!piiWarning()"
+                      [class.border-(--border-color-strong)]="!politicalAlert() && !piiWarning() && (!acuteTriageAlert() || triageAcknowledged())"
+                      [class.border-rose-500/60]="!!politicalAlert()"
+                      [class.focus:ring-rose-500/50]="!!politicalAlert()"
+                      [class.border-amber-500/60]="!politicalAlert() && !triageAcknowledged() && !!acuteTriageAlert()"
+                      [class.focus:ring-amber-500/50]="!politicalAlert() && !triageAcknowledged() && !!acuteTriageAlert()"
+                      [class.border-amber-500/60]="!politicalAlert() && !acuteTriageAlert() && !!piiWarning()"
+                      [class.focus:ring-amber-500/50]="!politicalAlert() && !acuteTriageAlert() && !!piiWarning()"
                       [attr.aria-label]="problemInputAriaLabel()"
                       autocomplete="off">
                     </textarea>
@@ -604,17 +740,20 @@
 
                       <!-- Live Privacy & Containment Badge -->
                       <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono border transition-all"
-                            [class.bg-emerald-500/10]="(!piiWarning() && !acuteTriageAlert() && charCount() > 0) || (triageAcknowledged() && !piiWarning())"
-                            [class.border-emerald-500/30]="(!piiWarning() && !acuteTriageAlert() && charCount() > 0) || (triageAcknowledged() && !piiWarning())"
-                            [class.text-emerald-400]="(!piiWarning() && !acuteTriageAlert() && charCount() > 0) || (triageAcknowledged() && !piiWarning())"
-                            [class.bg-black/20]="charCount() === 0"
-                            [class.border-white/10]="charCount() === 0"
-                            [class.text-(--text-color-muted)]="charCount() === 0"
-                            [class.bg-amber-500/15]="!!piiWarning() || (!!acuteTriageAlert() && !triageAcknowledged())"
-                            [class.border-amber-500/40]="!!piiWarning() || (!!acuteTriageAlert() && !triageAcknowledged())"
-                            [class.text-amber-300]="!!piiWarning() || (!!acuteTriageAlert() && !triageAcknowledged())">
-                        <app-icon [name]="(!!acuteTriageAlert() && !triageAcknowledged()) ? 'shield' : (piiWarning() ? 'shield' : 'shield-check')" [size]="13"></app-icon>
-                        <span>{{ (!!acuteTriageAlert() && !triageAcknowledged()) ? 'Safety Check Needed' : (triageAcknowledged() && !piiWarning() ? 'Ongoing Recovery Care 🌿' : (piiWarning() ? 'Privacy Shield (Tidy available)' : (charCount() > 0 ? 'Quiet & Private 🌿' : 'Contained & Private 🌿'))) }}</span>
+                            [class.bg-rose-500/15]="!!politicalAlert()"
+                            [class.border-rose-500/40]="!!politicalAlert()"
+                            [class.text-rose-300]="!!politicalAlert()"
+                            [class.bg-emerald-500/10]="!politicalAlert() && ((!piiWarning() && !acuteTriageAlert() && charCount() > 0) || (triageAcknowledged() && !piiWarning()))"
+                            [class.border-emerald-500/30]="!politicalAlert() && ((!piiWarning() && !acuteTriageAlert() && charCount() > 0) || (triageAcknowledged() && !piiWarning()))"
+                            [class.text-emerald-400]="!politicalAlert() && ((!piiWarning() && !acuteTriageAlert() && charCount() > 0) || (triageAcknowledged() && !piiWarning()))"
+                            [class.bg-black/20]="!politicalAlert() && charCount() === 0"
+                            [class.border-white/10]="!politicalAlert() && charCount() === 0"
+                            [class.text-(--text-color-muted)]="!politicalAlert() && charCount() === 0"
+                            [class.bg-amber-500/15]="!politicalAlert() && (!!piiWarning() || (!!acuteTriageAlert() && !triageAcknowledged()))"
+                            [class.border-amber-500/40]="!politicalAlert() && (!!piiWarning() || (!!acuteTriageAlert() && !triageAcknowledged()))"
+                            [class.text-amber-300]="!politicalAlert() && (!!piiWarning() || (!!acuteTriageAlert() && !triageAcknowledged()))">
+                        <app-icon [name]="politicalAlert() ? 'shield' : ((!!acuteTriageAlert() && !triageAcknowledged()) ? 'shield' : (piiWarning() ? 'shield' : 'shield-check'))" [size]="13"></app-icon>
+                        <span>{{ politicalAlert() ? 'Civic Neutrality Guard' : ((!!acuteTriageAlert() && !triageAcknowledged()) ? 'Safety Check Needed' : (triageAcknowledged() && !piiWarning() ? 'Ongoing Recovery Care 🌿' : (piiWarning() ? 'Privacy Shield (Tidy available)' : (charCount() > 0 ? 'Quiet & Private 🌿' : 'Contained & Private 🌿')))) }}</span>
                       </span>
                     </div>
 
@@ -683,8 +822,21 @@
                     }
                   }
 
+                  <!-- Civic Neutrality & Anti-Propaganda Banner -->
+                  @if (politicalAlert(); as political) {
+                    <div role="alert" class="mt-3 p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-stone-900/80 border-rose-500/50 text-rose-100 animate-fade-in" style="background: rgba(225, 29, 72, 0.08);">
+                      <div class="flex items-start gap-3 flex-1">
+                        <app-icon name="shield" [size]="20" class="shrink-0 mt-0.5 text-rose-400"></app-icon>
+                        <div class="flex-1">
+                          <h4 class="font-semibold text-xs uppercase tracking-wide mb-1 text-rose-400">{{ political.reason }}</h4>
+                          <p class="text-xs/relaxed text-rose-200/90">{{ political.guidance }}</p>
+                        </div>
+                      </div>
+                    </div>
+                  }
+
                   <!-- Gentle Privacy Check Banner -->
-                  @if (!acuteTriageAlert() && piiWarning(); as warning) {
+                  @if (!politicalAlert() && !acuteTriageAlert() && piiWarning(); as warning) {
                     <div role="alert" class="mt-3 p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-(--card-bg) border-amber-500/40 text-stone-200 animate-fade-in" style="background: rgba(212, 164, 76, 0.06);">
                       <div class="flex items-start gap-3 flex-1">
                         <app-icon name="shield" [size]="20" class="shrink-0 mt-0.5 text-amber-400"></app-icon>

@@ -240,6 +240,26 @@ function setStoredThinkingBudget(budget: number): void {
                 </a>
               </div>
           </div>
+
+          <!-- Universal Systems Thinking & Academic Disclaimer -->
+          <div class="bg-(--card-bg) p-6 rounded-2xl border border-(--border-color)">
+              <h3 class="text-(--text-accent) flex items-center gap-2 mb-2">
+                <app-icon name="mandala" [size]="20"></app-icon>
+                Universal Systems Thinking Patterns
+              </h3>
+              <p class="text-sm text-(--text-color-muted) mb-3">
+                Cognitive architecture inspired by universal systems science and the research of Drs. Derek & Laura Cabrera (Cornell University).
+              </p>
+              <ul class="list-disc pl-6 space-y-1 text-(--text-color) text-sm/relaxed mb-3">
+                <li><strong>Distinctions (D):</strong> Boundary recognition — separating unaffected human identity from clinical symptoms.</li>
+                <li><strong>Systems (S):</strong> Whole/part nesting — autonomic nervous system, circadian pacing, and home ecology.</li>
+                <li><strong>Relationships (R):</strong> Relational bridges, feedback loops, and protected caregiver respite.</li>
+                <li><strong>Perspectives (P):</strong> Triad alignment across clinical safety, lived experience, and future flourishing.</li>
+              </ul>
+              <p class="text-[11px] text-(--text-color-muted) border-t border-(--border-color)/40 pt-2.5">
+                ⚖️ <strong>Legal Notice:</strong> Pivot & Pulse is an independent open-source tool. It is not affiliated with, sponsored by, or endorsed by Cabrera Research Lab, STSI, Cornell University, or De Bono Thinking Systems. HL7®, HEALTH LEVEL SEVEN®, and FHIR® are registered trademarks of Health Level Seven International.
+              </p>
+          </div>
         </div>
       }
 
