@@ -98,7 +98,7 @@ const apiLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 
 // Initialize Gemini API
-const apiKey = process.env.GEMINI_API_KEY;
+const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
 const DEFAULT_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
 
 
@@ -175,7 +175,7 @@ function getLanguageInstruction(req) {
 
 let ai;
 if (!apiKey) {
-  console.warn('WARNING: GEMINI_API_KEY environment variable is not set. API endpoints will fail.');
+  console.warn('WARNING: Neither GEMINI_API_KEY nor API_KEY environment variable is set. API endpoints will fail.');
 } else {
   ai = new GoogleGenAI({ apiKey });
 }
@@ -1672,6 +1672,15 @@ app.use(express.static(path.join(__dirname, 'dist'), {
     }
   }
 }));
+
+// Health and readiness probes for 99% SLA uptime
+app.get('/healthz', (req, res) => {
+  res.status(200).json({ status: 'healthy', uptime: process.uptime(), timestamp: new Date().toISOString() });
+});
+
+app.get('/readyz', (req, res) => {
+  res.status(200).json({ status: 'ready', hasApiKey: !!apiKey, defaultModel: DEFAULT_MODEL });
+});
 
 // Static legal & meta file routing
 app.get('/robots.txt', (req, res) => {
