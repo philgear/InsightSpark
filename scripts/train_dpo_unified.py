@@ -12,25 +12,44 @@ Usage:
 import os
 import sys
 import argparse
-import pyarrow.parquet as pq
-from typing import Dict, Any
+import json
 
-
-def load_dpo_dataset(parquet_path: str):
-    """Loads memory-mapped Apache Parquet DPO dataset into Hugging Face Dataset."""
-    print(f"Loading memory-mapped DPO dataset from {parquet_path}...")
-    table = pq.read_table(parquet_path)
-    
-    # Extract records into Hugging Face TRL expected format
+def load_dpo_dataset(file_path: str):
+    """Loads DPO dataset from JSONL or Parquet into Hugging Face TRL records."""
     records = []
-    for i in range(len(table)):
-        records.append({
-            "prompt": table.column("prompt")[i].as_py(),
-            "chosen": table.column("chosen")[i].as_py(),
-            "rejected": table.column("rejected")[i].as_py(),
-        })
-    print(f"[OK] Successfully loaded {len(records)} multi-task pairwise preference records.")
-    return records
+    if file_path.endswith('.jsonl'):
+        print(f"Loading DPO dataset from JSONL: {file_path}...")
+        with open(file_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                item = json.loads(line)
+                if '_metadata' in item:
+                    continue
+                records.append({
+                    "prompt": item["prompt"],
+                    "chosen": item["chosen"],
+                    "rejected": item["rejected"],
+                })
+        print(f"[OK] Successfully loaded {len(records)} multi-task pairwise preference records from JSONL.")
+        return records
+
+    try:
+        import pyarrow.parquet as pq
+        print(f"Loading memory-mapped DPO dataset from {file_path}...")
+        table = pq.read_table(file_path)
+        for i in range(len(table)):
+            records.append({
+                "prompt": table.column("prompt")[i].as_py(),
+                "chosen": table.column("chosen")[i].as_py(),
+                "rejected": table.column("rejected")[i].as_py(),
+            })
+        print(f"[OK] Successfully loaded {len(records)} multi-task pairwise preference records from Parquet.")
+        return records
+    except ImportError:
+        print("[INFO] pyarrow not installed; falling back to datasets/multitask-dpo.jsonl...")
+        return load_dpo_dataset("datasets/multitask-dpo.jsonl")
 
 
 def print_training_recipe(model_name: str, dataset_path: str, output_dir: str):
@@ -53,7 +72,7 @@ def print_training_recipe(model_name: str, dataset_path: str, output_dir: str):
 def generate_trl_script_stub(model_name: str, output_dir: str):
     """Prints the executable Python block for Hugging Face TRL DPOTrainer."""
     code = f'''
-# ─── Executable Hugging Face TRL Pipeline ──────────────────────────────────
+# --- Executable Hugging Face TRL Pipeline ----------------------------------
 # pip install torch transformers trl peft datasets bitsandbytes accelerate
 
 import torch
