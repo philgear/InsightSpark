@@ -24,7 +24,7 @@
 
 An interactive lateral thinking workbench, positive psychology companion, and intergenerational care planner. **Pivot & Pulse** synthesizes [Edward de Bono's](https://en.wikipedia.org/wiki/Edward_de_Bono) lateral thinking provocations with [Dr. Martin Seligman's](https://en.wikipedia.org/wiki/Martin_Seligman) PERMA+H framework (as taught in the UPenn [Foundations of Positive Psychology Specialization on Coursera](https://www.coursera.org/specializations/positivepsychology)), multi-generational family kinship dynamics, on-device Gemini Nano/Gemma intelligence, and HIPAA/COPPA-compliant clinical workflows.
 
-[View App in Google AI Studio](https://ai.studio/apps/3eeb2b40-7093-4e40-b5a5-e1d2fbb75de7)
+[🚀 Launch Live App: spark.philgear.dev](https://spark.philgear.dev/) &bull; [View in Google AI Studio](https://ai.studio/apps/3eeb2b40-7093-4e40-b5a5-e1d2fbb75de7)
 
 </div>
 
