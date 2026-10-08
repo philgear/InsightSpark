@@ -131,7 +131,7 @@ def main():
     run_ollama_prompt(
         scenario_name="Kinship Harmony Mesh (Care Mode)",
         mode="care",
-        problem="A 78-year-old grandfather (Arthur) recovering from mild stroke feels depressed, isolated in his room, and worries he is a financial and care burden to his daughter and teenage grandchildren.",
+        problem="A 78-year-old grandfather (Julian) recovering from mild stroke feels depressed, isolated in his room, and worries he is a financial and care burden to his daughter and teenage grandchildren.",
         strategies=[
             {
                 "name": "Intergenerational Kinship Triad",
