@@ -20,7 +20,7 @@
     "@angular/cli": "^22.1.0",
     "@angular/common": "^22.1.0",
     "@angular/compiler": "^22.1.0",
-    "@angular/compiler-cli": "^22.1.0",
+    "@angular/compiler-cli": "^22.2.2",
     "@angular/core": "^22.1.0",
     "@angular/forms": "^22.1.0",
     "@angular/platform-browser": "^22.2.1",
