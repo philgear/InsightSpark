@@ -15,6 +15,8 @@ import { IconComponent } from './components/ui/icon.component';
 import { HelpComponent } from './components/ui/help.component';
 import { GraphViewComponent } from './components/ui/graph-view.component';
 import { LojongCleansingComponent } from './components/ui/lojong-cleansing.component';
+import { BrandDriftCalibratorComponent } from './components/ui/brand-drift-calibrator.component';
+import { BrandDriftCalibratorService } from './services/brand-drift-calibrator.service';
 import { SpeechService } from './services/speech.service';
 import { WebMcpDiagnosticService } from './services/webmcp-diagnostic.service';
 import { scanForAcuteTriage, scanForPoliticalAgendas, getClientPiiWarning, autoScrubPII, AcuteTriageAlert, PoliticalNeutralityAlert } from './utils/safety-guards';
@@ -157,7 +159,7 @@ export interface SynergyPreset {
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconComponent, HelpComponent, GraphViewComponent, LojongCleansingComponent],
+  imports: [CommonModule, FormsModule, IconComponent, HelpComponent, GraphViewComponent, LojongCleansingComponent, BrandDriftCalibratorComponent],
   templateUrl: './app.component.html',
 })
 export class AppComponent implements OnDestroy {
@@ -169,6 +171,7 @@ export class AppComponent implements OnDestroy {
   public pocketgullService = inject(PocketgullIntegrationService);
   public speechService = inject(SpeechService);
   public webmcpService = inject(WebMcpDiagnosticService);
+  public brandDriftCalibrator = inject(BrandDriftCalibratorService);
 
   t(key: string): string {
     return this.translationService.t(key);
@@ -857,7 +860,7 @@ export class AppComponent implements OnDestroy {
           id: 'kinship-harmony',
           name: '🌹 Kinship Harmony Mesh',
           description: 'Intergenerational triad + sensory bridge + character strengths',
-          strategyIds: ['kinship-triad', 'sensory-bridge', 'via-strengths'],
+          strategyIds: ['kinship-triad', 'sensory-bridge', 'perma-strengths'],
           roles: ['Daughter', 'Mother', 'Grandmother']
         },
         {
@@ -1040,6 +1043,10 @@ export class AppComponent implements OnDestroy {
 
       const results = await promises[0] as InsightResult[]; // Wait primarily for insights
       this.insights.set(results);
+      const firstText = results?.[0]?.insights?.[0]?.text;
+      if (firstText) {
+        this.brandDriftCalibrator.recordGeneratedOutput(firstText);
+      }
       
       // Ensure other promises complete (optional, could just let them settle)
       await Promise.allSettled(promises.slice(1));

@@ -12,6 +12,7 @@
     "lint": "ng lint",
     "test": "npx tsx --test tests/*.test.js",
     "test:e2e": "playwright test",
+    "predeploy": "node scripts/preflight_brand_drift_gate.mjs",
     "agents": "node scripts/manage_custom_agents.js",
     "agent:edge": "node scripts/smart_context_agent.js"
   },

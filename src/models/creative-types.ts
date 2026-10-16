@@ -394,5 +394,16 @@ export const STRATEGIES: CreativeStrategy[] = [
     careModeName: 'Living Room Safety & Hazard Pre-Mortem',
     careModeDescription: 'Close vulnerability loops on fall hazards, throw rugs, shower grab bars, medication locking, and emergency exit pathways.',
     agentPersona: 'I inspect the physical living room floor. Brilliant intentions fail when someone trips on a rug or can\'t read a medicine bottle. I ground care in physical reality.'
+  },
+  {
+    id: 'porters-five-forces',
+    name: 'Porter’s Five Forces & Competitive Moat',
+    description: 'Audit Threat of New Entrants, Supplier Power, Buyer Power, Substitutes (AI Slop Commoditization), and Rivalry to build an unassailable moat.',
+    icon: 'shield',
+    color: '#1C2B3C',
+    category: 'anchor',
+    careModeName: 'Systemic Support Moat & Continuity',
+    careModeDescription: 'Audit the 5 structural forces around recovery: single-point caregiver dependency, pharmacy/supply continuity, financial sustainability, burnout substitutes, and environmental friction.',
+    agentPersona: 'I map the five structural forces pressing on your mission. I eliminate vendor lock-in, single-point bottlenecks, and generic commoditization before they erode your moat.'
   }
 ];
