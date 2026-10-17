@@ -95,7 +95,13 @@ export class BrandDriftCalibratorService {
   readonly steeringAlpha = signal<number>(0.70);
   readonly steeringBeta = signal<number>(0.55);
   readonly steeringEnabled = signal<boolean>(true);
-  readonly selectedTurnIndex = signal<number>(2);
+  readonly selectedTurnIndex = signal<number>(0);
+  readonly focusedAxisIndex = signal<number>(0);
+  private onSteeringAppliedCallback: (() => void) | null = null;
+
+  registerSteeringCallback(cb: () => void): void {
+    this.onSteeringAppliedCallback = cb;
+  }
 
   readonly turns = signal<BrandTurnScore[]>([
     {
@@ -171,6 +177,77 @@ export class BrandDriftCalibratorService {
       { id: 'agency', label: '3. Human Agency', description: 'Respects personal choice & family respite', score: scores[4] ?? 0.88 },
       { id: 'calm-pacing', label: '4. 4-Slot Calm', description: 'Bite-sized steps without cognitive overload', score: scores[5] ?? 0.88 },
     ];
+  });
+
+  readonly activePetalId = signal<string>('sunk-cost');
+  readonly circadianScene = signal<'washi' | 'hemp' | 'scotopic'>(this.detectInitialCircadianScene());
+
+  private detectInitialCircadianScene(): 'washi' | 'hemp' | 'scotopic' {
+    const hour = new Date().getHours();
+    if (hour >= 20 || hour < 6) return 'scotopic';
+    if (hour >= 16) return 'hemp';
+    return 'washi';
+  }
+
+  cycleCircadianScene(): void {
+    const current = this.circadianScene();
+    if (current === 'washi') this.circadianScene.set('hemp');
+    else if (current === 'hemp') this.circadianScene.set('scotopic');
+    else this.circadianScene.set('washi');
+  }
+
+  /**
+   * 4-Petal Sunflower Fallacy Shield (Popperian H0 + Stoic ABCDE + DSRP).
+   */
+  readonly fallacyPetals = computed(() => {
+    const scores = this.currentTurn().poleScores;
+    return [
+      {
+        id: 'sunk-cost',
+        petalNumber: 1,
+        shortTitle: 'Simple & Everyday',
+        fallacyName: 'Sunk Cost & Complexity Bias',
+        trap: '"It has to be an elaborate, expensive system to be worthwhile."',
+        antidote: 'Zero-Base Simplicity: Start with existing household or neighborhood tools that work today for $0.',
+        score: scores[0] ?? 0.88,
+        angleDeg: -45,
+      },
+      {
+        id: 'nirvana',
+        petalNumber: 2,
+        shortTitle: 'One Small Step',
+        fallacyName: 'Nirvana / Perfectionist Fallacy',
+        trap: '"If I cannot finish the entire 10-part plan today, today does not count."',
+        antidote: '4-Slot Milestone Rule: Compare today to yesterday’s baseline. One 15-minute trial is a complete win.',
+        score: scores[5] ?? 0.89,
+        angleDeg: 45,
+      },
+      {
+        id: 'catastrophizing',
+        petalNumber: 3,
+        shortTitle: 'Steady & Calm',
+        fallacyName: 'Catastrophizing & All-or-Nothing',
+        trap: '"One obstacle or tired afternoon means the whole plan is ruined."',
+        antidote: 'Stoic & Learned Optimism (ABCDE): Setbacks are temporary and specific. Protect caregiver rest first.',
+        score: scores[4] ?? 0.91,
+        angleDeg: 135,
+      },
+      {
+        id: 'confirmation-h0',
+        petalNumber: 4,
+        shortTitle: 'Test & Verify (H₀)',
+        fallacyName: 'Confirmation Bias & Wishful Hype',
+        trap: '"Assuming a flashy idea will work without checking real-world friction."',
+        antidote: 'Popperian H₀ Check: Test the simplest safety and energy bottleneck first before committing.',
+        score: scores[1] ?? 0.87,
+        angleDeg: 225,
+      },
+    ];
+  });
+
+  readonly selectedPetal = computed(() => {
+    const id = this.activePetalId();
+    return this.fallacyPetals().find(p => p.id === id) || this.fallacyPetals()[0];
   });
 
   /**
@@ -293,17 +370,105 @@ export class BrandDriftCalibratorService {
     return newTurn;
   }
 
+  /**
+   * Returns the currently focused connected axis pair (Green Positive Pole <-> Opposite Red Hazard Pole).
+   */
+  readonly focusedAxisPair = computed(() => {
+    const axisIdx = this.focusedAxisIndex() % 6;
+    const axis = this.axes[axisIdx];
+    const turn = this.currentTurn();
+    const posScore = turn.poleScores[axisIdx] ?? 0.90;
+    const negScore = turn.poleScores[axisIdx + 6] ?? 0.08;
+    const fallacyMap = [
+      'Complexity & Sunk-Cost Bias ("Must be elaborate/expensive")',
+      'Confirmation Bias & Wishful Hype ("Assuming it works without testing H₀")',
+      'Noise & Chatty Filler Fatigue ("Long-winded intro fluff")',
+      'Status-Quo Orthodoxy ("Repeating generic textbook advice")',
+      'Coercive Paternalism ("Ignoring personal choice & caregiver respite")',
+      'Nirvana / Perfectionist Overload ("Demanding 10 things at once")',
+    ];
+    return {
+      axisIndex: axisIdx,
+      axis,
+      positiveWedgeIndex: axisIdx,
+      negativeWedgeIndex: axisIdx + 6,
+      posScore,
+      negScore,
+      connectedFallacy: fallacyMap[axisIdx],
+    };
+  });
+
+  /**
+   * Interactive 12-Pole Wheel Manipulation:
+   * Clicking either a Green Craft Wedge (0..5) or its opposite Red Hazard Wedge (6..11)
+   * locks that connected axis, boosts the Green pole to >=0.95, clamps its opposite Red hazard to <=0.05,
+   * updates the steering directive, and triggers live card steering.
+   */
+  manipulateWedge(wedgeIndex: number): BrandTurnScore {
+    const axisIdx = wedgeIndex % 6;
+    const clickedHazard = wedgeIndex >= 6;
+    this.focusedAxisIndex.set(axisIdx);
+    const axis = this.axes[axisIdx];
+
+    if (clickedHazard) {
+      this.steeringAlpha.set(Number(Math.min(0.95, this.steeringAlpha() + 0.08).toFixed(2)));
+    } else {
+      this.steeringBeta.set(Number(Math.min(0.90, this.steeringBeta() + 0.08).toFixed(2)));
+    }
+
+    const baseScores = [...this.currentTurn().poleScores];
+    for (let i = 0; i < 6; i++) {
+      baseScores[i] = i === axisIdx ? 0.96 : Math.max(0.86, baseScores[i]);
+      baseScores[i + 6] = i === axisIdx ? 0.04 : Math.min(0.10, baseScores[i + 6]);
+    }
+
+    const nextIdx = this.turns().length + 1;
+    const actionLabel = clickedHazard
+      ? `Clamped ${axis.negativePole} → Boosted ${axis.positivePole}`
+      : `Boosted ${axis.positivePole} ↔ Suppressed ${axis.negativePole}`;
+
+    const steeredTurn: BrandTurnScore = {
+      turnIndex: nextIdx,
+      label: `T${nextIdx} · ${axis.positivePole}`,
+      sourceModel: this.activeModel(),
+      excerpt: `${actionLabel}: ${axis.positiveAnchor}`,
+      poleScores: baseScores,
+      dominantPositivePole: axis.positivePole,
+      dominantHazardPole: axis.negativePole,
+      maxHazardScore: Math.max(...baseScores.slice(6)),
+      jevExplanationScore: 0.97,
+      isDrifting: false,
+      jppLayers: {
+        l6: [axis.id, ...axis.positiveKeywords.slice(0, 2)],
+        l16: [`+${this.steeringBeta().toFixed(2)}·${axis.positivePole.toLowerCase().replace(/\s+/g, '-')}`],
+        l24: [`-${this.steeringAlpha().toFixed(2)}·ban-${axis.negativePole.toLowerCase().replace(/\s+/g, '-')}`],
+        l32: ['axis-locked', 'ready'],
+      },
+    };
+
+    this.turns.update(prev => [...prev, steeredTurn]);
+    this.selectedTurnIndex.set(this.turns().length - 1);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('spark_brand_steering', this.getSteeringSystemDirective());
+    }
+    if (this.onSteeringAppliedCallback) {
+      this.onSteeringAppliedCallback();
+    }
+    return steeredTurn;
+  }
+
   applyBrandSteeringVector(): BrandTurnScore {
     const nextIdx = this.turns().length + 1;
     const alpha = this.steeringAlpha();
     const beta = this.steeringBeta();
+    const axis = this.axes[this.focusedAxisIndex() % 6];
     const calibrated: BrandTurnScore = {
       turnIndex: nextIdx,
       label: `T${nextIdx} · Steered (-${alpha.toFixed(2)}·v_slop + ${beta.toFixed(2)}·v_craft)`,
       sourceModel: this.activeModel(),
-      excerpt: 'Steered Output: Strip generic AI filler. Anchor the thesis in 3 falsifiable milestones with concrete unit metrics, explicit failure guardrails, and Caslon editorial restraint.',
+      excerpt: `Steered (${axis.positivePole}): ${axis.positiveAnchor}`,
       poleScores: [0.94, 0.92, 0.91, 0.88, 0.93, 0.90, 0.05, 0.06, 0.05, 0.09, 0.05, 0.06],
-      dominantPositivePole: 'High-Craft Precision',
+      dominantPositivePole: axis.positivePole,
       dominantHazardPole: 'Predictable Orthodoxy',
       maxHazardScore: 0.09,
       jevExplanationScore: 0.97,
@@ -318,11 +483,18 @@ export class BrandDriftCalibratorService {
 
     this.turns.update(prev => [...prev, calibrated]);
     this.selectedTurnIndex.set(this.turns().length - 1);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('spark_brand_steering', this.getSteeringSystemDirective());
+    }
+    if (this.onSteeringAppliedCallback) {
+      this.onSteeringAppliedCallback();
+    }
     return calibrated;
   }
 
   getSteeringSystemDirective(): string {
-    return `[BRAND & STRATEGY DRIFT CALIBRATOR: Apply contrastive steering (-${this.steeringAlpha().toFixed(2)}·v_ai_slop + ${this.steeringBeta().toFixed(2)}·v_high_craft). Eliminate clichés ('delve', 'tapestry', 'synergy', 'game-changer'). Enforce falsifiable hypotheses, Caslon editorial authority, and 4-slot cognitive chunking.]`;
+    const axis = this.axes[this.focusedAxisIndex() % 6];
+    return `[6-AXIS CALIBRATOR (-${this.steeringAlpha().toFixed(2)}·v_slop + ${this.steeringBeta().toFixed(2)}·v_craft) | Primary Anchor: ${axis.positivePole} (${axis.positiveAnchor}) | Strictly Ban: ${axis.negativePole} (${axis.negativeKeywords.slice(0, 5).join(', ')})]`;
   }
 
   /**

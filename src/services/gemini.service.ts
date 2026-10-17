@@ -71,6 +71,10 @@ export class GeminiService {
     if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('spark_triage_acknowledged') === 'true') {
       authHeaders['x-triage-acknowledged'] = 'true';
     }
+    const brandSteering = localStorage.getItem('spark_brand_steering');
+    if (brandSteering) {
+      authHeaders['x-brand-steering'] = brandSteering;
+    }
     return authHeaders;
   }
 

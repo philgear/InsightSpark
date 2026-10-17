@@ -411,6 +411,26 @@ export class AppComponent implements OnDestroy {
 
     this.initOnDeviceDetection();
     this.webmcpService.initDiagnostics();
+
+    this.brandDriftCalibrator.registerSteeringCallback(() => {
+      this.geminiService.clearCache();
+      const current = this.insights();
+      if (current?.length) {
+        this.insights.set(
+          current.map(group => ({
+            ...group,
+            insights: (group.insights || []).map(item => ({
+              ...item,
+              text: item.text
+                .replace(/\b(sure thing!?|let us dive right in!?|buckle up!?)\s*/gi, '')
+                .replace(/\b(delve into|tapestry of|synergistic|paradigms?|holistic|game-changing|skyrocket|100x)\b/gi, 'practical step')
+                .replace(/\s{2,}/g, ' ')
+                .trim(),
+            })),
+          }))
+        );
+      }
+    });
   }
 
 
