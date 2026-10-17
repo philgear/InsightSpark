@@ -919,127 +919,137 @@
                   </div>
                 }
 
-                <!-- Step 4: Strategy Selection -->
+                <!-- Step 4: Strategy Selection (Compact & Connected to 6-Axis Wheel) -->
                 <div class="step-pour" [class.active-step]="selectedStrategiesCount() > 0">
-                <div class="step-section bg-(--card-bg) p-6 rounded-2xl border border-(--border-color) shadow-2xl inset-shadow-sm backdrop-blur-sm relative overflow-hidden">
-                  <div class="space-y-4">
-                    <div>
-                      <div class="flex items-center justify-between">
-                        <h2 class="text-(--text-accent) flex items-center gap-2 mb-2 text-2xl font-serif">
-                          <app-icon [name]="appMode() === 'care' ? 'clipboard-list' : 'sparkles'" [size]="20"></app-icon>
+                <div class="step-section bg-(--card-bg) p-4 sm:p-5 rounded-2xl border border-(--border-color) shadow-2xl inset-shadow-sm backdrop-blur-sm relative overflow-hidden">
+                  <div class="space-y-3">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                      <div>
+                        <h2 class="text-(--text-accent) flex items-center gap-2 text-xl font-serif">
+                          <app-icon [name]="appMode() === 'care' ? 'clipboard-list' : 'sparkles'" [size]="18"></app-icon>
                           {{ appMode() === 'care' ? 'Select Care Approaches' : 'Pick Your Provocations' }}
                         </h2>
-                        <div class="flex items-center gap-2 text-sm">
-                          <button (click)="selectAllStrategies()" class="hover:underline text-(--text-color-muted) min-h-12 min-w-12 px-2 focus:outline-none focus:ring-2 focus:ring-(--ring-color) rounded">Select All</button>
-                          <span class="text-(--text-color-subtle)">|</span>
-                          <button (click)="clearSelection()" class="hover:underline text-(--text-color-muted) min-h-12 min-w-12 px-2 focus:outline-none focus:ring-2 focus:ring-(--ring-color) rounded">Clear</button>
-                        </div>
+                        <p class="text-xs text-(--text-color-muted)">Synced with your 6-Axis Wheel, or pick any combination below.</p>
                       </div>
-                      <p class="text-sm text-(--text-color-muted)">{{ appMode() === 'care' ? 'Select a few approaches, or leave blank for a curated mix.' : 'Each one shifts the field differently. Choose a few, or let chance decide.' }}</p>
+                      <div class="flex items-center gap-1.5 text-xs">
+                        <button (click)="showAllProvocations.set(!showAllProvocations())" type="button" class="px-2.5 py-1 rounded-lg border border-(--border-color) bg-(--card-bg-subtle) hover:bg-(--button-bg-hover) text-(--text-accent) font-semibold cursor-pointer">
+                          {{ showAllProvocations() ? 'Compact View (Top 8)' : 'Show All 29' }}
+                        </button>
+                        <button (click)="clearSelection()" type="button" class="hover:underline text-(--text-color-muted) px-2 py-1 rounded cursor-pointer">Clear</button>
+                      </div>
                     </div>
 
                     <!-- Combinatorial Synergy Studio (Collisions & Presets) -->
-                    <div class="p-3.5 rounded-xl bg-(--card-bg-subtle) border border-(--border-color) space-y-2.5">
+                    <div class="p-3 rounded-xl bg-(--card-bg-subtle) border border-(--border-color) space-y-2">
                       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <div class="flex items-center gap-2">
                           <span class="p-1 rounded-md bg-(--text-accent)/10 text-(--text-accent)">
-                            <app-icon name="sparkles" [size]="16"></app-icon>
+                            <app-icon name="sparkles" [size]="14"></app-icon>
                           </span>
-                          <span class="text-xs font-bold uppercase tracking-wider text-(--text-color)">Combinatorial Synergy</span>
-                          <span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-(--text-accent)/15 text-(--text-accent)">Collision Engine</span>
+                          <span class="text-xs font-bold uppercase tracking-wider text-(--text-color)">Smart Synergy</span>
+                          <span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-(--text-accent)/15 text-(--text-accent)">
+                            Axis {{ brandDriftCalibrator.focusedAxisIndex() + 1 }} Linked
+                          </span>
                         </div>
                         <button (click)="applySmartSynergy()"
                                 type="button"
                                 class="flex items-center gap-1.5 text-xs font-bold py-1.5 px-3 rounded-lg bg-(--text-accent) text-(--primary-cta-text) hover:opacity-90 active:scale-95 transition-all shadow-sm cursor-pointer self-start sm:self-auto"
-                                title="Automatically combine a divergent provocation, cognitive shift, and grounding counterbalance">
-                          <app-icon name="zap" [size]="14"></app-icon>
+                                title="Automatically combine a Spark + Bridge + Anchor matched to your challenge and 6-Axis Wheel">
+                          <app-icon name="zap" [size]="13"></app-icon>
                           <span>⚡ Roll Smart Synergy</span>
                         </button>
                       </div>
 
                       <!-- Synergy Preset Chips -->
-                      <div class="flex flex-wrap items-center gap-2">
-                        <span class="text-xs text-(--text-color-muted)">Curated Synergies:</span>
+                      <div class="flex flex-wrap items-center gap-1.5">
                         @for (preset of synergyPresets(); track preset.id) {
                           <button (click)="applySynergyPreset(preset.id)"
                                   type="button"
                                   [title]="preset.description"
-                                  class="text-xs font-medium py-1 px-2.5 rounded-full border border-(--border-color) bg-(--card-bg) hover:bg-(--button-bg-hover) text-(--text-color) hover:border-(--text-accent)/50 transition-all cursor-pointer shadow-xs">
+                                  class="text-[11px] font-medium py-0.5 px-2.5 rounded-full border border-(--border-color) bg-(--card-bg) hover:bg-(--button-bg-hover) text-(--text-color) hover:border-(--text-accent)/50 transition-all cursor-pointer">
                             {{ preset.name }}
                           </button>
                         }
                       </div>
 
                       @if (activeSynergyLabel(); as label) {
-                        <div class="pt-2 border-t border-(--border-color)/60 flex items-center justify-between text-xs text-(--text-accent)">
-                          <span class="flex items-center gap-1.5">
-                            <app-icon name="activity" [size]="14"></app-icon>
-                            <span><strong>Active Collision:</strong> {{ label }}</span>
-                          </span>
-                          <span class="text-[11px] text-(--text-color-muted)">Multi-Field Cross-Pollination</span>
+                        <div class="pt-1.5 border-t border-(--border-color)/60 space-y-1 text-xs">
+                          <div class="flex items-center justify-between text-(--text-accent)">
+                            <span class="flex items-center gap-1.5">
+                              <app-icon name="activity" [size]="13"></app-icon>
+                              <span><strong>Active Triad:</strong> {{ label }}</span>
+                            </span>
+                            @if (synergyGraph.activeRecommendation(); as rec) {
+                              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400">
+                                {{ rec.bridgeTitle }}
+                              </span>
+                            }
+                          </div>
+                          @if (synergyGraph.activeRecommendation(); as rec) {
+                            <p class="text-[11px] text-(--text-color-muted) leading-snug">
+                              🔗 {{ rec.bridgeMechanism }}
+                            </p>
+                          }
                         </div>
                       }
                     </div>
 
-                    <!-- Section A: Creative Provocations -->
+                    <!-- Section A: Creative Provocations (Compact Pill Grid) -->
                     <div>
-                      <div class="text-xs font-bold uppercase tracking-wider text-(--text-color-muted) mb-2.5 flex items-center gap-1.5">
-                        <app-icon name="sparkles" [size]="14" class="text-(--text-accent)"></app-icon>
-                        <span>{{ appMode() === 'care' ? 'Exploratory & Divergent Perspectives' : 'Divergent Provocations & Perspective Shifts' }}</span>
+                      <div class="text-[11px] font-bold uppercase tracking-wider text-(--text-color-muted) mb-2 flex items-center gap-1.5">
+                        <app-icon name="sparkles" [size]="13" class="text-(--text-accent)"></app-icon>
+                        <span>{{ appMode() === 'care' ? 'Exploratory Perspectives' : 'Divergent Provocations' }}</span>
                       </div>
-                      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                        @for (strategy of provocationStrategies(); track strategy.id) {
+                      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        @for (strategy of visibleProvocationStrategies(); track strategy.id) {
                           <button (click)="toggleStrategy(strategy.id)"
-                                  class="strategy-button group/strategy"
+                                  type="button"
+                                  [title]="appMode() === 'care' ? strategy.careModeDescription : strategy.description"
+                                  class="strategy-button group/strategy !p-2.5 !min-h-0"
                                   [class.selected]="isStrategySelected(strategy.id)"
                                   [attr.aria-pressed]="isStrategySelected(strategy.id)"
                                   [style.--strategy-icon-color]="'var(--strategy-icon-' + strategy.id + ')'">
-                            <div class="flex items-center gap-2 mb-1">
-                              <app-icon [name]="strategy.icon" [size]="18"
+                            <div class="flex items-center gap-1.5">
+                              <app-icon [name]="strategy.icon" [size]="15"
                                         class="shrink-0 strategy-icon"
                                         [class.text-(--strategy-icon-color)]="isStrategySelected(strategy.id)"></app-icon>
-                              <span class="text-sm font-semibold leading-tight">{{ appMode() === 'care' ? strategy.careModeName : strategy.name }}</span>
+                              <span class="text-xs font-semibold leading-tight truncate">{{ appMode() === 'care' ? strategy.careModeName : strategy.name }}</span>
                             </div>
-                            <p class="hidden sm:block text-xs text-(--text-color-muted) leading-snug">
-                              {{ appMode() === 'care' ? strategy.careModeDescription : strategy.description }}
-                            </p>
+                            @if (showAllProvocations()) {
+                              <p class="hidden sm:block text-[11px] text-(--text-color-muted) leading-snug mt-1 line-clamp-2">
+                                {{ appMode() === 'care' ? strategy.careModeDescription : strategy.description }}
+                              </p>
+                            }
                           </button>
                         }
                       </div>
                     </div>
 
-                    <!-- Section B: Grounding Counterbalances & Kinship Anchors -->
+                    <!-- Section B: Grounding Counterbalances & Kinship Anchors (Compact) -->
                     <div class="pt-2 border-t border-(--border-color)">
-                      <div class="text-xs font-bold uppercase tracking-wider text-(--text-accent) mb-1.5 flex items-center gap-1.5">
-                        <app-icon name="shield-check" [size]="14" class="text-(--text-accent)"></app-icon>
-                        <span>{{ appMode() === 'care' ? 'Rigorous Anchors & Family Kinship (Counterbalance)' : 'Systems Rigor & Kinship Anchors (Counterbalance)' }}</span>
+                      <div class="text-[11px] font-bold uppercase tracking-wider text-(--text-accent) mb-2 flex items-center gap-1.5">
+                        <app-icon name="shield-check" [size]="13" class="text-(--text-accent)"></app-icon>
+                        <span>{{ appMode() === 'care' ? 'Grounding & Kinship Anchors' : 'Systems & Kinship Anchors' }}</span>
                       </div>
-                      <p class="text-xs text-(--text-color-muted) mb-3">Ground divergent brainstorming with critical sequence dependencies, failure safeguards, character strengths, and family care dynamics.</p>
-                      
-                      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                        @for (strategy of anchorStrategies(); track strategy.id) {
+                      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        @for (strategy of visibleAnchorStrategies(); track strategy.id) {
                           <button (click)="toggleStrategy(strategy.id)"
-                                  class="strategy-button group/strategy border-2"
+                                  type="button"
+                                  [title]="appMode() === 'care' ? strategy.careModeDescription : strategy.description"
+                                  class="strategy-button group/strategy border-2 !p-2.5 !min-h-0"
                                   [class.selected]="isStrategySelected(strategy.id)"
                                   [attr.aria-pressed]="isStrategySelected(strategy.id)"
                                   [style.--strategy-icon-color]="'var(--strategy-icon-' + strategy.id + ')'">
-                            <div class="flex items-center gap-2 mb-1">
-                              <app-icon [name]="strategy.icon" [size]="18"
+                            <div class="flex items-center gap-1.5">
+                              <app-icon [name]="strategy.icon" [size]="15"
                                         class="shrink-0 strategy-icon"
                                         [class.text-(--strategy-icon-color)]="isStrategySelected(strategy.id)"></app-icon>
-                              <span class="text-sm font-bold leading-tight text-(--text-color)">{{ appMode() === 'care' ? strategy.careModeName : strategy.name }}</span>
+                              <span class="text-xs font-bold leading-tight text-(--text-color) truncate">{{ appMode() === 'care' ? strategy.careModeName : strategy.name }}</span>
                             </div>
-                            <p class="text-xs text-(--text-color-muted) leading-snug">
-                              {{ appMode() === 'care' ? strategy.careModeDescription : strategy.description }}
-                            </p>
                           </button>
                         }
                       </div>
                     </div>
-
-                    @if (selectedStrategiesCount() > 0) {
-                      <p class="text-center text-sm text-(--text-color-muted) pt-2">{{ selectedStrategiesCount() }} strategy(ies) selected</p>
-                    }
                   </div>
                 </div>
                 </div><!-- /step-pour strategy -->

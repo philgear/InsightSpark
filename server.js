@@ -802,6 +802,7 @@ app.post('/api/insights', [
       IMPORTANT: For each insight, you MUST also provide a brief summary of its supportive impact on the person's well-being (grounded in PERMA+H or DSRP), as described in the JSON schema.
       ` : ''}
       ${req.headers['x-brand-steering'] ? `\n      **6-Axis Calibrator Steering Directive:**\n      ${String(req.headers['x-brand-steering']).slice(0, 400)}\n` : ''}
+      ${req.headers['x-synergy-bridge'] ? `\n      **Smart Synergy Triad Bridge:**\n      ${String(req.headers['x-synergy-bridge']).slice(0, 400)}\n` : ''}
       Return the output strictly as a JSON array of objects, with one object for each strategy, matching the schema.
       ${getLanguageInstruction(req)}
     `;

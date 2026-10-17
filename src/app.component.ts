@@ -17,6 +17,7 @@ import { GraphViewComponent } from './components/ui/graph-view.component';
 import { LojongCleansingComponent } from './components/ui/lojong-cleansing.component';
 import { BrandDriftCalibratorComponent } from './components/ui/brand-drift-calibrator.component';
 import { BrandDriftCalibratorService } from './services/brand-drift-calibrator.service';
+import { SynergyGraphService } from './services/synergy-graph.service';
 import { SpeechService } from './services/speech.service';
 import { WebMcpDiagnosticService } from './services/webmcp-diagnostic.service';
 import { scanForAcuteTriage, scanForPoliticalAgendas, getClientPiiWarning, autoScrubPII, AcuteTriageAlert, PoliticalNeutralityAlert } from './utils/safety-guards';
@@ -172,6 +173,7 @@ export class AppComponent implements OnDestroy {
   public speechService = inject(SpeechService);
   public webmcpService = inject(WebMcpDiagnosticService);
   public brandDriftCalibrator = inject(BrandDriftCalibratorService);
+  public synergyGraph = inject(SynergyGraphService);
 
   t(key: string): string {
     return this.translationService.t(key);
@@ -225,8 +227,27 @@ export class AppComponent implements OnDestroy {
   availableStrategies = signal<CreativeStrategy[]>(STRATEGIES);
   provocationStrategies = computed(() => this.availableStrategies().filter(s => s.category !== 'anchor'));
   anchorStrategies = computed(() => this.availableStrategies().filter(s => s.category === 'anchor'));
+  showAllProvocations = signal<boolean>(false);
   selectedStrategyIds = signal<Set<string>>(new Set());
   copiedId = signal<string | null>(null);
+
+  visibleProvocationStrategies = computed(() => {
+    const all = this.provocationStrategies();
+    if (this.showAllProvocations()) return all;
+    const selected = this.selectedStrategyIds();
+    const topIds = new Set(['what-if', 'butterfly', 'simplify', 'constraints', 'nature', 'first-principles', 'combinatorial', 'sensory-bridge', ...selected]);
+    const filtered = all.filter(s => topIds.has(s.id));
+    return filtered.slice(0, 8);
+  });
+
+  visibleAnchorStrategies = computed(() => {
+    const all = this.anchorStrategies();
+    if (this.showAllProvocations()) return all;
+    const selected = this.selectedStrategyIds();
+    const topIds = new Set(['critical-path', 'fmea', 'perma-strengths', 'kinship-triad', 'respite-pacing', 'environmental-safety', ...selected]);
+    const filtered = all.filter(s => topIds.has(s.id));
+    return filtered.slice(0, 4);
+  });
 
   // Starter Scenarios & Randomizer State
   starterScenarios = signal<StarterScenario[]>(STARTER_SCENARIOS);
@@ -413,6 +434,7 @@ export class AppComponent implements OnDestroy {
     this.webmcpService.initDiagnostics();
 
     this.brandDriftCalibrator.registerSteeringCallback(() => {
+      this.applySmartSynergy();
       this.geminiService.clearCache();
       const current = this.insights();
       if (current?.length) {
@@ -970,36 +992,16 @@ export class AppComponent implements OnDestroy {
   }
 
   applySmartSynergy() {
-    const provocations = this.provocationStrategies();
-    const anchors = this.anchorStrategies();
+    const { recommendation, roles } = this.synergyGraph.recommendTriad(
+      this.problemInput(),
+      this.appMode(),
+      this.brandDriftCalibrator.focusedAxisIndex()
+    );
+    this.selectedStrategyIds.set(new Set(recommendation.strategyIds));
 
-    const randomProvocation = provocations[Math.floor(Math.random() * provocations.length)];
-    let secondStrategy = provocations[Math.floor(Math.random() * provocations.length)];
-    while (secondStrategy && randomProvocation && secondStrategy.id === randomProvocation.id && provocations.length > 1) {
-      secondStrategy = provocations[Math.floor(Math.random() * provocations.length)];
-    }
-    const randomAnchor = anchors.length > 0
-      ? anchors[Math.floor(Math.random() * anchors.length)]
-      : null;
-
-    const newSet = new Set<string>();
-    if (randomProvocation) newSet.add(randomProvocation.id);
-    if (secondStrategy) newSet.add(secondStrategy.id);
-    if (randomAnchor) newSet.add(randomAnchor.id);
-    this.selectedStrategyIds.set(newSet);
-
-    if (this.appMode() === 'care') {
-      const youth = ['Daughter', 'Son'];
-      const parentClinical = ['Mother', 'Father', 'Bedside Nurse', 'Positive Psychologist'];
-      const elders = ['Grandmother', 'Grandfather', 'Kinship Coordinator'];
-
-      const chosenYouth = youth[Math.floor(Math.random() * youth.length)];
-      const chosenParent = parentClinical[Math.floor(Math.random() * parentClinical.length)];
-      const chosenElder = elders[Math.floor(Math.random() * elders.length)];
-
-      const chosenRoles = [chosenYouth, chosenParent, chosenElder];
-      this.activeCareRoles.set(new Set(chosenRoles));
-      const selected = this.careRoles().filter(r => chosenRoles.includes(r.name));
+    if (this.appMode() === 'care' && roles) {
+      this.activeCareRoles.set(new Set(roles));
+      const selected = this.careRoles().filter(r => roles.includes(r.name));
       this.gistInput.set(
         `Blend the following perspectives into a single, cohesive voice:\n` +
         selected.map((r, i) => `${i + 1}. **${r.name}**: ${r.gist}`).join('\n')

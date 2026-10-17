@@ -75,6 +75,10 @@ export class GeminiService {
     if (brandSteering) {
       authHeaders['x-brand-steering'] = brandSteering;
     }
+    const synergyBridge = localStorage.getItem('spark_synergy_bridge');
+    if (synergyBridge) {
+      authHeaders['x-synergy-bridge'] = synergyBridge;
+    }
     return authHeaders;
   }
 

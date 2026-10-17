@@ -94,11 +94,11 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
           </div>
 
           @if (lensMode() === 'sunburst') {
-            <!-- 12-Pole Connected Sunburst + Connected Axis Control Panel (Stacked cleanly in right column) -->
-            <div class="space-y-4">
-              <!-- Interactive 12-Pole Sunburst SVG -->
+            <!-- Compact 12-Pole Connected Sunburst + Connected Axis Control Panel -->
+            <div class="space-y-3">
+              <!-- Compact Interactive 12-Pole Sunburst SVG -->
               <div class="flex flex-col items-center">
-                <svg viewBox="0 0 280 280" class="w-60 h-60 overflow-visible select-none" role="img" aria-label="Interactive 12-Pole Brand and Strategy Sunburst">
+                <svg viewBox="0 0 280 280" class="w-44 h-44 overflow-visible select-none" role="img" aria-label="Interactive 12-Pole Brand and Strategy Sunburst">
                   <circle cx="140" cy="140" r="105" fill="none" stroke="currentColor" stroke-opacity="0.12" stroke-dasharray="3 3" />
                   <circle cx="140" cy="140" r="65" fill="none" stroke="currentColor" stroke-opacity="0.15" stroke-dasharray="2 2" />
 
@@ -130,7 +130,7 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
                         [attr.y]="wedge.labelY"
                         text-anchor="middle"
                         dominant-baseline="middle"
-                        class="text-[8.5px] font-mono fill-current"
+                        class="text-[9px] font-mono fill-current"
                         [class.font-bold]="wedge.isConnectedAxis"
                       >
                         {{ wedge.shortLabel }}
@@ -147,40 +147,40 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
                   </text>
                 </svg>
 
-                <div class="mt-2 flex flex-wrap items-center justify-center gap-3 text-[11px] font-mono text-(--text-color-muted)">
-                  <span class="flex items-center gap-1.5">
-                    <span class="h-2.5 w-2.5 rounded-xs bg-emerald-500 inline-block"></span>
-                    House Craft Poles (1–6)
+                <div class="mt-1 flex flex-wrap items-center justify-center gap-3 text-[10px] font-mono text-(--text-color-muted)">
+                  <span class="flex items-center gap-1">
+                    <span class="h-2 w-2 rounded-xs bg-emerald-500 inline-block"></span>
+                    Click Green (1–6) to Boost &amp; Sync Provocations
                   </span>
-                  <span class="flex items-center gap-1.5">
-                    <span class="h-2.5 w-2.5 rounded-xs bg-rose-500 inline-block"></span>
-                    Slop / Hype Hazards (7–12)
+                  <span class="flex items-center gap-1">
+                    <span class="h-2 w-2 rounded-xs bg-rose-500 inline-block"></span>
+                    Click Red (7–12) to Ban
                   </span>
                 </div>
               </div>
 
               <!-- Connected Opposite-Axis Explainer & Live Steering -->
-              <div class="space-y-3">
+              <div class="space-y-2">
                 <!-- 6 Connected Axis Pills -->
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
                   @for (axis of calibrator.axes; track axis.id; let idx = $index) {
                     <button
                       type="button"
                       (click)="calibrator.manipulateWedge(idx)"
-                      class="rounded-xl border px-2.5 py-1.5 text-left text-xs transition-all cursor-pointer"
+                      class="rounded-lg border px-2 py-1 text-left text-[11px] transition-all cursor-pointer"
                       [class.border-amber-400]="calibrator.focusedAxisIndex() === idx"
                       [class.bg-amber-500/10]="calibrator.focusedAxisIndex() === idx"
                       [class.border-(--border-color)]="calibrator.focusedAxisIndex() !== idx"
                       [class.bg-(--card-bg-subtle)]="calibrator.focusedAxisIndex() !== idx"
                     >
-                      <div class="font-bold text-emerald-400">✓ {{ idx + 1 }}. {{ poleLabels[idx] }}</div>
-                      <div class="text-[10px] font-mono text-rose-400">↔ ✕ {{ idx + 7 }}. {{ poleLabels[idx + 6] }}</div>
+                      <div class="font-bold text-emerald-400 leading-tight">✓ {{ idx + 1 }}. {{ poleLabels[idx] }}</div>
+                      <div class="text-[9.5px] font-mono text-rose-400 leading-tight">↔ ✕ {{ idx + 7 }}. {{ poleLabels[idx + 6] }}</div>
                     </button>
                   }
                 </div>
 
                 <!-- Connected Pair Card -->
-                <div class="rounded-xl border border-(--border-color) bg-(--card-bg-subtle) p-3.5 space-y-2 text-xs">
+                <div class="rounded-xl border border-(--border-color) bg-(--card-bg-subtle) p-3 space-y-1.5 text-xs">
                   <div class="font-bold text-(--text-color)">
                     Axis {{ calibrator.focusedAxisPair().axisIndex + 1 }}:
                     <span class="text-emerald-400">{{ calibrator.focusedAxisPair().axis.positivePole }} ({{ (calibrator.focusedAxisPair().posScore * 100).toFixed(0) }}%)</span>
@@ -188,17 +188,12 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
                     <span class="text-rose-400">{{ calibrator.focusedAxisPair().axis.negativePole }} ({{ (calibrator.focusedAxisPair().negScore * 100).toFixed(0) }}%)</span>
                   </div>
 
-                  <div class="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-2">
+                  <div class="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-2 text-[11px]">
                     <span class="font-bold text-emerald-400">Boosted (+{{ calibrator.steeringBeta().toFixed(2) }}): </span>
                     <span class="text-(--text-color)">{{ calibrator.focusedAxisPair().axis.positiveAnchor }}</span>
                   </div>
 
-                  <div class="rounded-lg border border-rose-500/30 bg-rose-500/5 p-2">
-                    <span class="font-bold text-rose-400">Suppressed (-{{ calibrator.steeringAlpha().toFixed(2) }}): </span>
-                    <span class="text-(--text-color-muted) italic">"{{ calibrator.focusedAxisPair().axis.negativeAnchor }}"</span>
-                  </div>
-
-                  <div class="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-(--text-color-muted)">
+                  <div class="flex flex-wrap items-center justify-between gap-2 pt-0.5 text-[10.5px] text-(--text-color-muted)">
                     <span>🛡️ {{ calibrator.focusedAxisPair().connectedFallacy }}</span>
                     <button
                       type="button"
@@ -212,12 +207,12 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
               </div>
             </div>
           } @else {
-            <!-- 4-Petal Fibonacci Sunflower View -->
-            <div class="space-y-4">
+            <!-- Compact 4-Petal Fibonacci Sunflower View -->
+            <div class="space-y-3">
               <div class="flex flex-col items-center">
                 <svg
                   viewBox="0 0 280 280"
-                  class="w-60 h-60 overflow-visible select-none"
+                  class="w-44 h-44 overflow-visible select-none"
                   role="img"
                   aria-label="Interactive 4-Petal Fibonacci Sunflower"
                 >
