@@ -243,6 +243,7 @@ export class AppComponent implements OnDestroy {
     localStorage.setItem('spark_realism_level', level);
     const tempMap = { practical: '0.45', balanced: '0.65', bold: '0.85' };
     localStorage.setItem('spark_temp_val', tempMap[level]);
+    this.brandDriftCalibrator.syncWithRealismLevel(level);
     this.geminiService.clearCache();
   }
 
@@ -1055,10 +1056,20 @@ export class AppComponent implements OnDestroy {
       }
 
       const results = await promises[0] as InsightResult[]; // Wait primarily for insights
-      this.insights.set(results);
-      const firstText = results?.[0]?.insights?.[0]?.text;
-      if (firstText) {
-        this.brandDriftCalibrator.recordGeneratedOutput(firstText);
+      if (results?.length) {
+        const healedResults = results.map((group, gIdx) => ({
+          ...group,
+          insights: (group.insights || []).map((item, iIdx) => {
+            if (gIdx === 0 && iIdx === 0 && item.text) {
+              const healed = this.brandDriftCalibrator.autoHealBrandOutput(item.text);
+              return { ...item, text: healed.outputText };
+            }
+            return item;
+          })
+        }));
+        this.insights.set(healedResults);
+      } else {
+        this.insights.set(results);
       }
       
       // Ensure other promises complete (optional, could just let them settle)

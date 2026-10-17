@@ -160,6 +160,35 @@ export class BrandDriftCalibratorService {
     return list[idx];
   });
 
+  /**
+   * 4-Slot Working Memory Summary (maps the 6 axes down to 4 calm, plain-English meters).
+   */
+  readonly fourSlotMetrics = computed(() => {
+    const scores = this.currentTurn().poleScores;
+    return [
+      { id: 'practicality', label: '1. Practicality', description: 'Concrete everyday tools vs. vague clichés', score: scores[0] ?? 0.85 },
+      { id: 'clarity', label: '2. Clear Tone', description: 'Calm, direct phrasing vs. chatty hype', score: Number((((scores[1] ?? 0.85) + (scores[2] ?? 0.85)) / 2).toFixed(2)) },
+      { id: 'agency', label: '3. Human Agency', description: 'Respects personal choice & family respite', score: scores[4] ?? 0.88 },
+      { id: 'calm-pacing', label: '4. 4-Slot Calm', description: 'Bite-sized steps without cognitive overload', score: scores[5] ?? 0.88 },
+    ];
+  });
+
+  /**
+   * Automatically aligns J++ steering weights with the user's Idea Style ('practical' | 'balanced' | 'bold').
+   */
+  syncWithRealismLevel(level: 'practical' | 'balanced' | 'bold'): void {
+    if (level === 'practical') {
+      this.steeringAlpha.set(0.80);
+      this.steeringBeta.set(0.65);
+    } else if (level === 'balanced') {
+      this.steeringAlpha.set(0.70);
+      this.steeringBeta.set(0.55);
+    } else {
+      this.steeringAlpha.set(0.50);
+      this.steeringBeta.set(0.45);
+    }
+  }
+
   cosineSimilarity(a: number[], b: number[]): number {
     if (a.length !== b.length || a.length === 0) return 0;
     let dot = 0;
@@ -198,7 +227,21 @@ export class BrandDriftCalibratorService {
     return diff.map(x => x / norm);
   }
 
-  recordGeneratedOutput(text: string, sourceModel: 'pivotpulse:latest' | 'branddesk:latest' | 'gemini-live' = this.activeModel()): BrandTurnScore {
+  private extractDynamicJppLayers(text: string, dominantAxis: BrandDriftAxis, isDrifting: boolean, maxHazardScore: number, sourceModel: string) {
+    const stopWords = new Set(['that', 'this', 'with', 'from', 'into', 'your', 'have', 'more', 'when', 'will', 'they', 'them', 'while', 'where', 'which', 'their', 'about', 'instead', 'rather', 'than', 'every', 'these', 'those']);
+    const tokens = (text.toLowerCase().match(/[a-z0-9-]{4,}/g) || [])
+      .filter(w => !stopWords.has(w));
+    const unique = Array.from(new Set(tokens));
+
+    return {
+      l6: unique.slice(0, 4).length ? unique.slice(0, 4) : ['everyday-concept', dominantAxis.id],
+      l16: unique.slice(4, 7).length ? [...unique.slice(4, 7), dominantAxis.id] : ['practical-step', dominantAxis.id],
+      l24: [isDrifting ? 'needs-grounding' : 'calm-clarity', `hazard:${(maxHazardScore * 100).toFixed(0)}%`],
+      l32: [sourceModel.split(':')[0], isDrifting ? 'auto-healed' : 'ready'],
+    };
+  }
+
+  recordGeneratedOutput(text: string, sourceModel: 'pivotpulse:latest' | 'branddesk:latest' | 'gemini-live' = this.activeModel(), customLabel?: string): BrandTurnScore {
     const lower = text.toLowerCase();
     const posScores: number[] = [];
     const negScores: number[] = [];
@@ -213,8 +256,8 @@ export class BrandDriftCalibratorService {
         if (lower.includes(kw)) negHits++;
       }
 
-      const rawPos = Math.min(0.96, 0.64 + posHits * 0.09 - negHits * 0.14);
-      const rawNeg = Math.min(0.95, Math.max(0.05, 0.12 + negHits * 0.22 - posHits * 0.05));
+      const rawPos = Math.min(0.96, 0.72 + posHits * 0.08 - negHits * 0.16);
+      const rawNeg = Math.min(0.95, Math.max(0.05, 0.10 + negHits * 0.24 - posHits * 0.04));
       posScores.push(Number(Math.max(0.12, rawPos).toFixed(2)));
       negScores.push(Number(rawNeg.toFixed(2)));
     }
@@ -233,7 +276,7 @@ export class BrandDriftCalibratorService {
 
     const newTurn: BrandTurnScore = {
       turnIndex: nextIdx,
-      label: `T${nextIdx} · Live ${sourceModel.split(':')[0]} Audit`,
+      label: customLabel || `T${nextIdx} · Live Check`,
       sourceModel,
       excerpt: text.slice(0, 180) + (text.length > 180 ? '...' : ''),
       poleScores,
@@ -242,12 +285,7 @@ export class BrandDriftCalibratorService {
       maxHazardScore,
       jevExplanationScore: isDrifting ? 0.59 : 0.94,
       isDrifting,
-      jppLayers: {
-        l6: ['lexical-scan', this.axes[maxPosIdx].id, isDrifting ? 'slop-detected' : 'clean-syntax'],
-        l16: ['workspace-projection', this.axes[maxPosIdx].positivePole.toLowerCase()],
-        l24: [isDrifting ? 'steering-required' : 'caslon-aligned', `hazard:${maxHazardScore.toFixed(2)}`],
-        l32: [sourceModel, isDrifting ? 'drift-warning' : 'calibrated-output'],
-      },
+      jppLayers: this.extractDynamicJppLayers(text, this.axes[maxPosIdx], isDrifting, maxHazardScore, sourceModel),
     };
 
     this.turns.update(prev => [...prev, newTurn]);
