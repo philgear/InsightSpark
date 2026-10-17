@@ -290,14 +290,14 @@ export class BrandDriftCalibratorService {
   /**
    * Self-Healing DPO Preference Queue for local branddesk:latest & pivotpulse:latest fine-tuning.
    */
-  readonly selfHealingDpoQueue = signal<Array<{
+  readonly selfHealingDpoQueue = signal<{
     timestamp: string;
     model: string;
     rejectedSlopText: string;
     chosenHealedText: string;
     hazardReducedFrom: number;
     hazardReducedTo: number;
-  }>>([]);
+  }[]>([]);
 
   /**
    * Closed-loop self-healing: scores generated copy, and if maxHazardScore >= 0.55,

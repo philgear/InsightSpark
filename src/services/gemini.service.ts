@@ -265,12 +265,18 @@ export class GeminiService {
         if ((selectedModel === 'on-device-nano' || selectedModel === 'window.ai') && typeof win?.ai?.languageModel?.create === 'function') {
           try {
             const systemPrompt = mode === 'care'
-              ? 'You are a compassionate, HIPAA-compliant care support partner. Provide creative, positive psychology insights for health goals in valid JSON format matching schema: [{"strategyName": string, "insights": [{"text": string, "influence": string}]}].'
-              : 'You are a creative thinking partner. Provide distinct actionable insights matching JSON schema: [{"strategyName": string, "insights": [{"text": string}]}].';
+              ? 'You are a compassionate, HIPAA-compliant care support partner grounded in PERMA+H positive psychology. Provide specific, practical, everyday insights (not generic clichés and not unrealistic gimmicks) in valid JSON format matching schema: [{"strategyName": string, "insights": [{"text": string, "influence": string}]}].'
+              : 'You are a practical lateral thinking partner. Provide specific, realistic, doable insights (avoiding vague clichés and avoiding crazy sci-fi gimmicks) matching JSON schema: [{"strategyName": string, "insights": [{"text": string}]}].';
             
             const session = await win.ai.languageModel.create({ systemPrompt });
-            const strategyList = strategies.map(s => `- Strategy: ${mode === 'care' ? (s.careModeName || s.name) : s.name}`).join('\n');
-            const promptText = `Problem: ${problem}\n\nStrategies:\n${strategyList}\n\nProvide 2 actionable insights per strategy. Output valid JSON array only.`;
+            const strategyList = strategies.map(s => {
+              const sName = mode === 'care' ? (s.careModeName || s.name) : s.name;
+              const sDesc = mode === 'care' ? (s.careModeDescription || s.description) : s.description;
+              return `- Strategy: "${sName}" — ${sDesc}`;
+            }).join('\n');
+            const gistContext = gist ? `Guiding Perspective: "${gist}"\n\n` : '';
+            const snapshotContext = healthSnapshot ? `Health Snapshot: ${healthSnapshot}\n\n` : '';
+            const promptText = `${gistContext}${snapshotContext}Problem: "${problem}"\n\nStrategies:\n${strategyList}\n\nProvide 2 specific, practical, real-world insights per strategy that someone can realistically do this week. Output valid JSON array only.`;
             
             const fullResponse = await session.prompt(promptText);
             session.destroy?.();
@@ -629,6 +635,45 @@ export class GeminiService {
       throw new Error("No insights provided to generate a creative plan.");
     }
     if (this.isDemoMode()) {
+      const pLower = problem.toLowerCase();
+      const matched = STARTER_SCENARIOS.find(s =>
+        s.mode === 'creative' && (
+          s.prompt === problem ||
+          pLower.includes(s.title.toLowerCase()) ||
+          pLower.includes(s.category)
+        )
+      );
+      if (matched && matched.id !== 'creative-civic') {
+        const insightSteps = insights.slice(0, 4).map((ins, idx) => `${idx + 1}. ${ins.text}`);
+        return {
+          conceptualGoal: `${matched.title}: ${matched.gist}`,
+          criticalPath: insightSteps.length >= 2 ? insightSteps : [
+            `1. Establish baseline prototype parameters for ${matched.title}.`,
+            `2. Integrate saved lateral insights (${insights[0]?.strategyName || 'Core'}) into a physical bench test.`,
+            `3. Stress-test failure modes under real-world community operating conditions.`,
+            `4. Document open-source blueprints for neighborhood replication.`
+          ],
+          riskAssessment: [
+            `1. Mechanical or environmental wear under peak seasonal load — mitigate via modular, tool-free replacement joints.`,
+            `2. Community adoption friction — mitigate by co-designing the interface alongside local elders and youth.`
+          ],
+          requiredResources: [
+            `Modular fabrication materials for ${matched.categoryLabel}`,
+            `Neighborhood co-design host space`,
+            `Low-voltage telemetry & acoustic/optical measurement kit`,
+            `Open-source documentation templates`
+          ],
+          milestones: [
+            `Month 1: Bench-scale functional prototype validated with initial user circle.`,
+            `Month 3: Full installation operational with zero-grid or low-friction autonomy.`,
+            `Month 6: Community stewardship handoff and open-source blueprint release.`
+          ],
+          nextSteps: [
+            `Assemble a 48-hour rapid physical mock-up of: "${insights[0]?.text.slice(0, 80)}..."`,
+            `Host a 60-minute hands-on review session with local domain stakeholders.`
+          ]
+        };
+      }
       return {
         conceptualGoal: "To establish a dual-purpose urban green space combining flood defense with local food production.",
         criticalPath: [
@@ -912,18 +957,18 @@ export class GeminiService {
       if (mode === 'creative' && isDefaultCreativeQuery) {
         if (sId === 'butterfly') {
           insights = [
-            { text: "Plant high-absorption willow groves along the lowest contours. Their roots stabilize soil and absorb up to 250 gallons of water daily, turning a flood risk into a self-watering irrigation system." },
-            { text: "Install kinetic stepping stones on main walking paths. The pressure from daily joggers generates low-voltage energy, powering the park's evening safety lighting with zero grid reliance." }
+            { text: "Plant water-loving willow and river birch trees along the lowest contours so their roots hold the soil and soak up standing rainwater naturally." },
+            { text: "Line main walking paths with solar-charged LED bollard lights and permeable gravel edges that drain puddles while keeping evening strolls safe." }
           ];
         } else if (sId === 'combinatorial') {
           insights = [
-            { text: "Merge a vertical hydroponic farm with the vertical structural faces of the concrete flood barrier walls, optimizing urban agricultural space while keeping the barrier functional." },
-            { text: "Combine community composting chutes directly with public waste bins, feeding organic waste into localized biogas digesters that fuel public cooking grills in the picnic zones." }
+            { text: "Plant climbing beans, peas, and espaliers along the sunny side of terraced retaining walls so flood-control structures double as vertical garden space." },
+            { text: "Pair neighborhood yard-waste drop-off bins with a three-bay wooden compost station right next to the raised beds so volunteers always have rich soil on hand." }
           ];
         } else if (sId === 'first-principles') {
           insights = [
-            { text: "Identify the core resource needed: energy. Rather than importing solar panels, design the park’s geometry to direct wind flows into micro-turbine channels built directly into standard pedestrian archways." },
-            { text: "Deconstruct the idea of a 'park.' It is primarily a land asset. Maximize asset utility by scheduling dual-use hours: educational classrooms by day, flood overflow retention zones during storm events." }
+            { text: "Focus on passive gravity drainage first: contour the main lawn into a gentle grass bowl that holds heavy storm runoff for 24 hours and stays dry for picnics the rest of the week." },
+            { text: "Use the park's existing pavilion roofs to feed 250-gallon rain barrels at the top of the slope so volunteers can water lower garden beds with simple gravity hoses." }
           ];
         } else if (sId === 'perma-strengths') {
           insights = [
@@ -937,13 +982,13 @@ export class GeminiService {
           ];
         } else if (sId === 'opposite') {
           insights = [
-            { text: "Invert the entire water management model: instead of keeping floodwaters out of the park, design amphitheater retaining basins that intentionally submerge during peak rainfall, creating seasonal reflecting pools and kayak wetlands." },
-            { text: "Reverse the delivery dynamic: rather than making visitors walk to food hubs, mobile bicycle carts pedal freshly harvested produce directly through neighborhood streets as the flood barriers engage." }
+            { text: "Instead of trying to pipe all rainwater out of the park immediately, shape the lowest corner into a planted rain garden with stone stepping paths that safely holds storm runoff." },
+            { text: "Rather than expecting every neighbor to walk to the park to harvest produce, set up a weekly Saturday farm-stand cart by the main sidewalk and bus stop." }
           ];
         } else if (sId === 'superpower') {
           insights = [
-            { text: "Assume zero-energy infinite pumping capacity: design passive siphons and hydraulic pressure wells that automatically aerate stagnant wetland water using the kinetic force of incoming stormwater." },
-            { text: "Envision hyper-accelerated biomimetic growth: introduce deep-rooted vetiver and mycorrhizal fungi networks that double soil absorption rates within 48 hours of seasonal flash flood warnings." }
+            { text: "Remove heavy lifting from park upkeep: connect raised beds to simple float-valve drip lines fed by rainwater tanks so beds water themselves during dry spells." },
+            { text: "Boost soil sponge capacity naturally: mix deep compost and clover cover crops into compacted turf areas so the ground absorbs twice as much rain before puddling." }
           ];
         } else if (sId === 'fmea') {
           insights = [
@@ -962,13 +1007,48 @@ export class GeminiService {
           ];
         } else if (sId === 'feedback-loop') {
           insights = [
-            { text: "Close the regenerative energy loop: divert midday solar canopy excess into kinetic water fountain pumps that store gravitational potential energy for nighttime illuminated walking paths." },
+            { text: "Close the seasonal nutrient loop: chop fallen autumn leaves from the park's shade trees right into the garden mulch beds so winter rain breaks them down into spring soil." },
             { text: "Self-reinforcing adoption loop: every completed community plot yields free compost and native seeds for adjacent plots, accelerating neighborhood ownership and stewardship." }
           ];
         } else if (sId === 'perspective-inversion') {
           insights = [
-            { text: "Through the eyes of an urban sparrow: design vertical canopy layers with native berry shrubs and roosting nooks, using avian biodiversity as natural pest control and acoustic dampening." },
-            { text: "Through the lens of a 9th-century monastic archivist: craft stone-etched contemplative sundials and drought-tolerant medicinal herb quadrants built to endure multi-century climate fluctuations." }
+            { text: "From the perspective of local wildlife: plant layered native berry shrubs and shade trees along the perimeter to provide natural pest control and cool down the walking paths." },
+            { text: "From the perspective of a 50-year city groundskeeper: choose hardy, drought-tolerant perennial herbs and durable stone seating that require minimal weekly upkeep." }
+          ];
+        } else if (sId === 'nature') {
+          insights = [
+            { text: "Natural Terracing: Use simple wood-and-stone check dams along sloped paths to slow down heavy rainwater so it soaks into the garden beds instead of washing away topsoil." },
+            { text: "Woodchip Mulch Sponges: Line walking paths with deep arborist woodchips that absorb storm runoff like a sponge while keeping fruit tree roots moist during dry weeks." }
+          ];
+        } else if (sId === 'what-if') {
+          insights = [
+            { text: "What if the lowest, wettest corner of the park became an asset? Plant water-loving native species and raised cedar beds there so heavy rain waters the crops automatically." },
+            { text: "What if the park required almost no municipal watering? Group hardy perennial fruit bushes and herbs together in mulched rain basins that capture runoff from nearby paved paths." }
+          ];
+        } else if (sId === 'constraints') {
+          insights = [
+            { text: "Low-Budget Materials: Instead of expensive poured concrete walls, use rock-filled wire baskets (gabions) and native shrubs to stabilize slopes and slow down runoff." },
+            { text: "No-Hose Irrigation: Angle walkways slightly toward adjacent planting beds so rain naturally drains into the soil where trees and vegetables grow." }
+          ];
+        } else if (sId === 'child') {
+          insights = [
+            { text: "Make water flow visible and educational: add simple, safe rain chains and open stone channels from pavilion roofs so families can watch rainwater travel into the garden beds." },
+            { text: "Organize edible beds by height—strawberries at the front border, blueberries in the middle, and dwarf apple trees in the back—making picking intuitive and accessible for kids and seniors." }
+          ];
+        } else if (sId === 'future') {
+          insights = [
+            { text: "Plant for the 10-Year Canopy: Space fast-growing shade trees alongside slow-maturing nut and fruit trees now so the park gets cooler and more productive each summer." },
+            { text: "Simple Seasonal Signage: Post clear weatherproof signs at the park entrance showing what is ripe to pick this month and how the rain basins protect the neighborhood." }
+          ];
+        } else if (sId === 'simplify') {
+          insights = [
+            { text: "Start with one repeatable layout: a standard 8x4ft raised bed paired with a rain barrel and bench that volunteers can easily build and maintain across the park." },
+            { text: "Keep community rules simple: post a clear 'Take a little, tend a little' guide at each bed so neighbors know what is ready to harvest and how to help weed." }
+          ];
+        } else if (sId === 'critical-path') {
+          insights = [
+            { text: "Step 1: Shape the drainage swales and gravel paths first so heavy rain has a safe place to go before any garden soil is added." },
+            { text: "Step 2: Plant hardy cover crops and deep-rooted native grasses in Season 1 to hold the soil in place before planting fruit trees in Season 2." }
           ];
         }
       } else if (mode === 'care' && STARTER_SCENARIOS.some(sc => sc.prompt === problem || textLower.includes(sc.category) || textLower.includes(sc.title.toLowerCase())) && !isDefaultCareQuery) {
@@ -977,7 +1057,7 @@ export class GeminiService {
         if (sId === 'what-if') {
           insights = [
             { text: `What if success is measured by joyful participation and laughter in ${matched.categoryLabel}, rather than physical performance speed?`, influence: "P (Positive Emotion): Re-centers the human spirit and intrinsic joy." },
-            { text: `What if we adapt the home environment so ${matched.gist}`, influence: "Accomplishment (A): Micro-mastery." }
+            { text: `What if we adapt the home environment so ${matched.gist.charAt(0).toLowerCase() + matched.gist.slice(1)}`, influence: "Accomplishment (A): Micro-mastery without strain." }
           ];
         } else if (sId === 'butterfly') {
           insights = [
@@ -989,22 +1069,22 @@ export class GeminiService {
             { text: ctx ? ctx.relational : `Involve multiple generations in ${matched.categoryLabel} rituals so the elder is mentor, not passive recipient.`, influence: "Relationships (R): Distributes family care joyfully while protecting caregiver respite." },
             { text: `Create a dedicated weekly family circle celebrating shared memories and creative milestones in ${matched.categoryLabel}.`, influence: "Meaning (M): Dignity and intergenerational heritage." }
           ];
-        } else if (sId === 'burnout-shield') {
+        } else if (sId === 'respite-pacing') {
           insights = [
             { text: "Establish a non-negotiable weekly 3-hour respite window for the primary family caregiver while a secondary partner or volunteer accompanies the session.", influence: "Vitality (+H): Protects caregiver sustainability and prevents emotional exhaustion." },
-            { text: "Share care duties across the family circle with explicit handoff times.", influence: "Relationships (R): Respite invariant." }
+            { text: ctx ? ctx.relational : "Share care duties across the family circle with explicit handoff times.", influence: "Relationships (R): Respite invariant." }
           ];
         } else if (sId === 'sensory-bridge') {
           insights = [
             { text: ctx ? ctx.ecosystem : `Design a sensory sanctuary for ${matched.categoryLabel} with ergonomic seating and warm lighting.`, influence: "Engagement (E): Creates tactile, auditory, and environmental safety." },
             { text: "Incorporate calming acoustic elements and warm natural lighting to ease nervous system guarding.", influence: "Vitality (+H): Parasympathetic restoration." }
           ];
-        } else if (sId === 'via-strengths' || sId === 'perma-strengths') {
+        } else if (sId === 'perma-strengths') {
           insights = [
             { text: ctx ? ctx.identityAssets : `Anchor self-worth in mastery of ${matched.categoryLabel} and lived wisdom.`, influence: "Meaning (M): Amplifies enduring signature strengths separate from physical limitations." },
             { text: `Celebrate daily micro-mastery milestones in ${matched.categoryLabel}.`, influence: "Accomplishment (A): Flourishing." }
           ];
-        } else if (sId === 'fmea-risk' || sId === 'fmea') {
+        } else if (sId === 'fmea') {
           insights = [
             { text: `Pre-mortem fatigue hazard: Overexertion during ${matched.categoryLabel}. Guardrail: Enforce 15-minute gentle seated checkpoints with hydration.`, influence: "Safety: Prevents post-exertional crash." },
             { text: "Pre-mortem isolation: Caregiver or elder carrying the emotional load alone. Guardrail: Weekly shared check-in with family circle.", influence: "Relational support: Respite protection." }
@@ -1013,6 +1093,24 @@ export class GeminiService {
           insights = [
             { text: ctx && ctx.sampleInterventions[2] ? ctx.sampleInterventions[2] : `Integrate ${matched.categoryLabel} with ergonomic adaptations and gentle pacing.`, influence: "Well-being: Grounded practical step." },
             { text: ctx ? ctx.perspectives : "Harmonizes safety guidelines, lived experience, and flourishing.", influence: "Perspectives (P): Triad alignment." }
+          ];
+        }
+      } else if (mode === 'creative' && STARTER_SCENARIOS.some(sc => sc.mode === 'creative' && (sc.prompt === problem || textLower.includes(sc.title.toLowerCase()))) && !isDefaultCreativeQuery) {
+        const matched = STARTER_SCENARIOS.find(sc => sc.mode === 'creative' && (sc.prompt === problem || textLower.includes(sc.title.toLowerCase())))!;
+        if (matched.id === 'creative-eco') {
+          insights = [
+            { text: `Use scalloped leading-edge blades (modeled on whale fins) so small rooftop wind rotors spin smoothly in gusty city breezes without loud whistling.` },
+            { text: `Place compact vertical rotors near existing rooftop exhaust vents and parapet corners where wind naturally speeds up, using rubber mounts so vibration never reaches apartments below.` }
+          ];
+        } else if (matched.id === 'creative-craft') {
+          insights = [
+            { text: `Pair retired machinists and woodworkers with local high school students to build simple, sturdy everyday helpers—like custom jar openers, lever door handles, and magnetic tool holders.` },
+            { text: `Host a monthly Saturday 'Fix-It & Coffee' table at the community center where neighbors bring wobbly chairs, lamps, or walkers for shared repairs and practical conversation.` }
+          ];
+        } else if (matched.id === 'creative-astronomy') {
+          insights = [
+            { text: `Use simple angled roof reflectors and light-colored interior walls to bounce natural winter daylight into shaded reading corners without glare.` },
+            { text: `Pair warm, dimmable reading lamps in the late afternoon with comfortable acoustic seating and indoor greenery to create a calm, welcoming winter gathering spot.` }
           ];
         }
       } else if (mode === 'care' && isDefaultCareQuery) {
@@ -1033,8 +1131,8 @@ export class GeminiService {
           ];
         } else if (sId === 'superpower') {
           insights = [
-            { text: "Endow the garden with frictionless ergonomics: equip her with ultra-lightweight carbon-fiber telescoping trowels and self-reeling hose attachments that eliminate all lifting resistance.", influence: "Removes joint load while restoring independent autonomy and pride." },
-            { text: "Implement circadian vitality amplification: position blooming night-jasmine and aromatic lavender directly beside bedroom windows to foster deep restorative sleep and natural pain modulation.", influence: "PERMA Health & Vitality: elevates restorative sleep quality without pharmaceutical sedation." }
+            { text: "Make daily gardening effortless on the joints: use cushioned, long-handled hand tools and a waist-high coiled garden hose so she never has to bend down or lift heavy cans.", influence: "Removes joint load while restoring independent autonomy and pride." },
+            { text: "Place fragrant lavender and jasmine in window boxes right outside her bedroom and patio to create a calm, relaxing evening atmosphere that supports restful sleep.", influence: "PERMA Health & Vitality: elevates restorative sleep quality without pharmaceutical sedation." }
           ];
         } else if (sId === 'fmea') {
           insights = [
@@ -1076,19 +1174,45 @@ export class GeminiService {
             { text: "The Triad Perspective Shift: Align the 3 vital lenses. Balance the Orthopedist's 90-degree flexion rule with the Patient's fear of re-injury through the Future Self's lens: envisioning walking effortlessly at her granddaughter's spring graduation.", influence: "Perspectives (P): Harmonizes biomechanical safety with emotional reality and future-oriented hope." },
             { text: "The Plant's Perspective: Reframe recovery through perennial roots. Remind her that dormant winter roots establish the strongest spring blooms—patience and micro-steps are active growth, not stagnation.", influence: "Perspectives (P): Shifts mindset from frustration to organic, compassionate patience." }
           ];
+        } else if (sId === 'respite-pacing') {
+          insights = [
+            { text: "Protected Saturday Respite: Schedule a non-negotiable 3.5-hour Saturday morning respite window for the primary family caregiver while a neighbor garden buddy shares herbal tea and seed-sorting on the porch.", influence: "Vitality (+H): Protects caregiver stamina and prevents emotional burnout." },
+            { text: "20-Minute Micro-Pacing Timer: Pair active standing at the raised bed with a gentle wind-chime timer every 20 minutes to prompt seated hydration before orthostatic fatigue begins.", influence: "Health (+H): Prevents post-exertional pain flare-ups." }
+          ];
+        } else if (sId === 'constraints') {
+          insights = [
+            { text: "Zero-Bending Constraint: Elevate all seedling flats, herbdrying racks, and botanical pressings onto a 32-inch waist-high redwood potting bench with a cushioned barstool.", influence: "Accomplishment (A): Preserves 100% of hip precaution boundaries without sacrificing botanical mastery." },
+            { text: "One-Handed Leverage: Use long-handled ergonomic ratcheting pruners and self-watering capillary mats so daily plant care requires zero heavy lifting.", influence: "Agency (A): Restores independent daily garden stewardship." }
+          ];
+        } else if (sId === 'critical-path') {
+          insights = [
+            { text: "Phase 1 (Days 1–3): Clear level 36-inch walker pathways from the patio door to the raised planter and verify non-slip cedar mat placement.", influence: "Safety: Establishes physical clearance before any outdoor mobility." },
+            { text: "Phase 2 (Days 4–14): Transition from 10-minute seated indoor seed cataloging to 15-minute supported standing sessions at the waist-high herb bed.", influence: "Accomplishment (A): Structured, confidence-building progression." }
+          ];
+        } else if (sId === 'sensory-bridge') {
+          insights = [
+            { text: "Aromatic Tactile Sanctuary: Plant silver sage, lemon verbena, and French lavender at hand height along the porch railing so brushing past releases calming essential oils.", influence: "Positive Emotion (P): Downregulates sympathetic guarding through olfactory and tactile grounding." },
+            { text: "Acoustic Rhythm Pacing: Play warm acoustic folk or classical guitar tracks at 60 BPM during morning mobility routines to entrain relaxed breathing and steady gait cadence.", influence: "Engagement (E): Turns physical therapy into a soothing sensory ritual." }
+          ];
+        } else if (sId === 'found-kinship') {
+          insights = [
+            { text: "Neighborhood Seed-Swap Circle: Invite two fellow retired gardeners from the street for a Thursday afternoon porch cutting exchange, expanding social support beyond immediate family.", influence: "Relationships (R): Builds chosen community mesh and relieves primary caregiver load." },
+            { text: "Local Botanical Society Pen-Pal: Pair her heirloom seed-saving logs with a local elementary school garden club that visits monthly to receive her labeled seed packets.", influence: "Meaning (M): Honors her status as a community botanical mentor." }
+          ];
         }
       }
 
       // Context-aware dynamic fallback for custom prompts or other strategies in Demo Mode
       if (insights.length === 0) {
+        const snippet = problem.trim().length > 60 ? `${problem.trim().slice(0, 57)}...` : problem.trim();
         insights = [
           {
-            text: `[${strategyName} Breakthrough] Deconstruct the primary constraint: examine what happens if the core obstacle of "${problem.trim().slice(0, 50)}..." is inverted or bypassed entirely to discover an unexpected high-leverage leap.`,
-            ...(mode === 'care' && { influence: `Applies ${strategyName} to strengthen personal agency, kinship connection, and caregiver respite.` })
+            text: `${strategyName} Approach: Look at the most frustrating step in "${snippet}" and simplify it using existing household or neighborhood resources so it takes half the effort.`,
+            ...(mode === 'care' && { influence: `Builds everyday confidence and comfort without adding extra burden.` })
           },
           {
-            text: `[${strategyName} Traction Step] Anchor this leap with an immediate low-friction experiment: test a manageable 24-hour prototype before committing larger resources.`,
-            ...(mode === 'care' && { influence: `Provides an immediate low-risk step aligned with PERMA+H well-being.` })
+            text: `Simple 15-Minute Trial: Test this adjustment once over the next two days with a family member or friend, keeping what feels natural and setting aside anything that feels complicated.`,
+            ...(mode === 'care' && { influence: `Protects caregiver rest and keeps the routine low-stress.` })
           }
         ];
       }

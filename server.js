@@ -452,7 +452,7 @@ async function generateJsonFromLocalOllama(modelName, prompt, systemInstruction,
       format: 'json',
       stream: false,
       keep_alive: -1,
-      options: { temperature: 0.2 }
+      options: { temperature: getTemperature(req, 0.55) }
     })
   });
 
@@ -765,7 +765,8 @@ app.post('/api/insights', [
     const strategyText = strategies.map(strategy => {
       const name = mode === 'care' ? (strategy.careModeName || strategy.name) : strategy.name;
       const description = mode === 'care' ? (strategy.careModeDescription || strategy.description) : strategy.description;
-      return `- Strategy Name: "${name}"\n  Description: ${description}`;
+      const persona = strategy.agentPersona || STRATEGY_MAP[strategy.id]?.persona || '';
+      return `- Strategy Name: "${name}"\n  Description: ${description}${persona ? `\n  Analytical Voice: ${persona}` : ''}`;
     }).join('\n\n');
 
     const prompt = `
@@ -787,16 +788,18 @@ app.post('/api/insights', [
       Please apply EACH of the following creative strategies to this problem:
       ${strategyText}
 
-      For each strategy, provide 2 to 3 distinct, specific, and actionable insights or ideas.
-      Ensure the insights are written in clear, simple language, avoiding jargon to be accessible to a wide audience.
+      For each strategy, provide 2 to 3 distinct, specific, and practical insights or ideas.
+      - **Grounded & Realistic (Not Too Crazy):** Ideas must be genuinely doable in the real world using everyday materials, realistic budgets, and low-friction human habits. Avoid sci-fi, Rube Goldberg contraptions, or over-the-top gimmicks. Even when using a bold provocation (like "Superpower" or "Alien Perspective"), always translate the spark back into a sensible, grounded action someone can actually start this week.
+      - **Specific, Not Bland:** Avoid vague clichés (e.g., "communicate better", "take breaks"). Give clear, concrete, common-sense steps tailored directly to the situation.
+      - Ensure the insights remain warm, clear, and accessible without sterile jargon.
       
       ${strategies.length > 1 ? `
       **Combinatorial Cross-Pollination & Synthesis:**
-      Because multiple strategies are active (${strategies.map(s => mode === 'care' ? (s.careModeName || s.name) : s.name).join(', ')}), allow them to cross-pollinate! Ensure at least one insight actively bridges the friction points between the selected strategies into a cohesive, non-obvious breakthrough.
+      Because multiple strategies are active (${strategies.map(s => mode === 'care' ? (s.careModeName || s.name) : s.name).join(', ')}), allow them to complement each other! Ensure at least one insight bridges the selected strategies into a practical, well-rounded solution.
       ` : ''}
 
       ${mode === 'care' ? `
-      IMPORTANT: For each insight, you MUST also provide a brief summary of its supportive impact on the person's well-being, as described in the JSON schema.
+      IMPORTANT: For each insight, you MUST also provide a brief summary of its supportive impact on the person's well-being (grounded in PERMA+H or DSRP), as described in the JSON schema.
       ` : ''}
       
       Return the output strictly as a JSON array of objects, with one object for each strategy, matching the schema.
@@ -819,7 +822,7 @@ app.post('/api/insights', [
             systemInstruction,
             responseMimeType: 'application/json',
             responseSchema: insightsSchema,
-            temperature: getTemperature(req, 0.8),
+            temperature: getTemperature(req, 0.65),
             safetySettings: SAFETY_SETTINGS,
             ...getThinkingConfig(req)
           }
@@ -1117,6 +1120,11 @@ const STRATEGY_MAP = {
   'respite-pacing': { name: 'Sustainable Sprint & Burnout Shield', persona: 'A plan that burns out the caregiver is a failed plan. I enforce protected rest, guilt-free handoffs, and renewable emotional energy.' },
   'ethical-dignity': { name: 'Integrity & Non-Negotiable Boundaries', persona: 'I am the keeper of dignity and autonomy. Every intervention must honor the person\'s voice, values, and living truth—nothing about them without them.' },
   'environmental-safety': { name: 'Physical Grounding & Ergonomics', persona: 'I inspect the physical living room floor. Brilliant intentions fail when someone trips on a rug or can\'t read a medicine bottle. I ground care in physical reality.' },
+  'boundary-dissolution': { name: 'Boundary Dissolution', persona: 'I erase artificial borders. The patient is not the pathology, and your problem is not where you drew the line. When you distinguish identity from context, new pathways appear.' },
+  'system-fractal': { name: 'System Fractal (Parts & Wholes)', persona: 'I zoom between the fractal part and the whole ecosystem. A joint does not heal in isolation from autonomic nervous balance, restorative sleep, and daily rituals.' },
+  'feedback-loop': { name: 'Unseen Ties & Feedback Loops', persona: 'I trace invisible feedback loops and relational bridges. Pain creates fear, fear creates immobility; but trusted kinship breaks the cycle at the lowest friction point.' },
+  'perspective-inversion': { name: 'Perspective Inversion', persona: 'I step into other shoes. When we look through the clinician\'s biomechanics, the patient\'s lived vulnerability, and the future self\'s joy, the true path becomes undeniable.' },
+  'porters-five-forces': { name: 'Porter’s Five Forces & Competitive Moat', persona: 'I map the five structural forces pressing on your mission. I eliminate vendor lock-in, single-point bottlenecks, and generic commoditization before they erode your moat.' },
 };
 
 // Auth helper: supports both x-gemini-api-key header and Bearer token
@@ -1465,12 +1473,12 @@ app.post('/api/agent/pipeline', [
 
     const insightsResponse = await genAI.models.generateContent({
       model: getModel(req),
-      contents: `${gist ? `Guiding principle: "${gist}"\n\n` : ''}Problem: "${problem}"\n\nApply each strategy:\n${strategyText}\n\nFor each, provide 2-3 distinct, actionable insights.`,
+      contents: `${gist ? `Guiding principle: "${gist}"\n\n` : ''}Problem: "${problem}"\n\nApply each strategy:\n${strategyText}\n\nFor each, provide 2-3 specific, practical, and realistic insights that are genuinely doable without sci-fi or over-the-top gimmicks.`,
       config: {
         systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : CIVIC_NEUTRALITY_INSTRUCTION,
         responseMimeType: 'application/json',
         responseSchema: insightsSchema,
-        temperature: 0.8,
+        temperature: 0.65,
         safetySettings: SAFETY_SETTINGS,
       },
     });
@@ -1638,7 +1646,7 @@ app.post('/api/agent/:strategyId', [
       Apply your unique analytical lens to this problem:
       "${problem}"
 
-      Provide 2-3 distinct, specific, and actionable insights. Stay fully in character.
+      Provide 2-3 specific, practical, and realistic insights. Keep your ideas grounded in real-world feasibility—avoid sci-fi or over-the-top gimmicks, and translate your perspective into sensible steps someone can actually do.
     `;
 
     const response = await genAI.models.generateContent({
@@ -1648,7 +1656,7 @@ app.post('/api/agent/:strategyId', [
         systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : CIVIC_NEUTRALITY_INSTRUCTION,
         responseMimeType: 'application/json',
         responseSchema: schema,
-        temperature: 0.8,
+        temperature: 0.65,
         safetySettings: SAFETY_SETTINGS,
       },
     });
@@ -1658,6 +1666,23 @@ app.post('/api/agent/:strategyId', [
     console.error('Error in /api/agent/%s:', req.params.strategyId, error);
     res.status(500).json({ error: getCleanErrorMessage(error) });
   }
+});
+
+// ─── Health & Readiness Probes (99% Uptime SLA) ─────────────────────────────
+const SERVER_START_MS = Date.now();
+
+app.get(['/health', '/healthz'], (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'insight-spark-server',
+    uptime_seconds: Math.round((Date.now() - SERVER_START_MS) / 1000),
+    sla_target: '99.0%',
+    memory_usage_mb: Math.round(process.memoryUsage().rss / 1024 / 1024)
+  });
+});
+
+app.get('/readyz', (req, res) => {
+  res.status(200).send('ready');
 });
 
 // Serve Angular static files with caching headers

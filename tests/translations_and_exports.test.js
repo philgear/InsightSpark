@@ -191,15 +191,15 @@ describe('Translation & Internationalization Suite', () => {
     }
   });
 
-  test('Complete strategy registry contains 28 models (21 provocations, 7 anchors)', async () => {
+  test('Complete strategy registry contains 29 models (21 provocations, 8 anchors)', async () => {
     const { STRATEGIES } = await import('../src/models/creative-types.ts');
-    assert.strictEqual(STRATEGIES.length, 28, 'Must have exactly 28 strategies');
+    assert.strictEqual(STRATEGIES.length, 29, 'Must have exactly 29 strategies');
 
     const provocations = STRATEGIES.filter(s => s.category !== 'anchor');
     const anchors = STRATEGIES.filter(s => s.category === 'anchor');
 
     assert.strictEqual(provocations.length, 21, 'Must have exactly 21 divergent provocations');
-    assert.strictEqual(anchors.length, 7, 'Must have exactly 7 systems rigor anchors');
+    assert.strictEqual(anchors.length, 8, 'Must have exactly 8 systems rigor anchors');
 
     // Verify recent provocations
     const newProvocationIds = ['sensory-bridge', 'found-kinship', 'time-dilation'];

@@ -1,3 +1,5 @@
+import { StrategyId } from './creative-types';
+
 export interface StarterScenario {
   id: string;
   category: 'music' | 'culinary' | 'craft' | 'astronomy' | 'story' | 'companion' | 'games' | 'textile' | 'nature' | 'civic' | 'eco';
@@ -6,7 +8,7 @@ export interface StarterScenario {
   mode: 'care' | 'creative';
   title: string;
   prompt: string;
-  recommendedStrategies: string[];
+  recommendedStrategies: StrategyId[];
   gist: string;
   domainContext?: {
     identityAssets: string;
@@ -27,7 +29,7 @@ export const STARTER_SCENARIOS: StarterScenario[] = [
     mode: 'care',
     title: 'Acoustic Blues & Living Room Jams',
     prompt: 'Enable a 68-year-old retired guitarist recovering from a mild stroke to safely rebuild left-hand finger agility and lead a weekly acoustic living room circle with his teenage granddaughter.',
-    recommendedStrategies: ['what-if', 'butterfly', 'kinship-triad', 'burnout-shield'],
+    recommendedStrategies: ['what-if', 'butterfly', 'kinship-triad', 'respite-pacing'],
     gist: 'Preserving musician identity and rhythm through adaptive open-tunings, micro-sessions, and family jamming.',
     domainContext: {
       identityAssets: 'Lifelong blues musician and acoustic mentor — unaffected ear for pitch, rhythm intuition, and musical repertoire.',
@@ -49,7 +51,7 @@ export const STARTER_SCENARIOS: StarterScenario[] = [
     mode: 'care',
     title: 'Heritage Dumplings & Sourdough Memory',
     prompt: 'Empower an 81-year-old grandfather experiencing early memory loss to comfortably lead Sunday family dumpling and bread-making rituals with tactile sensory pacing and seating adaptations.',
-    recommendedStrategies: ['constraints', 'sensory-bridge', 'kinship-triad', 'via-strengths'],
+    recommendedStrategies: ['constraints', 'sensory-bridge', 'kinship-triad', 'perma-strengths'],
     gist: 'Centering ancestral culinary knowledge, tactile memory, and intergenerational feast rituals.',
     domainContext: {
       identityAssets: 'Master family cook and heritage guardian — intact procedural muscle memory for dough folding, seasoning balance, and family storytelling.',
@@ -71,7 +73,7 @@ export const STARTER_SCENARIOS: StarterScenario[] = [
     mode: 'care',
     title: 'Birdhouse Crafting & Songbird Sanctuaries',
     prompt: 'Design ergonomic woodworking adaptations and magnetic safety jigs for a 74-year-old former carpenter with mild Parkinson tremors to build birdhouses alongside neighborhood kids.',
-    recommendedStrategies: ['fmea-risk', 'critical-path', 'kinship-triad', 'ergonomics-home'],
+    recommendedStrategies: ['fmea', 'critical-path', 'kinship-triad', 'environmental-safety'],
     gist: 'Honoring craftsman wisdom and spatial mastery through safety-jig adaptations and youth mentorship.',
     domainContext: {
       identityAssets: 'Master carpenter and spatial thinker — deep understanding of timber grains, joinery, and wildlife ecology.',
@@ -93,7 +95,7 @@ export const STARTER_SCENARIOS: StarterScenario[] = [
     mode: 'care',
     title: 'Backyard Stargazing & Night-Sky Wonder',
     prompt: 'Create a restful evening stargazing routine and iPad-assisted telescope setup for a 70-year-old astronomy lover recovering from cardiac rehab to foster restorative sleep, awe, and family wonder.',
-    recommendedStrategies: ['time-century', 'sensory-bridge', 'what-if', 'integrity-autonomy'],
+    recommendedStrategies: ['time-dilation', 'sensory-bridge', 'what-if', 'ethical-dignity'],
     gist: 'Channeling cosmic awe (PERMA Meaning) and circadian harmony with zero-strain digital optical setups.',
     domainContext: {
       identityAssets: 'Lifelong astronomy educator — vast knowledge of celestial lore, planetary orbits, and deep-sky wonders.',
@@ -115,7 +117,7 @@ export const STARTER_SCENARIOS: StarterScenario[] = [
     mode: 'care',
     title: 'Living Room Audio Chronicles & Lore',
     prompt: 'Facilitate a micro-podcast recording ritual for an 84-year-old matriarch to preserve ancestral migration stories and folk recipes, guided gently by her 14-year-old tech-enthusiast grandson.',
-    recommendedStrategies: ['child', 'unlikely-alliances', 'kinship-triad', 'via-strengths'],
+    recommendedStrategies: ['child', 'found-kinship', 'kinship-triad', 'perma-strengths'],
     gist: 'Bridging generations through oral storytelling, voice preservation, and teen digital partnership.',
     domainContext: {
       identityAssets: 'Family matriarch and cultural historian — vivid lived memories of mid-century community life, resilience, and family proverbs.',
@@ -137,7 +139,7 @@ export const STARTER_SCENARIOS: StarterScenario[] = [
     mode: 'care',
     title: 'Gentle Micro-Walks with a Companion Dog',
     prompt: 'Structure a joyful, low-impact daily micro-walking and grooming routine for a 72-year-old elder recovering from knee replacement together with a gentle rescue therapy dog.',
-    recommendedStrategies: ['butterfly', 'nature', 'burnout-shield', 'fmea-risk'],
+    recommendedStrategies: ['butterfly', 'nature', 'respite-pacing', 'fmea'],
     gist: 'Unconditional canine connection and rhythmic outdoor walking to motivate recovery while preventing fall risks.',
     domainContext: {
       identityAssets: 'Compassionate animal lover and nurturer — deep sensitivity to pet behavior and joy in gentle routine.',
@@ -159,7 +161,7 @@ export const STARTER_SCENARIOS: StarterScenario[] = [
     mode: 'care',
     title: 'Porch Chess & Dominoes Tournament',
     prompt: 'Organize a bi-weekly porch chess and dominoes salon for a 78-year-old retired math teacher to mentor local students, fostering sharp cognitive flow, laughter, and community belonging.',
-    recommendedStrategies: ['combinatorial', 'unlikely-alliances', 'via-strengths', 'child'],
+    recommendedStrategies: ['combinatorial', 'found-kinship', 'perma-strengths', 'child'],
     gist: 'Cognitive play, friendly competition, and cross-generational intellectual mentorship.',
     domainContext: {
       identityAssets: 'Retired educator and analytical strategist — sharp strategic memory, patience, and love for teaching game fundamentals.',
@@ -181,7 +183,7 @@ export const STARTER_SCENARIOS: StarterScenario[] = [
     mode: 'care',
     title: 'Waist-High Heirloom Botany & Seed Saving',
     prompt: 'Safely support a 75-year-old grandmother recovering from a hip fracture in waist-high seed propagation, pressing botanical specimens, and herbal tea drying with family respite handoffs.',
-    recommendedStrategies: ['what-if', 'butterfly', 'kinship-triad', 'burnout-shield'],
+    recommendedStrategies: ['what-if', 'butterfly', 'kinship-triad', 'respite-pacing'],
     gist: 'Redefining garden passion to eliminate bending hazards through table-height seed sorting and heirloom cataloging.',
     domainContext: {
       identityAssets: 'Master gardener and botanist — deep knowledge of plant species, seed viability, and natural teas.',
@@ -205,7 +207,7 @@ export const STARTER_SCENARIOS: StarterScenario[] = [
     mode: 'creative',
     title: 'Sponge-City Municipal Food Forest',
     prompt: 'Designing a self-sustaining municipal park that doubles as an absorbent flood barrier, native bio-swale, and community agricultural commons.',
-    recommendedStrategies: ['nature', 'combinatorial', 'fmea-risk'],
+    recommendedStrategies: ['nature', 'combinatorial', 'fmea'],
     gist: 'Harmonizing flood engineering with hyper-local food sovereignty and public park space.',
   },
   {
@@ -227,7 +229,7 @@ export const STARTER_SCENARIOS: StarterScenario[] = [
     mode: 'creative',
     title: 'Elder Machinists Meet Youth Coders',
     prompt: 'Creating a neighborhood repair café and assistive-device laboratory where retired machinists and youth coders co-design custom accessibility gadgets.',
-    recommendedStrategies: ['unlikely-alliances', 'combinatorial', 'child'],
+    recommendedStrategies: ['found-kinship', 'combinatorial', 'child'],
     gist: 'Fusing traditional tactile metalworking and woodworking with 3D printing and microcontrollers.',
   },
   {

@@ -1,5 +1,36 @@
+export type StrategyId =
+  | 'what-if'
+  | 'constraints'
+  | 'butterfly'
+  | 'combinatorial'
+  | 'opposite'
+  | 'future'
+  | 'child'
+  | 'alien'
+  | 'nature'
+  | 'superpower'
+  | 'simplify'
+  | 'random'
+  | 'first-principles'
+  | 'root-cause'
+  | 'sensory-bridge'
+  | 'found-kinship'
+  | 'time-dilation'
+  | 'boundary-dissolution'
+  | 'system-fractal'
+  | 'feedback-loop'
+  | 'perspective-inversion'
+  | 'fmea'
+  | 'critical-path'
+  | 'perma-strengths'
+  | 'kinship-triad'
+  | 'respite-pacing'
+  | 'ethical-dignity'
+  | 'environmental-safety'
+  | 'porters-five-forces';
+
 export interface CreativeStrategy {
-  id: string;
+  id: StrategyId;
   name: string;
   description: string;
   icon: string;

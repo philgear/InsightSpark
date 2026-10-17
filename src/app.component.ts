@@ -8,7 +8,7 @@ import { GeminiService } from './services/gemini.service';
 import { StorageService, Theme } from './services/storage.service';
 import { TranslationService, SUPPORTED_LANGUAGES_LIST } from './services/translation.service';
 import { PocketgullIntegrationService } from './services/pocketgull-integration.service';
-import { CreativeStrategy, InsightItem, InsightResult, SavedInsight, STRATEGIES, CarePlan, SavedCarePlan, StructuredProblem, CreativePlan, SavedCreativePlan, CareRole } from './models/creative-types';
+import { CreativeStrategy, StrategyId, InsightItem, InsightResult, SavedInsight, STRATEGIES, CarePlan, SavedCarePlan, StructuredProblem, CreativePlan, SavedCreativePlan, CareRole } from './models/creative-types';
 import { STARTER_SCENARIOS, StarterScenario } from './models/starter-scenarios';
 import { AgenticResult, AgenticPhase, AGENTIC_PHASES } from './models/agent-types';
 import { IconComponent } from './components/ui/icon.component';
@@ -152,7 +152,7 @@ export interface SynergyPreset {
   id: string;
   name: string;
   description: string;
-  strategyIds: string[];
+  strategyIds: StrategyId[];
   roles?: string[];
 }
 
@@ -232,6 +232,19 @@ export class AppComponent implements OnDestroy {
   starterScenarios = signal<StarterScenario[]>(STARTER_SCENARIOS);
   activeScenario = signal<StarterScenario | null>(null);
   activeScenarioFilter = signal<string | null>(null);
+
+  // Idea Realism / Creativity Dial ('practical' = 0.45, 'balanced' = 0.65, 'bold' = 0.85)
+  ideaRealismLevel = signal<'practical' | 'balanced' | 'bold'>(
+    (localStorage.getItem('spark_realism_level') as 'practical' | 'balanced' | 'bold') || 'practical'
+  );
+
+  setIdeaRealism(level: 'practical' | 'balanced' | 'bold') {
+    this.ideaRealismLevel.set(level);
+    localStorage.setItem('spark_realism_level', level);
+    const tempMap = { practical: '0.45', balanced: '0.65', bold: '0.85' };
+    localStorage.setItem('spark_temp_val', tempMap[level]);
+    this.geminiService.clearCache();
+  }
 
   availableStarterCategories = computed(() => {
     const mode = this.appMode();

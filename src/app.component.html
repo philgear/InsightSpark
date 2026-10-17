@@ -1048,6 +1048,31 @@
                   <div class="step-connector__orb"></div><div class="step-connector__orb"></div><div class="step-connector__orb"></div>
                 </div>
 
+                <!-- Grounded ↔ Bold Realism Selector -->
+                <div class="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-xl bg-(--card-bg) border border-(--border-color)">
+                  <span class="text-xs font-bold text-(--text-color-muted)">Idea Style:</span>
+                  <div class="flex items-center gap-1.5" role="group" aria-label="Idea realism level">
+                    <button type="button"
+                            (click)="setIdeaRealism('practical')"
+                            [class]="ideaRealismLevel() === 'practical' ? 'bg-(--text-accent) text-white font-bold' : 'bg-(--button-bg) text-(--text-color-muted) hover:text-(--text-color)'"
+                            class="text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer">
+                      Practical &amp; Everyday
+                    </button>
+                    <button type="button"
+                            (click)="setIdeaRealism('balanced')"
+                            [class]="ideaRealismLevel() === 'balanced' ? 'bg-(--text-accent) text-white font-bold' : 'bg-(--button-bg) text-(--text-color-muted) hover:text-(--text-color)'"
+                            class="text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer">
+                      Balanced
+                    </button>
+                    <button type="button"
+                            (click)="setIdeaRealism('bold')"
+                            [class]="ideaRealismLevel() === 'bold' ? 'bg-(--text-accent) text-white font-bold' : 'bg-(--button-bg) text-(--text-color-muted) hover:text-(--text-color)'"
+                            class="text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer">
+                      Adventurous
+                    </button>
+                  </div>
+                </div>
+
                 <!-- Generate Buttons (Standard & Multi-Agent Debate) -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button (click)="generateInsights()"
