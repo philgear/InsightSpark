@@ -97,10 +97,16 @@ export class BrandDriftCalibratorService {
   readonly steeringEnabled = signal<boolean>(true);
   readonly selectedTurnIndex = signal<number>(0);
   readonly focusedAxisIndex = signal<number>(0);
+  readonly selectionLockMode = signal<'none' | 'manual' | 'wheel'>('none');
   private onSteeringAppliedCallback: (() => void) | null = null;
 
   registerSteeringCallback(cb: () => void): void {
     this.onSteeringAppliedCallback = cb;
+  }
+
+  unlockWheel(): void {
+    this.selectionLockMode.set('wheel');
+    this.manipulateWedge(this.focusedAxisIndex());
   }
 
   readonly turns = signal<BrandTurnScore[]>([
@@ -399,12 +405,104 @@ export class BrandDriftCalibratorService {
   });
 
   /**
+   * Synchronizes the 6-Axis Wheel profile to reflect manually selected strategies without overwriting them.
+   */
+  syncWheelFromManualStrategies(strategyIds: string[]): void {
+    if (!strategyIds.length) {
+      this.selectionLockMode.set('none');
+      return;
+    }
+
+    const axisStrategyMap: Record<string, number> = {
+      'first-principles': 0,
+      'critical-path': 0,
+      'constraints': 0,
+      'resource-map': 0,
+      'fmea': 1,
+      'verify-h0': 1,
+      'environmental-safety': 1,
+      'simplify': 2,
+      'child': 2,
+      'future': 2,
+      'combinatorial': 3,
+      'nature': 3,
+      'butterfly': 3,
+      'opposite': 3,
+      'superpower': 3,
+      'alien': 3,
+      'random-word': 3,
+      'what-if': 3,
+      'kinship-triad': 4,
+      'perma-strengths': 4,
+      'found-kinship': 4,
+      'sensory-bridge': 4,
+      'joy-spark': 4,
+      'respite-pacing': 5,
+      'sleep-circadian': 5,
+      'cognitive-calm': 5,
+    };
+
+    const axisHits = [0, 0, 0, 0, 0, 0];
+    for (const id of strategyIds) {
+      const idx = axisStrategyMap[id] ?? 0;
+      axisHits[idx]++;
+    }
+
+    let dominantAxisIdx = 0;
+    for (let i = 1; i < 6; i++) {
+      if (axisHits[i] > axisHits[dominantAxisIdx]) {
+        dominantAxisIdx = i;
+      }
+    }
+
+    this.focusedAxisIndex.set(dominantAxisIdx);
+    const axis = this.axes[dominantAxisIdx];
+    const poleScores = [0, 1, 2, 3, 4, 5].map(i =>
+      Number(Math.min(0.96, 0.84 + axisHits[i] * 0.05).toFixed(2))
+    );
+    const hazardScores = [0, 1, 2, 3, 4, 5].map(i =>
+      Number(Math.max(0.04, 0.09 - axisHits[i] * 0.02).toFixed(2))
+    );
+
+    const nextIdx = this.turns().length + 1;
+    const manualTurn: BrandTurnScore = {
+      turnIndex: nextIdx,
+      label: `T${nextIdx} · Manual (${strategyIds.length}/4)`,
+      sourceModel: this.activeModel(),
+      excerpt: `Synced to manual selection (${strategyIds.join(', ')}) → Anchored on ${axis.positivePole}.`,
+      poleScores: [...poleScores, ...hazardScores],
+      dominantPositivePole: axis.positivePole,
+      dominantHazardPole: axis.negativePole,
+      maxHazardScore: Math.max(...hazardScores),
+      jevExplanationScore: 0.96,
+      isDrifting: false,
+      jppLayers: {
+        l6: strategyIds.slice(0, 4),
+        l16: [axis.id, 'manual-lock'],
+        l24: [`${strategyIds.length}-of-4-slots`, 'zero-slop'],
+        l32: ['manual-synced', 'ready'],
+      },
+    };
+
+    this.turns.update(prev => [...prev, manualTurn]);
+    this.selectedTurnIndex.set(this.turns().length - 1);
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('spark_brand_steering', this.getSteeringSystemDirective());
+    }
+  }
+
+  /**
    * Interactive 12-Pole Wheel Manipulation:
    * Clicking either a Green Craft Wedge (0..5) or its opposite Red Hazard Wedge (6..11)
    * locks that connected axis, boosts the Green pole to >=0.95, clamps its opposite Red hazard to <=0.05,
    * updates the steering directive, and triggers live card steering.
+   * Guarded when `selectionLockMode() === 'manual'` so manual strategy selections cannot be accidentally overwritten.
    */
   manipulateWedge(wedgeIndex: number): BrandTurnScore {
+    if (this.selectionLockMode() === 'manual') {
+      return this.currentTurn();
+    }
+    this.selectionLockMode.set('wheel');
     const axisIdx = wedgeIndex % 6;
     const clickedHazard = wedgeIndex >= 6;
     this.focusedAxisIndex.set(axisIdx);
@@ -458,6 +556,10 @@ export class BrandDriftCalibratorService {
   }
 
   applyBrandSteeringVector(): BrandTurnScore {
+    if (this.selectionLockMode() === 'manual') {
+      return this.currentTurn();
+    }
+    this.selectionLockMode.set('wheel');
     const nextIdx = this.turns().length + 1;
     const alpha = this.steeringAlpha();
     const beta = this.steeringBeta();

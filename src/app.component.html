@@ -929,9 +929,26 @@
                           <app-icon [name]="appMode() === 'care' ? 'clipboard-list' : 'sparkles'" [size]="18"></app-icon>
                           {{ appMode() === 'care' ? 'Select Care Approaches' : 'Pick Your Provocations' }}
                         </h2>
-                        <p class="text-xs text-(--text-color-muted)">Synced with your 6-Axis Wheel, or pick any combination below.</p>
+                        <p class="text-xs text-(--text-color-muted)">
+                          @if (brandDriftCalibrator.selectionLockMode() === 'wheel') {
+                            🔒 Driven by 6-Axis Wheel Triad — click <strong>Customize Manually</strong> to edit individual pills.
+                          } @else if (brandDriftCalibrator.selectionLockMode() === 'manual') {
+                            🔒 {{ selectedStrategiesCount() }}/{{ MAX_STRATEGY_SELECTION }} selected (4-Slot Max · 6-Axis Wheel synced &amp; locked to your picks).
+                          } @else {
+                            Pick up to {{ MAX_STRATEGY_SELECTION }} provocations manually, or steer via the 6-Axis Wheel on the right.
+                          }
+                        </p>
                       </div>
                       <div class="flex items-center gap-1.5 text-xs">
+                        @if (brandDriftCalibrator.selectionLockMode() === 'wheel') {
+                          <button (click)="unlockManualProvocations()" type="button" class="px-2.5 py-1 rounded-lg border border-amber-500/40 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 font-semibold cursor-pointer">
+                            🔓 Customize Manually
+                          </button>
+                        } @else if (brandDriftCalibrator.selectionLockMode() === 'manual') {
+                          <span class="px-2 py-0.5 rounded-md font-mono text-[11px] border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+                            {{ selectedStrategiesCount() }}/{{ MAX_STRATEGY_SELECTION }} Slots
+                          </span>
+                        }
                         <button (click)="showAllProvocations.set(!showAllProvocations())" type="button" class="px-2.5 py-1 rounded-lg border border-(--border-color) bg-(--card-bg-subtle) hover:bg-(--button-bg-hover) text-(--text-accent) font-semibold cursor-pointer">
                           {{ showAllProvocations() ? 'Compact View (Top 8)' : 'Show All 29' }}
                         </button>
@@ -996,16 +1013,24 @@
 
                     <!-- Section A: Creative Provocations (Compact Pill Grid) -->
                     <div>
-                      <div class="text-[11px] font-bold uppercase tracking-wider text-(--text-color-muted) mb-2 flex items-center gap-1.5">
-                        <app-icon name="sparkles" [size]="13" class="text-(--text-accent)"></app-icon>
-                        <span>{{ appMode() === 'care' ? 'Exploratory Perspectives' : 'Divergent Provocations' }}</span>
+                      <div class="text-[11px] font-bold uppercase tracking-wider text-(--text-color-muted) mb-2 flex items-center justify-between gap-1.5">
+                        <span class="flex items-center gap-1.5">
+                          <app-icon name="sparkles" [size]="13" class="text-(--text-accent)"></app-icon>
+                          <span>{{ appMode() === 'care' ? 'Exploratory Perspectives' : 'Divergent Provocations' }}</span>
+                        </span>
+                        @if (brandDriftCalibrator.selectionLockMode() === 'wheel') {
+                          <span class="text-[10px] font-mono text-amber-400">🔒 Locked to 6-Axis Triad</span>
+                        } @else if (isSelectionAtMax()) {
+                          <span class="text-[10px] font-mono text-emerald-400">✓ 4/4 Ceiling Reached</span>
+                        }
                       </div>
                       <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         @for (strategy of visibleProvocationStrategies(); track strategy.id) {
                           <button (click)="toggleStrategy(strategy.id)"
                                   type="button"
+                                  [disabled]="brandDriftCalibrator.selectionLockMode() === 'wheel' || (!isStrategySelected(strategy.id) && isSelectionAtMax())"
                                   [title]="appMode() === 'care' ? strategy.careModeDescription : strategy.description"
-                                  class="strategy-button group/strategy !p-2.5 !min-h-0"
+                                  class="strategy-button group/strategy !p-2.5 !min-h-0 disabled:opacity-45 disabled:cursor-not-allowed"
                                   [class.selected]="isStrategySelected(strategy.id)"
                                   [attr.aria-pressed]="isStrategySelected(strategy.id)"
                                   [style.--strategy-icon-color]="'var(--strategy-icon-' + strategy.id + ')'">
@@ -1035,8 +1060,9 @@
                         @for (strategy of visibleAnchorStrategies(); track strategy.id) {
                           <button (click)="toggleStrategy(strategy.id)"
                                   type="button"
+                                  [disabled]="brandDriftCalibrator.selectionLockMode() === 'wheel' || (!isStrategySelected(strategy.id) && isSelectionAtMax())"
                                   [title]="appMode() === 'care' ? strategy.careModeDescription : strategy.description"
-                                  class="strategy-button group/strategy border-2 !p-2.5 !min-h-0"
+                                  class="strategy-button group/strategy border-2 !p-2.5 !min-h-0 disabled:opacity-45 disabled:cursor-not-allowed"
                                   [class.selected]="isStrategySelected(strategy.id)"
                                   [attr.aria-pressed]="isStrategySelected(strategy.id)"
                                   [style.--strategy-icon-color]="'var(--strategy-icon-' + strategy.id + ')'">

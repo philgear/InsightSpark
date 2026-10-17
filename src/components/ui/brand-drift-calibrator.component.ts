@@ -30,13 +30,24 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
         </div>
 
         <div class="flex items-center gap-1.5">
-          <button
-            type="button"
-            (click)="calibrator.applyBrandSteeringVector()"
-            class="rounded-lg bg-(--text-accent) px-2.5 py-1 text-xs font-mono font-bold text-white shadow-xs hover:opacity-90 transition-all cursor-pointer"
-          >
-            ⚡ Apply Steering
-          </button>
+          @if (calibrator.selectionLockMode() === 'manual') {
+            <button
+              type="button"
+              (click)="calibrator.unlockWheel()"
+              class="rounded-lg border border-amber-500/40 bg-amber-500/15 px-2.5 py-1 text-xs font-mono font-bold text-amber-400 hover:bg-amber-500/25 transition-all cursor-pointer"
+              title="Unlock the 6-Axis Wheel to override your manual provocation picks"
+            >
+              🔒 Manual Picks (Unlock Wheel)
+            </button>
+          } @else {
+            <button
+              type="button"
+              (click)="calibrator.applyBrandSteeringVector()"
+              class="rounded-lg bg-(--text-accent) px-2.5 py-1 text-xs font-mono font-bold text-white shadow-xs hover:opacity-90 transition-all cursor-pointer"
+            >
+              ⚡ Apply Steering
+            </button>
+          }
           <button
             type="button"
             (click)="isExpanded.set(!isExpanded())"
@@ -96,9 +107,22 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
           @if (lensMode() === 'sunburst') {
             <!-- Compact 12-Pole Connected Sunburst + Connected Axis Control Panel -->
             <div class="space-y-3">
+              @if (calibrator.selectionLockMode() === 'manual') {
+                <div class="flex items-center justify-between gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-300">
+                  <span>🔒 <strong>Wheel Locked to Manual Provocations:</strong> Reflecting your custom picks on the left.</span>
+                  <button
+                    type="button"
+                    (click)="calibrator.unlockWheel()"
+                    class="shrink-0 rounded-md bg-amber-500/20 px-2 py-0.5 font-mono font-bold text-amber-200 hover:bg-amber-500/30 cursor-pointer"
+                  >
+                    Switch to Wheel
+                  </button>
+                </div>
+              }
+
               <!-- Compact Interactive 12-Pole Sunburst SVG -->
               <div class="flex flex-col items-center">
-                <svg viewBox="0 0 280 280" class="w-44 h-44 overflow-visible select-none" role="img" aria-label="Interactive 12-Pole Brand and Strategy Sunburst">
+                <svg viewBox="0 0 280 280" class="w-44 h-44 overflow-visible select-none" [class.opacity-80]="calibrator.selectionLockMode() === 'manual'" role="img" aria-label="Interactive 12-Pole Brand and Strategy Sunburst">
                   <circle cx="140" cy="140" r="105" fill="none" stroke="currentColor" stroke-opacity="0.12" stroke-dasharray="3 3" />
                   <circle cx="140" cy="140" r="65" fill="none" stroke="currentColor" stroke-opacity="0.15" stroke-dasharray="2 2" />
 
@@ -116,7 +140,9 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
                   @for (wedge of sunburstWedges(); track wedge.index) {
                     <g
                       (click)="calibrator.manipulateWedge(wedge.index)"
-                      class="cursor-pointer transition-opacity hover:opacity-95"
+                      [class.cursor-pointer]="calibrator.selectionLockMode() !== 'manual'"
+                      [class.cursor-not-allowed]="calibrator.selectionLockMode() === 'manual'"
+                      class="transition-opacity hover:opacity-95"
                     >
                       <path
                         [attr.d]="wedge.path"
@@ -140,7 +166,7 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
 
                   <circle cx="140" cy="140" r="23" class="fill-(--card-bg)" stroke="currentColor" stroke-opacity="0.25" />
                   <text x="140" y="137" text-anchor="middle" class="text-[9px] font-mono font-bold fill-current">
-                    {{ calibrator.currentTurn().isDrifting ? 'DRIFT' : 'LOCKED' }}
+                    {{ calibrator.selectionLockMode() === 'manual' ? 'MANUAL' : (calibrator.currentTurn().isDrifting ? 'DRIFT' : 'LOCKED') }}
                   </text>
                   <text x="140" y="149" text-anchor="middle" class="text-[8px] font-mono fill-current opacity-75">
                     {{ (calibrator.currentTurn().maxHazardScore * 100).toFixed(0) }}% haz
@@ -166,8 +192,9 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
                   @for (axis of calibrator.axes; track axis.id; let idx = $index) {
                     <button
                       type="button"
+                      [disabled]="calibrator.selectionLockMode() === 'manual'"
                       (click)="calibrator.manipulateWedge(idx)"
-                      class="rounded-lg border px-2 py-1 text-left text-[11px] transition-all cursor-pointer"
+                      class="rounded-lg border px-2 py-1 text-left text-[11px] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       [class.border-amber-400]="calibrator.focusedAxisIndex() === idx"
                       [class.bg-amber-500/10]="calibrator.focusedAxisIndex() === idx"
                       [class.border-(--border-color)]="calibrator.focusedAxisIndex() !== idx"

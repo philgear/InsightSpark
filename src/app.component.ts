@@ -227,8 +227,10 @@ export class AppComponent implements OnDestroy {
   availableStrategies = signal<CreativeStrategy[]>(STRATEGIES);
   provocationStrategies = computed(() => this.availableStrategies().filter(s => s.category !== 'anchor'));
   anchorStrategies = computed(() => this.availableStrategies().filter(s => s.category === 'anchor'));
+  readonly MAX_STRATEGY_SELECTION = 4;
   showAllProvocations = signal<boolean>(false);
   selectedStrategyIds = signal<Set<string>>(new Set());
+  isSelectionAtMax = computed(() => this.selectedStrategyIds().size >= this.MAX_STRATEGY_SELECTION);
   copiedId = signal<string | null>(null);
 
   visibleProvocationStrategies = computed(() => {
@@ -659,7 +661,9 @@ export class AppComponent implements OnDestroy {
     this.activeScenario.set(scenario);
     this.problemInput.set(scenario.prompt);
     if (scenario.recommendedStrategies?.length) {
-      this.selectedStrategyIds.set(new Set(scenario.recommendedStrategies));
+      const capped = scenario.recommendedStrategies.slice(0, this.MAX_STRATEGY_SELECTION);
+      this.selectedStrategyIds.set(new Set(capped));
+      this.brandDriftCalibrator.selectionLockMode.set('wheel');
     }
     this.insights.set(null);
     this.carePlan.set(null);
@@ -894,19 +898,51 @@ export class AppComponent implements OnDestroy {
   }
 
   toggleStrategy(id: string) {
+    if (this.brandDriftCalibrator.selectionLockMode() === 'wheel') {
+      return;
+    }
+
     this.selectedStrategyIds.update(current => {
       const newSet = new Set(current);
       if (newSet.has(id)) {
         newSet.delete(id);
       } else {
+        if (newSet.size >= this.MAX_STRATEGY_SELECTION) {
+          return current;
+        }
         newSet.add(id);
+      }
+      this.synergyGraph.activeRecommendation.set(null);
+      if (newSet.size > 0) {
+        this.brandDriftCalibrator.selectionLockMode.set('manual');
+        this.brandDriftCalibrator.syncWheelFromManualStrategies(Array.from(newSet));
+      } else {
+        this.brandDriftCalibrator.selectionLockMode.set('none');
       }
       return newSet;
     });
   }
+
+  unlockManualProvocations(): void {
+    const current = Array.from(this.selectedStrategyIds());
+    this.brandDriftCalibrator.selectionLockMode.set(current.length > 0 ? 'manual' : 'none');
+    if (current.length > 0) {
+      this.brandDriftCalibrator.syncWheelFromManualStrategies(current);
+    }
+  }
+
   isStrategySelected = (id: string): boolean => this.selectedStrategyIds().has(id);
-  selectAllStrategies = () => this.selectedStrategyIds.set(new Set(this.availableStrategies().map(s => s.id)));
-  clearSelection = () => this.selectedStrategyIds.set(new Set());
+  selectAllStrategies = () => {
+    const firstFour = this.availableStrategies().slice(0, this.MAX_STRATEGY_SELECTION).map(s => s.id);
+    this.selectedStrategyIds.set(new Set(firstFour));
+    this.brandDriftCalibrator.selectionLockMode.set('manual');
+    this.brandDriftCalibrator.syncWheelFromManualStrategies(firstFour);
+  };
+  clearSelection = () => {
+    this.selectedStrategyIds.set(new Set());
+    this.brandDriftCalibrator.selectionLockMode.set('none');
+    this.synergyGraph.activeRecommendation.set(null);
+  };
 
   // Curated Combinatorial Synergy Presets
   synergyPresets = computed<SynergyPreset[]>(() => {
@@ -978,6 +1014,7 @@ export class AppComponent implements OnDestroy {
     const preset = this.synergyPresets().find(p => p.id === presetId);
     if (!preset) return;
 
+    this.brandDriftCalibrator.selectionLockMode.set('wheel');
     this.selectedStrategyIds.set(new Set(preset.strategyIds));
     if (this.appMode() === 'care' && preset.roles) {
       this.activeCareRoles.set(new Set(preset.roles));
@@ -992,6 +1029,7 @@ export class AppComponent implements OnDestroy {
   }
 
   applySmartSynergy() {
+    this.brandDriftCalibrator.selectionLockMode.set('wheel');
     const { recommendation, roles } = this.synergyGraph.recommendTriad(
       this.problemInput(),
       this.appMode(),
