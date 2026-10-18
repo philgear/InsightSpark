@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fluid Thinking — Soft Pillow Typeface Specimen &amp; Ductus Studio</title>
+  <title>Fluid Thinking &amp; Analyze People on Sight (1921) — 5-Font Finger-Style Specimen Studio</title>
   <style>
     @font-face {
       font-family: 'Fluid Thinking';
@@ -13,7 +13,41 @@
       font-display: swap;
     }
 
+    @font-face {
+      font-family: 'Sight Alimentive';
+      src: url('/fonts/SightAlimentive-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Sight Spatulate';
+      src: url('/fonts/SightSpatulate-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Sight Conic';
+      src: url('/fonts/SightConic-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Sight Philosophic';
+      src: url('/fonts/SightPhilosophic-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
     :root {
+      --active-specimen-font: 'Fluid Thinking', system-ui;
+
       --bg-dark: #0f141c;
       --bg-surface: rgba(23, 32, 46, 0.78);
       --border-ocean: rgba(56, 189, 248, 0.25);
@@ -48,11 +82,11 @@
     }
 
     .container {
-      max-width: 1120px;
+      max-width: 1140px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
-      gap: 2.5rem;
+      gap: 2.25rem;
     }
 
     header {
@@ -75,7 +109,7 @@
     }
 
     h1 {
-      font-family: 'Fluid Thinking', system-ui;
+      font-family: var(--active-specimen-font);
       font-size: 4rem;
       line-height: 1.15;
       letter-spacing: 0.02em;
@@ -86,8 +120,8 @@
 
     p.subtitle {
       color: var(--text-muted);
-      font-size: 1.15rem;
-      max-width: 760px;
+      font-size: 1.1rem;
+      max-width: 820px;
     }
 
     .card {
@@ -106,15 +140,71 @@
       margin-bottom: 1.25rem;
       display: flex;
       align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
       gap: 0.5rem;
     }
 
+    .active-pill {
+      font-size: 0.8rem;
+      font-family: monospace;
+      color: var(--emerald-eddy);
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.35);
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+    }
+
+    /* Finger Style Switcher Bar */
+    .switcher-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.85rem;
+    }
+
+    .style-switch-btn {
+      background: rgba(15, 20, 28, 0.75);
+      border: 1px solid rgba(56, 189, 248, 0.22);
+      border-radius: 0.9rem;
+      padding: 0.95rem 1rem;
+      color: var(--cream);
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .style-switch-btn:hover {
+      border-color: var(--cyan-wave);
+      transform: translateY(-2px);
+    }
+
+    .style-switch-btn.active {
+      background: rgba(56, 189, 248, 0.16);
+      border-color: var(--cyan-wave);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.22);
+    }
+
+    .btn-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--cyan-wave);
+      display: block;
+      margin-bottom: 0.2rem;
+    }
+
+    .btn-sub {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      display: block;
+      line-height: 1.35;
+    }
+
     .hero-display {
-      font-family: 'Fluid Thinking', system-ui;
-      font-size: 4.25rem;
+      font-family: var(--active-specimen-font);
+      font-size: 4.1rem;
       text-align: center;
       line-height: 1.25;
-      padding: 2.5rem 1.25rem;
+      padding: 2.25rem 1.25rem;
       background: rgba(15, 20, 28, 0.65);
       border-radius: 1rem;
       border: 1px dashed var(--border-ocean);
@@ -124,8 +214,8 @@
     }
 
     .hero-sub {
-      margin-top: 1.1rem;
-      font-size: 2rem;
+      margin-top: 1rem;
+      font-size: 1.95rem;
       color: var(--cyan-wave);
       opacity: 0.95;
     }
@@ -136,6 +226,47 @@
       color: var(--emerald-eddy);
       opacity: 0.9;
     }
+
+    /* 5-Font Comparison Stack */
+    .comparison-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .comparison-row {
+      background: rgba(15, 20, 28, 0.6);
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      border-radius: 0.9rem;
+      padding: 1.15rem 1.35rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .comp-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      color: var(--amber-sun);
+      font-family: monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .comp-sample {
+      font-size: 2.25rem;
+      color: var(--cream);
+      line-height: 1.3;
+      word-break: break-word;
+    }
+
+    .font-unified { font-family: 'Fluid Thinking', system-ui; }
+    .font-alimentive { font-family: 'Sight Alimentive', system-ui; }
+    .font-spatulate { font-family: 'Sight Spatulate', system-ui; }
+    .font-conic { font-family: 'Sight Conic', system-ui; }
+    .font-philosophic { font-family: 'Sight Philosophic', system-ui; }
 
     .tester-input {
       width: 100%;
@@ -156,7 +287,7 @@
     }
 
     .tester-output {
-      font-family: 'Fluid Thinking', system-ui;
+      font-family: var(--active-specimen-font);
       font-size: 3.1rem;
       line-height: 1.35;
       padding: 1.5rem;
@@ -205,7 +336,7 @@
     }
 
     .glyph-char {
-      font-family: 'Fluid Thinking', system-ui;
+      font-family: var(--active-specimen-font);
       font-size: 2.6rem;
       color: var(--cream);
       display: block;
@@ -216,34 +347,6 @@
       font-size: 0.65rem;
       color: var(--text-muted);
       font-family: monospace;
-    }
-
-    .anatomy-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .anatomy-card {
-      background: rgba(15, 20, 28, 0.55);
-      border: 1px solid var(--border-ocean);
-      border-radius: 0.9rem;
-      padding: 1.35rem;
-    }
-
-    .anatomy-title {
-      font-weight: 600;
-      color: var(--cyan-wave);
-      margin-bottom: 0.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .anatomy-desc {
-      font-size: 0.88rem;
-      color: var(--text-muted);
-      line-height: 1.55;
     }
 
     footer {
@@ -258,53 +361,102 @@
 <body>
   <div class="container">
     <header>
-      <div class="badge">Sovereign Atelier Typefoundry • Smooth-SDF Pillow Edition</div>
+      <div class="badge">Sovereign Atelier Typefoundry • Smooth-SDF Pillow &amp; 1921 Chirognomy Edition</div>
       <h1>Fluid Thinking</h1>
-      <p class="subtitle">Every letter is sculpted as a plush hydrodynamic pillow: smooth-union metaball seams, hydrostatic belly inflation, soft river-pebble counter dimples, and 100% TrueType Quadratic B-Splines with zero sharp corners.</p>
+      <p class="subtitle">Inspired by Elsie Lincoln Benedict’s 1921 Roycroft classic <em>How to Analyze People on Sight</em>: five compiled TrueType pillow fonts uniting <strong>Alimentive Cushion Pads</strong>, <strong>Spatulate Explorer Flares</strong>, <strong>Conic Artistic Tapers</strong>, and <strong>Philosophic Knuckle-Joints</strong>.</p>
     </header>
+
+    <!-- Interactive 5-Font Finger Style Switcher -->
+    <div class="card">
+      <h2>
+        <span>🖐️ Select Active Finger-Style Typeface</span>
+        <span class="active-pill" id="activeStyleBadge">Active Font: Fluid Thinking (Unified All-Finger Infusion)</span>
+      </h2>
+      <div class="switcher-grid">
+        <button type="button" class="style-switch-btn active" data-font="Fluid Thinking" data-label="Fluid Thinking (Unified All-Finger Infusion)">
+          <span class="btn-title">🌊 1. Fluid Thinking (Unified)</span>
+          <span class="btn-sub">Infuses all 4 finger styles by stroke role: Knuckle stems, Conic arches, Spatulate arms &amp; Alimentive bowls.</span>
+        </button>
+        <button type="button" class="style-switch-btn" data-font="Sight Alimentive" data-label="Sight Alimentive (Ch. I Cushion Pad)">
+          <span class="btn-title">☁️ 2. Sight Alimentive</span>
+          <span class="btn-sub">Chapter I "The Enjoyer" — Plush, bottom-heavy pillow bellies and generous dimpled cushion pads.</span>
+        </button>
+        <button type="button" class="style-switch-btn" data-font="Sight Spatulate" data-label="Sight Spatulate (Explorer Flared Tip)">
+          <span class="btn-title">🖐️ 3. Sight Spatulate</span>
+          <span class="btn-sub">The Dynamic Explorer — Pinched phalanx necks flaring out into broad, active sculptor fingertip pads.</span>
+        </button>
+        <button type="button" class="style-switch-btn" data-font="Sight Conic" data-label="Sight Conic (Thoracic Almond Taper)">
+          <span class="btn-title">🕯️ 4. Sight Conic</span>
+          <span class="btn-sub">Chapter II "The Thoracic" — Plump proximal bases tapering into almond tips with +16° diagonal counters.</span>
+        </button>
+        <button type="button" class="style-switch-btn" data-font="Sight Philosophic" data-label="Sight Philosophic (Knotted Phalanx Joint)">
+          <span class="btn-title">🔮 5. Sight Philosophic</span>
+          <span class="btn-sub">The Deep Analyst — Articulated interphalangeal knuckle nodules along every stem and arch.</span>
+        </button>
+      </div>
+    </div>
 
     <!-- Hero Specimen Plate -->
     <div class="card">
-      <h2>☁️ Pillow Specimen Plate</h2>
+      <h2>☁️ Live Pillow Specimen Plate</h2>
       <div class="hero-display">
         Fluid Thinking
-        <div class="hero-sub">Soft pillows of lateral thought &amp; gentle respite ~ 2026 ♥</div>
-        <div class="hero-pangram">Pack my box with five dozen liquor jugs! (0123456789)</div>
+        <div class="hero-sub">How to Analyze People on Sight ~ 1921 &amp; 2026 ♥</div>
+        <div class="hero-pangram">Soft pillows of lateral thought &amp; gentle respite (0123456789)</div>
+      </div>
+    </div>
+
+    <!-- Side-by-Side 5-Font Morphology Comparison -->
+    <div class="card">
+      <h2>🔬 All 5 Sovereign TTF Fonts Compared Side-by-Side</h2>
+      <div class="comparison-stack">
+        <div class="comparison-row">
+          <div class="comp-meta">
+            <span>1. FluidThinking-Regular.ttf • Unified All-Finger Synthesis</span>
+            <span>Knuckle Stems + Conic Arches + Spatulate Arms + Alimentive Bowls</span>
+          </div>
+          <div class="comp-sample font-unified">Fluid Thinking: Soft pillows &amp; human sight ~ 2026 ♥</div>
+        </div>
+        <div class="comparison-row">
+          <div class="comp-meta">
+            <span>2. SightAlimentive-Regular.ttf • Chapter I: The Alimentive Cushion Pad</span>
+            <span>Plush Gravity Swell + Deep Melt Seams</span>
+          </div>
+          <div class="comp-sample font-alimentive">Sight Alimentive: Soft pillows &amp; human sight ~ 2026 ♥</div>
+        </div>
+        <div class="comparison-row">
+          <div class="comp-meta">
+            <span>3. SightSpatulate-Regular.ttf • The Spatulate Explorer Pad</span>
+            <span>Pinched Distal Neck + Flared Fingertip Pads</span>
+          </div>
+          <div class="comp-sample font-spatulate">Sight Spatulate: Soft pillows &amp; human sight ~ 2026 ♥</div>
+        </div>
+        <div class="comparison-row">
+          <div class="comp-meta">
+            <span>4. SightConic-Regular.ttf • Chapter II: The Conic Artistic Taper</span>
+            <span>Proximal-to-Distal Almond Taper + 16° Rising Pebble Counters</span>
+          </div>
+          <div class="comp-sample font-conic">Sight Conic: Soft pillows &amp; human sight ~ 2026 ♥</div>
+        </div>
+        <div class="comparison-row">
+          <div class="comp-meta">
+            <span>5. SightPhilosophic-Regular.ttf • The Philosophic Knotted-Joint</span>
+            <span>Twin Interphalangeal Knuckle Swells (t = 0.33, 0.67)</span>
+          </div>
+          <div class="comp-sample font-philosophic">Sight Philosophic: Soft pillows &amp; human sight ~ 2026 ♥</div>
+        </div>
       </div>
     </div>
 
     <!-- Interactive Typography Sandbox -->
     <div class="card">
       <h2>🖋️ Interactive Pillow Stream Tester</h2>
-      <input type="text" id="typeInput" class="tester-input" value="Soft pillows of fluid lateral thought &amp; gentle respite ~ 2026 ♥" placeholder="Type anything in uppercase, lowercase, numbers, or punctuation...">
-      <div id="typeOutput" class="tester-output">Soft pillows of fluid lateral thought &amp; gentle respite ~ 2026 ♥</div>
+      <input type="text" id="typeInput" class="tester-input" value="How to Analyze People on Sight: Soft pillows of lateral thought ~ 2026 ♥" placeholder="Type anything in uppercase, lowercase, numbers, or punctuation...">
+      <div id="typeOutput" class="tester-output">How to Analyze People on Sight: Soft pillows of lateral thought ~ 2026 ♥</div>
       <div class="controls">
         <label for="sizeSlider">Point Size:</label>
-        <input type="range" id="sizeSlider" class="slider" min="20" max="88" value="50">
-        <span id="sizeVal">50px</span>
-      </div>
-    </div>
-
-    <!-- Ductus Anatomy Breakdown -->
-    <div class="card">
-      <h2>🔬 Smooth-SDF Pillow Physics &amp; B-Spline Topology</h2>
-      <div class="anatomy-grid">
-        <div class="anatomy-card">
-          <div class="anatomy-title">☁️ Smooth-Union Seams (smin)</div>
-          <div class="anatomy-desc">Intersecting strokes blend via polynomial smooth-minimum fields (k = 54), melting sharp junctions into plush, continuous cushion creases.</div>
-        </div>
-        <div class="anatomy-card">
-          <div class="anatomy-title">💧 Hydrostatic Belly Swell</div>
-          <div class="anatomy-desc">Every spline inflates along a sinusoidal pressure profile and finishes in bulbous terminal lobes so no stroke ever ends in a flat cut.</div>
-        </div>
-        <div class="anatomy-card">
-          <div class="anatomy-title">🪨 Soft Counter Dimples (smax)</div>
-          <div class="anatomy-desc">Interior bowls across uppercase, lowercase, and numerals are carved as smooth river-pebble dimples with rounded inner rims.</div>
-        </div>
-        <div class="anatomy-card">
-          <div class="anatomy-title">〰️ Quadratic B-Spline Contours</div>
-          <div class="anatomy-desc">Marching Squares + 6-pass Taubin smoothing + alternating on-curve/off-curve TrueType quadratic splines ensure C1 tangent continuity everywhere.</div>
-        </div>
+        <input type="range" id="sizeSlider" class="slider" min="20" max="88" value="48">
+        <span id="sizeVal">48px</span>
       </div>
     </div>
 
@@ -315,7 +467,7 @@
     </div>
 
     <footer>
-      <strong>Fluid Thinking Regular</strong> • 83 Smooth-SDF Quadratic B-Spline Glyphs • SIL Open Font License 1.1<br>
+      <strong>Fluid Thinking &amp; Sight Chirognomy Suite (5 TTF Fonts × 83 Glyphs)</strong> • Pure Dart 3.11 Smooth-SDF Compiler • SIL Open Font License 1.1<br>
       Phil Gear Photography Atelier Typefoundry &amp; Pivot &amp; Pulse • spark.philgear.dev
     </footer>
   </div>

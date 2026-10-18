@@ -1,5 +1,5 @@
 /**
- * Fluid Thinking — Interactive Pillow Typeface Specimen Controller
+ * Fluid Thinking & "How to Analyze People on Sight" (1921) Finger-Style Specimen Controller
  * SPDX-License-Identifier: Apache-2.0
  */
 (function () {
@@ -23,12 +23,29 @@
   const output = document.getElementById('typeOutput');
   const slider = document.getElementById('sizeSlider');
   const sizeVal = document.getElementById('sizeVal');
+  const activeBadge = document.getElementById('activeStyleBadge');
+  const styleButtons = document.querySelectorAll('.style-switch-btn');
 
   function updateOutput() {
     if (output && input) {
       output.textContent = input.value || ' ';
     }
   }
+
+  styleButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const fontFamily = btn.getAttribute('data-font');
+      const styleLabel = btn.getAttribute('data-label');
+      if (fontFamily) {
+        document.documentElement.style.setProperty('--active-specimen-font', `'${fontFamily}', system-ui`);
+      }
+      if (activeBadge && styleLabel) {
+        activeBadge.textContent = 'Active Font: ' + styleLabel;
+      }
+      styleButtons.forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
 
   if (grid) {
     glyphs.forEach((char) => {
