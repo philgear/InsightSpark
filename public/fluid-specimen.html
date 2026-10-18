@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fluid Thinking — Sovereign Typeface Specimen & Ductus Studio</title>
+  <title>Fluid Thinking — Soft Pillow Typeface Specimen &amp; Ductus Studio</title>
   <style>
     @font-face {
       font-family: 'Fluid Thinking';
@@ -15,13 +15,13 @@
 
     :root {
       --bg-dark: #0f141c;
-      --bg-surface: rgba(23, 32, 46, 0.75);
+      --bg-surface: rgba(23, 32, 46, 0.78);
       --border-ocean: rgba(56, 189, 248, 0.25);
       --border-glow: rgba(99, 102, 241, 0.35);
-      
+
       --cream: #f0fdfa;
       --text-muted: #94a3b8;
-      
+
       --cyan-wave: #38bdf8;
       --indigo-stream: #818cf8;
       --emerald-eddy: #34d399;
@@ -36,10 +36,10 @@
 
     body {
       background-color: var(--bg-dark);
-      background-image: 
-        radial-gradient(ellipse at 15% 15%, rgba(56, 189, 248, 0.15) 0%, transparent 50%),
-        radial-gradient(ellipse at 85% 25%, rgba(129, 140, 248, 0.12) 0%, transparent 45%),
-        radial-gradient(ellipse at 50% 85%, rgba(52, 211, 153, 0.10) 0%, transparent 55%);
+      background-image:
+        radial-gradient(ellipse at 15% 15%, rgba(56, 189, 248, 0.16) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 25%, rgba(129, 140, 248, 0.14) 0%, transparent 45%),
+        radial-gradient(ellipse at 50% 85%, rgba(52, 211, 153, 0.12) 0%, transparent 55%);
       color: var(--cream);
       font-family: system-ui, -apple-system, sans-serif;
       line-height: 1.6;
@@ -48,14 +48,13 @@
     }
 
     .container {
-      max-width: 1080px;
+      max-width: 1120px;
       margin: 0 auto;
       display: flex;
       flex-direction: column;
       gap: 2.5rem;
     }
 
-    /* Header */
     header {
       border-bottom: 1px solid var(--border-ocean);
       padding-bottom: 2rem;
@@ -63,7 +62,7 @@
 
     .badge {
       display: inline-block;
-      padding: 0.25rem 0.75rem;
+      padding: 0.3rem 0.9rem;
       border-radius: 9999px;
       font-size: 0.75rem;
       font-weight: 600;
@@ -77,28 +76,27 @@
 
     h1 {
       font-family: 'Fluid Thinking', system-ui;
-      font-size: 3.5rem;
-      line-height: 1.1;
+      font-size: 4rem;
+      line-height: 1.15;
       letter-spacing: 0.02em;
       color: var(--cyan-wave);
-      text-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
+      text-shadow: 0 0 32px rgba(56, 189, 248, 0.35);
       margin-bottom: 0.75rem;
     }
 
     p.subtitle {
       color: var(--text-muted);
       font-size: 1.15rem;
-      max-width: 720px;
+      max-width: 760px;
     }
 
-    /* Cards */
     .card {
       background: var(--bg-surface);
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(14px);
       border: 1px solid var(--border-ocean);
-      border-radius: 1rem;
+      border-radius: 1.25rem;
       padding: 2rem;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.38);
     }
 
     h2 {
@@ -111,60 +109,64 @@
       gap: 0.5rem;
     }
 
-    /* Hero specimen preview */
     .hero-display {
       font-family: 'Fluid Thinking', system-ui;
-      font-size: 4rem;
+      font-size: 4.25rem;
       text-align: center;
       line-height: 1.25;
-      padding: 2.5rem 1rem;
-      background: rgba(15, 20, 28, 0.6);
-      border-radius: 0.75rem;
+      padding: 2.5rem 1.25rem;
+      background: rgba(15, 20, 28, 0.65);
+      border-radius: 1rem;
       border: 1px dashed var(--border-ocean);
       color: var(--cream);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.03em;
       word-break: break-word;
     }
 
     .hero-sub {
-      margin-top: 1rem;
-      font-size: 1.5rem;
+      margin-top: 1.1rem;
+      font-size: 2rem;
       color: var(--cyan-wave);
+      opacity: 0.95;
+    }
+
+    .hero-pangram {
+      margin-top: 0.85rem;
+      font-size: 1.45rem;
+      color: var(--emerald-eddy);
       opacity: 0.9;
     }
 
-    /* Interactive tester */
     .tester-input {
       width: 100%;
-      background: rgba(15, 20, 28, 0.8);
+      background: rgba(15, 20, 28, 0.85);
       border: 1px solid var(--border-ocean);
-      border-radius: 0.5rem;
+      border-radius: 0.75rem;
       color: var(--cream);
-      padding: 1rem;
+      padding: 1rem 1.25rem;
       font-size: 1.1rem;
       margin-bottom: 1rem;
       outline: none;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     .tester-input:focus {
       border-color: var(--cyan-wave);
-      box-shadow: 0 0 15px rgba(56, 189, 248, 0.25);
+      box-shadow: 0 0 18px rgba(56, 189, 248, 0.28);
     }
 
     .tester-output {
       font-family: 'Fluid Thinking', system-ui;
-      font-size: 3rem;
-      line-height: 1.3;
+      font-size: 3.1rem;
+      line-height: 1.35;
       padding: 1.5rem;
-      background: rgba(15, 20, 28, 0.5);
-      border-radius: 0.5rem;
+      background: rgba(15, 20, 28, 0.55);
+      border-radius: 0.75rem;
       min-height: 140px;
       word-break: break-word;
       color: var(--cream);
     }
 
-    /* Controls slider */
     .controls {
       display: flex;
       align-items: center;
@@ -179,32 +181,32 @@
       accent-color: var(--cyan-wave);
     }
 
-    /* Glyphs grid */
     .glyph-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-      gap: 1rem;
+      grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+      gap: 0.9rem;
     }
 
     .glyph-cell {
-      background: rgba(15, 20, 28, 0.6);
-      border: 1px solid rgba(56, 189, 248, 0.15);
-      border-radius: 0.5rem;
+      background: rgba(15, 20, 28, 0.65);
+      border: 1px solid rgba(56, 189, 248, 0.18);
+      border-radius: 0.85rem;
       padding: 1rem 0.5rem;
       text-align: center;
       transition: transform 0.2s, border-color 0.2s, background 0.2s;
       cursor: pointer;
+      color: inherit;
     }
 
     .glyph-cell:hover {
       transform: translateY(-3px);
       border-color: var(--cyan-wave);
-      background: rgba(56, 189, 248, 0.1);
+      background: rgba(56, 189, 248, 0.12);
     }
 
     .glyph-char {
       font-family: 'Fluid Thinking', system-ui;
-      font-size: 2.5rem;
+      font-size: 2.6rem;
       color: var(--cream);
       display: block;
       margin-bottom: 0.25rem;
@@ -216,18 +218,17 @@
       font-family: monospace;
     }
 
-    /* Ductus anatomy breakdown */
     .anatomy-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
       gap: 1.5rem;
     }
 
     .anatomy-card {
-      background: rgba(15, 20, 28, 0.5);
+      background: rgba(15, 20, 28, 0.55);
       border: 1px solid var(--border-ocean);
-      border-radius: 0.75rem;
-      padding: 1.25rem;
+      border-radius: 0.9rem;
+      padding: 1.35rem;
     }
 
     .anatomy-title {
@@ -240,12 +241,11 @@
     }
 
     .anatomy-desc {
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       color: var(--text-muted);
-      line-height: 1.5;
+      line-height: 1.55;
     }
 
-    /* Footer */
     footer {
       text-align: center;
       color: var(--text-muted);
@@ -258,107 +258,68 @@
 <body>
   <div class="container">
     <header>
-      <div class="badge">Sovereign Atelier Typefoundry • Soft Liquid &amp; Plump Edition</div>
+      <div class="badge">Sovereign Atelier Typefoundry • Smooth-SDF Pillow Edition</div>
       <h1>Fluid Thinking</h1>
-      <p class="subtitle">A mathematical vector typeface sculpted with generous hydrostatic pump, viscous curved ribbons, and pillow-soft dewdrop terminals. Zero sharp edges—pure cognitive flow.</p>
+      <p class="subtitle">Every letter is sculpted as a plush hydrodynamic pillow: smooth-union metaball seams, hydrostatic belly inflation, soft river-pebble counter dimples, and 100% TrueType Quadratic B-Splines with zero sharp corners.</p>
     </header>
 
     <!-- Hero Specimen Plate -->
     <div class="card">
-      <h2>🌊 Specimen Plate</h2>
+      <h2>☁️ Pillow Specimen Plate</h2>
       <div class="hero-display">
-        FLUID THINKING
-        <div class="hero-sub">STREAM OF LATERAL INSIGHT &amp; VITALITY</div>
+        Fluid Thinking
+        <div class="hero-sub">Soft pillows of lateral thought &amp; gentle respite ~ 2026 ♥</div>
+        <div class="hero-pangram">Pack my box with five dozen liquor jugs! (0123456789)</div>
       </div>
     </div>
 
     <!-- Interactive Typography Sandbox -->
     <div class="card">
-      <h2>🖋️ Interactive Stream Tester</h2>
-      <input type="text" id="typeInput" class="tester-input" value="PIVOT &amp; PULSE: LATERAL THINKING WORKBENCH ~ 2026" placeholder="Type anything to test the fluid glyphs...">
-      <div id="typeOutput" class="tester-output">PIVOT &amp; PULSE: LATERAL THINKING WORKBENCH ~ 2026</div>
+      <h2>🖋️ Interactive Pillow Stream Tester</h2>
+      <input type="text" id="typeInput" class="tester-input" value="Soft pillows of fluid lateral thought &amp; gentle respite ~ 2026 ♥" placeholder="Type anything in uppercase, lowercase, numbers, or punctuation...">
+      <div id="typeOutput" class="tester-output">Soft pillows of fluid lateral thought &amp; gentle respite ~ 2026 ♥</div>
       <div class="controls">
         <label for="sizeSlider">Point Size:</label>
-        <input type="range" id="sizeSlider" class="slider" min="20" max="80" value="48">
-        <span id="sizeVal">48px</span>
+        <input type="range" id="sizeSlider" class="slider" min="20" max="88" value="50">
+        <span id="sizeVal">50px</span>
       </div>
     </div>
 
     <!-- Ductus Anatomy Breakdown -->
     <div class="card">
-      <h2>🔬 Mathematical Ductus &amp; Physics</h2>
+      <h2>🔬 Smooth-SDF Pillow Physics &amp; B-Spline Topology</h2>
       <div class="anatomy-grid">
         <div class="anatomy-card">
-          <div class="anatomy-title">💧 Liquid Terminals</div>
-          <div class="anatomy-desc">Stems terminate in teardrop and pebble bulges, releasing visual tension and avoiding harsh linear stops across wide horizons.</div>
+          <div class="anatomy-title">☁️ Smooth-Union Seams (smin)</div>
+          <div class="anatomy-desc">Intersecting strokes blend via polynomial smooth-minimum fields (k = 54), melting sharp junctions into plush, continuous cushion creases.</div>
         </div>
         <div class="anatomy-card">
-          <div class="anatomy-title">🌊 Laminar Streamlines</div>
-          <div class="anatomy-desc">Sigmoid curves modeled on hydrodynamic boundary layers, creating effortless reading momentum and low ocular fatigue.</div>
+          <div class="anatomy-title">💧 Hydrostatic Belly Swell</div>
+          <div class="anatomy-desc">Every spline inflates along a sinusoidal pressure profile and finishes in bulbous terminal lobes so no stroke ever ends in a flat cut.</div>
         </div>
         <div class="anatomy-card">
-          <div class="anatomy-title">🪨 River-Stone Counters</div>
-          <div class="anatomy-desc">Negative spaces erode into natural geometric equilibria (pebble bowls in O, P, Q, D) instead of rigid circular geometry.</div>
+          <div class="anatomy-title">🪨 Soft Counter Dimples (smax)</div>
+          <div class="anatomy-desc">Interior bowls across uppercase, lowercase, and numerals are carved as smooth river-pebble dimples with rounded inner rims.</div>
         </div>
         <div class="anatomy-card">
-          <div class="anatomy-title">⚡ Lateral Bifurcations</div>
-          <div class="anatomy-desc">Crossbars and forks form aquatic deltas rather than harsh T-junctions, celebrating Edward de Bono's lateral jumps (PO).</div>
+          <div class="anatomy-title">〰️ Quadratic B-Spline Contours</div>
+          <div class="anatomy-desc">Marching Squares + 6-pass Taubin smoothing + alternating on-curve/off-curve TrueType quadratic splines ensure C1 tangent continuity everywhere.</div>
         </div>
       </div>
     </div>
 
     <!-- Glyph Repertoire -->
     <div class="card">
-      <h2>🔤 Master Glyph Waterfall</h2>
+      <h2>🔤 Complete 83-Glyph Pillow Waterfall (A–Z, a–z, 0–9 &amp; Symbols)</h2>
       <div class="glyph-grid" id="glyphGrid"></div>
     </div>
 
     <footer>
-      <strong>Fluid Thinking Regular</strong> • Pure Dart 3.11 Vector Compiler • SIL Open Font License 1.1<br>
+      <strong>Fluid Thinking Regular</strong> • 83 Smooth-SDF Quadratic B-Spline Glyphs • SIL Open Font License 1.1<br>
       Phil Gear Photography Atelier Typefoundry &amp; Pivot &amp; Pulse • spark.philgear.dev
     </footer>
   </div>
 
-  <script>
-    const glyphs = [
-      'A','B','C','D','E','F','G','H','I','J','K','L','M',
-      'N','O','P','Q','R','S','T','U','V','W','X','Y','Z',
-      '0','1','2','3','4','5','6','7','8','9',
-      '&','~','-','.','♥'
-    ];
-
-    const grid = document.getElementById('glyphGrid');
-    glyphs.forEach(char => {
-      const cell = document.createElement('div');
-      cell.className = 'glyph-cell';
-      cell.innerHTML = `
-        <span class="glyph-char">${char}</span>
-        <span class="glyph-label">U+${char.charCodeAt(0).toString(16).toUpperCase().padStart(4, '0')}</span>
-      `;
-      cell.addEventListener('click', () => {
-        const input = document.getElementById('typeInput');
-        input.value += char;
-        updateOutput();
-      });
-      grid.appendChild(cell);
-    });
-
-    const input = document.getElementById('typeInput');
-    const output = document.getElementById('typeOutput');
-    const slider = document.getElementById('sizeSlider');
-    const sizeVal = document.getElementById('sizeVal');
-
-    function updateOutput() {
-      output.textContent = input.value || ' ';
-    }
-
-    input.addEventListener('input', updateOutput);
-
-    slider.addEventListener('input', (e) => {
-      const sz = e.target.value;
-      output.style.fontSize = sz + 'px';
-      sizeVal.textContent = sz + 'px';
-    });
-  </script>
+  <script src="/fluid-specimen.js" defer></script>
 </body>
 </html>

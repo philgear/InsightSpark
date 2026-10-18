@@ -360,16 +360,33 @@ describe('Translation & Internationalization Suite', () => {
     assert.ok(tags.has('STAT'), 'Must contain STAT (Style Attributes) table');
   });
 
-  test('Fluid Thinking Sovereign Font: TTF binary exists with valid TrueType header and word alignment', async () => {
+  test('Fluid Thinking Sovereign Font: TTF binary exists with valid TrueType header, OTS name table, and 83 pillow glyphs', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
     const fluidPath = path.resolve('public/fonts/FluidThinking-Regular.ttf');
     
     assert.ok(fs.existsSync(fluidPath), 'FluidThinking-Regular.ttf must exist in public/fonts/');
     const fluidBuffer = fs.readFileSync(fluidPath);
-    assert.ok(fluidBuffer.length > 5000, `Fluid font must be compiled binary (>5KB), got ${fluidBuffer.length}`);
+    assert.ok(fluidBuffer.length > 20000, `Fluid pillow font must contain full 83-glyph B-spline outlines (>20KB), got ${fluidBuffer.length}`);
     const scalerType = fluidBuffer.readUInt32BE(0);
     assert.strictEqual(scalerType, 0x00010000, 'Must have valid TrueType 1.0 scaler header (0x00010000)');
+
+    const numTables = fluidBuffer.readUInt16BE(4);
+    const tableOffsets = new Map();
+    for (let i = 0; i < numTables; i++) {
+      const recOffset = 12 + i * 16;
+      const tag = fluidBuffer.toString('ascii', recOffset, recOffset + 4);
+      const offset = fluidBuffer.readUInt32BE(recOffset + 8);
+      tableOffsets.set(tag, offset);
+    }
+
+    for (const requiredTag of ['cmap', 'glyf', 'head', 'hhea', 'hmtx', 'loca', 'maxp', 'name', 'OS/2', 'post']) {
+      assert.ok(tableOffsets.has(requiredTag), `FluidThinking-Regular.ttf must include mandatory OpenType table '${requiredTag}'`);
+    }
+
+    const maxpOffset = tableOffsets.get('maxp');
+    const numGlyphs = fluidBuffer.readUInt16BE(maxpOffset + 4);
+    assert.strictEqual(numGlyphs, 83, 'FluidThinking-Regular.ttf must contain all 83 Smooth-SDF pillow glyphs (A-Z, a-z, 0-9, punctuation)');
   });
 
   test('AI Training Reservation & Robots Safeguards: robots.txt and llms.txt contain explicit directives', async () => {
