@@ -350,6 +350,38 @@
                 </div>
               }
 
+              <!-- Semantic WordCloud & 29-Strategy Warehouse Resonance Bar -->
+              @if (geminiService.warehouse.activeWordCloud().length > 0) {
+                <div class="p-4 bg-(--card-bg) border border-(--border-color) rounded-2xl shadow-md backdrop-blur-md">
+                  <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <div class="flex items-center gap-2">
+                      <app-icon name="sparkles" [size]="16" class="text-(--text-accent)"></app-icon>
+                      <span class="text-xs font-bold uppercase tracking-wider text-(--text-accent)">
+                        Semantic WordCloud &amp; Strategy Matrix Warehouse
+                      </span>
+                    </div>
+                    @if (geminiService.warehouse.lastSynthesisMetadata(); as meta) {
+                      <div class="flex flex-wrap items-center gap-2 text-[11px]">
+                        <span class="px-2.5 py-0.5 rounded-full bg-(--text-accent)/15 text-(--text-accent) border border-(--text-accent)/30 font-semibold">
+                          6-Axis Pole: {{ meta.dominantAxisName }}
+                        </span>
+                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold">
+                          {{ meta.strategyCount }} Distinct Strategy Lenses • $0 Cloud Compute
+                        </span>
+                      </div>
+                    }
+                  </div>
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    @for (token of geminiService.warehouse.activeWordCloud(); track token.word) {
+                      <span class="px-2.5 py-1 rounded-full text-xs font-medium border transition-all"
+                            [class]="token.colorClass">
+                        {{ token.word }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              }
+
               @if (resultsViewMode() === 'list') {
               <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                 @for (result of insightResults; track result.strategyName) {

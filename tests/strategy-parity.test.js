@@ -5,6 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { STRATEGIES } from '../src/models/creative-types.ts';
 import { STARTER_SCENARIOS } from '../src/models/starter-scenarios.ts';
+import { WordCloudWarehouseService } from '../src/services/wordcloud-warehouse.service.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -56,5 +57,30 @@ describe('Strategy ID Parity & Zero-Blandness Regression Suite', () => {
     for (const id of serverIds) {
       assert.ok(validIds.has(id), `server.js STRATEGY_MAP contains unknown strategy "${id}"`);
     }
+  });
+
+  test('WordCloudWarehouseService generates 100% distinct, prompt-grounded insights across any 3 chosen strategies', () => {
+    const warehouse = new WordCloudWarehouseService();
+    const prompt = 'Architecting a public winter reading pavilion that uses automated heliostat mirrors and circadian light spectrums to banish seasonal fatigue and nurture community warmth.';
+    const chosen = STRATEGIES.filter(s => ['constraints', 'future', 'sensory-bridge'].includes(s.id));
+    assert.equal(chosen.length, 3);
+
+    const results = warehouse.synthesizeFromWarehouse(prompt, chosen, 'creative');
+    assert.equal(results.length, 3);
+
+    const allTexts = new Set();
+    for (const group of results) {
+      assert.equal(group.insights.length, 3);
+      for (const item of group.insights) {
+        assert.ok(!allTexts.has(item.text), `Duplicate insight text detected across strategies: "${item.text}"`);
+        allTexts.add(item.text);
+        assert.ok(
+          /heliostat|pavilion|winter|reading|circadian|light|mirrors|seasonal|warmth/i.test(item.text),
+          `Insight must weave prompt keywords into text: "${item.text}"`
+        );
+      }
+    }
+    assert.equal(allTexts.size, 9, 'All 9 generated cards across 3 strategies must be 100% unique');
+    assert.ok(warehouse.activeWordCloud().length >= 6, 'Active WordCloud tokens should be populated');
   });
 });
