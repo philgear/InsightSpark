@@ -360,6 +360,18 @@ describe('Translation & Internationalization Suite', () => {
     assert.ok(tags.has('STAT'), 'Must contain STAT (Style Attributes) table');
   });
 
+  test('Fluid Thinking Sovereign Font: TTF binary exists with valid TrueType header and word alignment', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const fluidPath = path.resolve('public/fonts/FluidThinking-Regular.ttf');
+    
+    assert.ok(fs.existsSync(fluidPath), 'FluidThinking-Regular.ttf must exist in public/fonts/');
+    const fluidBuffer = fs.readFileSync(fluidPath);
+    assert.ok(fluidBuffer.length > 5000, `Fluid font must be compiled binary (>5KB), got ${fluidBuffer.length}`);
+    const scalerType = fluidBuffer.readUInt32BE(0);
+    assert.strictEqual(scalerType, 0x00010000, 'Must have valid TrueType 1.0 scaler header (0x00010000)');
+  });
+
   test('AI Training Reservation & Robots Safeguards: robots.txt and llms.txt contain explicit directives', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');
