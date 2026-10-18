@@ -239,66 +239,6 @@
                 </div>
               }
 
-              <!-- Responsible AI Safety Report Card -->
-              <div class="p-6 bg-(--card-bg) border border-(--border-color) rounded-2xl shadow-xl backdrop-blur-md relative overflow-hidden animate-pop">
-                <div class="absolute top-0 right-0 p-4 opacity-10">
-                  <app-icon name="shield" [size]="80" class="text-(--text-accent)"></app-icon>
-                </div>
-                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-(--border-color) pb-4 mb-4">
-                  <div class="flex items-center gap-3">
-                    <div class="p-2 bg-(--text-accent)/10 rounded-xl text-(--text-accent)">
-                      <app-icon name="shield-check" [size]="28"></app-icon>
-                    </div>
-                    <div>
-                      <h3 class="text-lg font-bold font-serif text-(--text-color) tracking-tight">Responsible AI Safety Assessment</h3>
-                      <p class="text-xs text-(--text-color-muted)">Verified guardrails & compliance checks for clinical decision support</p>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-1.5 self-start md:self-auto px-3 py-1 bg-(--color-success)/10 border border-(--color-success)/30 rounded-full text-(--color-success) text-xs font-semibold">
-                    <span class="h-2 w-2 rounded-full bg-(--color-success) animate-pulse"></span>
-                    Safe Session Active
-                  </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <!-- Guardrail 1: PII Scan -->
-                  <div class="p-4 bg-(--card-bg-subtle) border border-(--border-color)/50 rounded-xl flex items-start gap-3 transition-all hover:bg-(--button-bg-hover)">
-                    <app-icon name="eye" [size]="20" class="text-(--color-success) shrink-0 mt-0.5"></app-icon>
-                    <div>
-                      <h4 class="text-sm font-semibold text-(--text-color) mb-1">Privacy Shield</h4>
-                      <p class="text-xs/relaxed text-(--text-color-muted)">Real-time client & server PII filters verified. Zero patient-identifying data transmitted.</p>
-                    </div>
-                  </div>
-
-                  <!-- Guardrail 2: Harm Filters -->
-                  <div class="p-4 bg-(--card-bg-subtle) border border-(--border-color)/50 rounded-xl flex items-start gap-3 transition-all hover:bg-(--button-bg-hover)">
-                    <app-icon name="shield" [size]="20" class="text-(--color-success) shrink-0 mt-0.5"></app-icon>
-                    <div>
-                      <h4 class="text-sm font-semibold text-(--text-color) mb-1">Harm Blockers</h4>
-                      <p class="text-xs/relaxed text-(--text-color-muted)">Gemini safety settings active. Blocking harassment, hate, and dangerous content.</p>
-                    </div>
-                  </div>
-
-                  <!-- Guardrail 3: Clinical Disclaimer -->
-                  <div class="p-4 bg-(--card-bg-subtle) border border-(--color-warning)/30 rounded-xl flex items-start gap-3 transition-all hover:bg-(--button-bg-hover)">
-                    <app-icon name="alert-triangle" [size]="20" class="text-(--color-warning) shrink-0 mt-0.5"></app-icon>
-                    <div>
-                      <h4 class="text-sm font-semibold text-(--color-warning) mb-1">Human-in-the-Loop</h4>
-                      <p class="text-xs/relaxed text-(--text-color-muted)">For decision support only. All generated recommendations must be clinically validated.</p>
-                    </div>
-                  </div>
-
-                  <!-- Guardrail 4: Stateless -->
-                  <div class="p-4 bg-(--card-bg-subtle) border border-(--border-color)/50 rounded-xl flex items-start gap-3 transition-all hover:bg-(--button-bg-hover)">
-                    <app-icon name="lock" [size]="20" class="text-(--color-success) shrink-0 mt-0.5"></app-icon>
-                    <div>
-                      <h4 class="text-sm font-semibold text-(--text-color) mb-1">Stateless Session</h4>
-                      <p class="text-xs/relaxed text-(--text-color-muted)">No disk writing or session caching. Completely ephemeral analysis environment.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
               @if (structuredProblem(); as problem) {
                 <div class="bg-(--card-bg-subtle) p-6 organic-shape">
                   <h3 class="text-(--text-accent)">{{problem.title}}</h3>
@@ -372,38 +312,6 @@
                       </div>
                     </div>
                   }
-                </div>
-              }
-
-              <!-- Semantic WordCloud & 29-Strategy Warehouse Resonance Bar -->
-              @if (geminiService.warehouse.activeWordCloud().length > 0) {
-                <div class="p-4 bg-(--card-bg) border border-(--border-color) rounded-2xl shadow-md backdrop-blur-md">
-                  <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
-                    <div class="flex items-center gap-2">
-                      <app-icon name="sparkles" [size]="16" class="text-(--text-accent)"></app-icon>
-                      <span class="text-xs font-bold uppercase tracking-wider text-(--text-accent)">
-                        Semantic WordCloud &amp; Strategy Matrix Warehouse
-                      </span>
-                    </div>
-                    @if (geminiService.warehouse.lastSynthesisMetadata(); as meta) {
-                      <div class="flex flex-wrap items-center gap-2 text-[11px]">
-                        <span class="px-2.5 py-0.5 rounded-full bg-(--text-accent)/15 text-(--text-accent) border border-(--text-accent)/30 font-semibold">
-                          6-Axis Pole: {{ meta.dominantAxisName }}
-                        </span>
-                        <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold">
-                          {{ meta.strategyCount }} Distinct Strategy Lenses • $0 Cloud Compute
-                        </span>
-                      </div>
-                    }
-                  </div>
-                  <div class="flex flex-wrap items-center gap-1.5">
-                    @for (token of geminiService.warehouse.activeWordCloud(); track token.word) {
-                      <span class="px-2.5 py-1 rounded-full text-xs font-medium border transition-all"
-                            [class]="token.colorClass">
-                        {{ token.word }}
-                      </span>
-                    }
-                  </div>
                 </div>
               }
 
@@ -685,487 +593,364 @@
             <div class="max-w-7xl mx-auto animate-pop pb-8">
               <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-                <!-- LEFT SIDE (lg:col-span-5): 6-Axis Control Dial + Provocations Deck -->
-                <aside class="lg:col-span-5 flex flex-col gap-5 lg:sticky lg:top-6 w-full">
-                  <!-- 1. Left-Side 6-Axis Strategy & Provocation Dial -->
+                <!-- LEFT SIDE (lg:col-span-5): Tactile Desk Phone Console (Top: 6-Axis Dial | Bottom: Provocation Speed-Dial Keys) -->
+                <aside class="lg:col-span-5 flex flex-col gap-4 lg:sticky lg:top-6 w-full">
+                  <!-- 1. Rotary 6-Axis Dial -->
                   <app-brand-drift-calibrator panelMode="dial"></app-brand-drift-calibrator>
 
-                  <!-- 2. Left-Side Provocations & Kinship Anchors Deck -->
-                  <div class="step-pour" [class.active-step]="selectedStrategiesCount() > 0">
-                    <div class="step-section bg-(--card-bg) p-4 sm:p-5 rounded-2xl border border-(--border-color) shadow-2xl inset-shadow-sm backdrop-blur-sm relative overflow-hidden">
-                      <div class="space-y-3">
-                        <div class="flex items-center justify-between flex-wrap gap-2">
-                          <div>
-                            <h2 class="text-(--text-accent) flex items-center gap-2 text-lg font-serif">
-                              <app-icon [name]="appMode() === 'care' ? 'clipboard-list' : 'sparkles'" [size]="18"></app-icon>
-                              {{ appMode() === 'care' ? 'Left Provocations · Care Approaches' : 'Left Provocations · Strategy Deck' }}
-                            </h2>
-                            <p class="text-xs text-(--text-color-muted)">
-                              @if (brandDriftCalibrator.selectionLockMode() === 'wheel') {
-                                🔒 Driven by Left 6-Axis Dial — click <strong>Customize</strong> to pick pills manually.
-                              } @else if (brandDriftCalibrator.selectionLockMode() === 'manual') {
-                                🔒 {{ selectedStrategiesCount() }}/{{ MAX_STRATEGY_SELECTION }} selected (4-Slot Max · Left Dial synced to your picks).
-                              } @else {
-                                Spin the 6-Axis Dial above or pick up to {{ MAX_STRATEGY_SELECTION }} provocations below.
-                              }
-                            </p>
-                          </div>
-                          <div class="flex items-center gap-1.5 text-xs">
-                            @if (brandDriftCalibrator.selectionLockMode() === 'wheel') {
-                              <button (click)="unlockManualProvocations()" type="button" class="px-2.5 py-1 rounded-lg border border-amber-500/40 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 font-semibold cursor-pointer">
-                                🔓 Customize
-                              </button>
-                            } @else if (brandDriftCalibrator.selectionLockMode() === 'manual') {
-                              <span class="px-2 py-0.5 rounded-md font-mono text-[11px] border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
-                                {{ selectedStrategiesCount() }}/{{ MAX_STRATEGY_SELECTION }} Slots
-                              </span>
-                            }
-                            <button (click)="showAllProvocations.set(!showAllProvocations())" type="button" class="px-2.5 py-1 rounded-lg border border-(--border-color) bg-(--card-bg-subtle) hover:bg-(--button-bg-hover) text-(--text-accent) font-semibold cursor-pointer">
-                              {{ showAllProvocations() ? 'Top 8' : 'All 29' }}
-                            </button>
-                            <button (click)="clearSelection()" type="button" class="hover:underline text-(--text-color-muted) px-2 py-1 rounded cursor-pointer">Clear</button>
-                          </div>
-                        </div>
+                  <!-- 2. Tactile Speed-Dial Keypad (Provocations & Anchors) -->
+                  <div class="bg-(--card-bg) p-4 rounded-2xl border border-(--border-color) shadow-xl space-y-3">
+                    <div class="flex items-center justify-between gap-2 border-b border-(--border-color) pb-2.5">
+                      <div class="flex items-center gap-2">
+                        <app-icon [name]="appMode() === 'care' ? 'clipboard-list' : 'sparkles'" [size]="16" class="text-(--text-accent)"></app-icon>
+                        <h2 class="text-base font-bold font-serif text-(--text-color)">
+                          {{ appMode() === 'care' ? 'Care Keypad' : 'Provocation Keypad' }}
+                        </h2>
+                        <span class="px-2 py-0.5 rounded font-mono text-[11px] bg-(--card-bg-subtle) border border-(--border-color) text-(--text-accent)">
+                          {{ selectedStrategiesCount() }}/{{ MAX_STRATEGY_SELECTION }}
+                        </span>
+                      </div>
 
-                        <!-- Combinatorial Synergy Studio (Collisions & Presets) -->
-                        <div class="p-3 rounded-xl bg-(--card-bg-subtle) border border-(--border-color) space-y-2">
-                          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div class="flex items-center gap-1.5 text-xs">
+                        @if (brandDriftCalibrator.selectionLockMode() === 'wheel') {
+                          <button (click)="unlockManualProvocations()" type="button" class="px-2 py-1 rounded-lg border border-amber-500/40 bg-amber-500/15 text-amber-300 font-semibold cursor-pointer">
+                            🔓 Unlock Keys
+                          </button>
+                        } @else {
+                          <button (click)="applySmartSynergy()" type="button" class="px-2.5 py-1 rounded-lg bg-(--text-accent) text-(--primary-cta-text) font-bold cursor-pointer">
+                            ⚡ Auto-Triad
+                          </button>
+                        }
+                        <button (click)="showAllProvocations.set(!showAllProvocations())" type="button" class="px-2 py-1 rounded-lg border border-(--border-color) bg-(--card-bg-subtle) text-(--text-color) cursor-pointer">
+                          {{ showAllProvocations() ? 'Top 8' : 'All 29' }}
+                        </button>
+                        @if (selectedStrategiesCount() > 0) {
+                          <button (click)="clearSelection()" type="button" class="text-(--text-color-muted) hover:text-(--text-color) px-1.5 py-1 cursor-pointer">Clear</button>
+                        }
+                      </div>
+                    </div>
+
+                    <!-- Keypad Section A: Divergent Provocations -->
+                    <div class="grid grid-cols-2 gap-2">
+                      @for (strategy of visibleProvocationStrategies(); track strategy.id) {
+                        <button (click)="toggleStrategy(strategy.id)"
+                                type="button"
+                                [disabled]="brandDriftCalibrator.selectionLockMode() === 'wheel' || (!isStrategySelected(strategy.id) && isSelectionAtMax())"
+                                [title]="appMode() === 'care' ? strategy.careModeDescription : strategy.description"
+                                class="strategy-button group/strategy !p-2.5 !min-h-11 disabled:opacity-40 disabled:cursor-not-allowed"
+                                [class.selected]="isStrategySelected(strategy.id)"
+                                [attr.aria-pressed]="isStrategySelected(strategy.id)"
+                                [style.--strategy-icon-color]="'var(--strategy-icon-' + strategy.id + ')'">
+                          <div class="flex items-center gap-2">
+                            <app-icon [name]="strategy.icon" [size]="15"
+                                      class="shrink-0 strategy-icon"
+                                      [class.text-(--strategy-icon-color)]="isStrategySelected(strategy.id)"></app-icon>
+                            <span class="text-xs font-semibold leading-tight truncate">{{ appMode() === 'care' ? strategy.careModeName : strategy.name }}</span>
+                          </div>
+                        </button>
+                      }
+                    </div>
+
+                    <!-- Keypad Section B: Grounding & Kinship Anchors -->
+                    <div class="pt-2 border-t border-(--border-color)">
+                      <div class="text-[10px] font-mono uppercase tracking-wider text-(--text-color-muted) mb-1.5">
+                        Grounding &amp; Kinship Line Keys
+                      </div>
+                      <div class="grid grid-cols-2 gap-2">
+                        @for (strategy of visibleAnchorStrategies(); track strategy.id) {
+                          <button (click)="toggleStrategy(strategy.id)"
+                                  type="button"
+                                  [disabled]="brandDriftCalibrator.selectionLockMode() === 'wheel' || (!isStrategySelected(strategy.id) && isSelectionAtMax())"
+                                  [title]="appMode() === 'care' ? strategy.careModeDescription : strategy.description"
+                                  class="strategy-button group/strategy border-2 !p-2.5 !min-h-11 disabled:opacity-40 disabled:cursor-not-allowed"
+                                  [class.selected]="isStrategySelected(strategy.id)"
+                                  [attr.aria-pressed]="isStrategySelected(strategy.id)"
+                                  [style.--strategy-icon-color]="'var(--strategy-icon-' + strategy.id + ')'">
                             <div class="flex items-center gap-2">
-                              <span class="p-1 rounded-md bg-(--text-accent)/10 text-(--text-accent)">
-                                <app-icon name="sparkles" [size]="14"></app-icon>
-                              </span>
-                              <span class="text-xs font-bold uppercase tracking-wider text-(--text-color)">Smart Synergy</span>
-                              <span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-(--text-accent)/15 text-(--text-accent)">
-                                Axis {{ brandDriftCalibrator.focusedAxisIndex() + 1 }} Linked
-                              </span>
+                              <app-icon [name]="strategy.icon" [size]="15"
+                                        class="shrink-0 strategy-icon"
+                                        [class.text-(--strategy-icon-color)]="isStrategySelected(strategy.id)"></app-icon>
+                              <span class="text-xs font-bold leading-tight text-(--text-color) truncate">{{ appMode() === 'care' ? strategy.careModeName : strategy.name }}</span>
                             </div>
-                            <button (click)="applySmartSynergy()"
-                                    type="button"
-                                    class="flex items-center gap-1.5 text-xs font-bold py-1.5 px-3 rounded-lg bg-(--text-accent) text-(--primary-cta-text) hover:opacity-90 active:scale-95 transition-all shadow-sm cursor-pointer self-start sm:self-auto"
-                                    title="Automatically combine a Spark + Bridge + Anchor matched to your challenge and 6-Axis Dial">
-                              <app-icon name="zap" [size]="13"></app-icon>
-                              <span>⚡ Roll Smart Synergy</span>
-                            </button>
-                          </div>
-
-                          <!-- Synergy Preset Chips -->
-                          <div class="flex flex-wrap items-center gap-1.5">
-                            @for (preset of synergyPresets(); track preset.id) {
-                              <button (click)="applySynergyPreset(preset.id)"
-                                      type="button"
-                                      [title]="preset.description"
-                                      class="text-[11px] font-medium py-0.5 px-2.5 rounded-full border border-(--border-color) bg-(--card-bg) hover:bg-(--button-bg-hover) text-(--text-color) hover:border-(--text-accent)/50 transition-all cursor-pointer">
-                                {{ preset.name }}
-                              </button>
-                            }
-                          </div>
-
-                          @if (activeSynergyLabel(); as label) {
-                            <div class="pt-1.5 border-t border-(--border-color)/60 space-y-1 text-xs">
-                              <div class="flex items-center justify-between text-(--text-accent)">
-                                <span class="flex items-center gap-1.5">
-                                  <app-icon name="activity" [size]="13"></app-icon>
-                                  <span><strong>Active Triad:</strong> {{ label }}</span>
-                                </span>
-                                @if (synergyGraph.activeRecommendation(); as rec) {
-                                  <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400">
-                                    {{ rec.bridgeTitle }}
-                                  </span>
-                                }
-                              </div>
-                              @if (synergyGraph.activeRecommendation(); as rec) {
-                                <p class="text-[11px] text-(--text-color-muted) leading-snug">
-                                  🔗 {{ rec.bridgeMechanism }}
-                                </p>
-                              }
-                            </div>
-                          }
-                        </div>
-
-                        <!-- Section A: Creative Provocations (Compact Pill Grid) -->
-                        <div>
-                          <div class="text-[11px] font-bold uppercase tracking-wider text-(--text-color-muted) mb-2 flex items-center justify-between gap-1.5">
-                            <span class="flex items-center gap-1.5">
-                              <app-icon name="sparkles" [size]="13" class="text-(--text-accent)"></app-icon>
-                              <span>{{ appMode() === 'care' ? 'Exploratory Perspectives' : 'Divergent Provocations' }}</span>
-                            </span>
-                            @if (brandDriftCalibrator.selectionLockMode() === 'wheel') {
-                              <span class="text-[10px] font-mono text-amber-400">🔒 Locked to Dial Triad</span>
-                            } @else if (isSelectionAtMax()) {
-                              <span class="text-[10px] font-mono text-emerald-400">✓ 4/4 Ceiling Reached</span>
-                            }
-                          </div>
-                          <div class="grid grid-cols-2 gap-2">
-                            @for (strategy of visibleProvocationStrategies(); track strategy.id) {
-                              <button (click)="toggleStrategy(strategy.id)"
-                                      type="button"
-                                      [disabled]="brandDriftCalibrator.selectionLockMode() === 'wheel' || (!isStrategySelected(strategy.id) && isSelectionAtMax())"
-                                      [title]="appMode() === 'care' ? strategy.careModeDescription : strategy.description"
-                                      class="strategy-button group/strategy !p-2.5 !min-h-0 disabled:opacity-45 disabled:cursor-not-allowed"
-                                      [class.selected]="isStrategySelected(strategy.id)"
-                                      [attr.aria-pressed]="isStrategySelected(strategy.id)"
-                                      [style.--strategy-icon-color]="'var(--strategy-icon-' + strategy.id + ')'">
-                                <div class="flex items-center gap-1.5">
-                                  <app-icon [name]="strategy.icon" [size]="15"
-                                            class="shrink-0 strategy-icon"
-                                            [class.text-(--strategy-icon-color)]="isStrategySelected(strategy.id)"></app-icon>
-                                  <span class="text-xs font-semibold leading-tight truncate">{{ appMode() === 'care' ? strategy.careModeName : strategy.name }}</span>
-                                </div>
-                                @if (showAllProvocations()) {
-                                  <p class="hidden sm:block text-[11px] text-(--text-color-muted) leading-snug mt-1 line-clamp-2">
-                                    {{ appMode() === 'care' ? strategy.careModeDescription : strategy.description }}
-                                  </p>
-                                }
-                              </button>
-                            }
-                          </div>
-                        </div>
-
-                        <!-- Section B: Grounding Counterbalances & Kinship Anchors (Compact) -->
-                        <div class="pt-2 border-t border-(--border-color)">
-                          <div class="text-[11px] font-bold uppercase tracking-wider text-(--text-accent) mb-2 flex items-center gap-1.5">
-                            <app-icon name="shield-check" [size]="13" class="text-(--text-accent)"></app-icon>
-                            <span>{{ appMode() === 'care' ? 'Grounding & Kinship Anchors' : 'Systems & Kinship Anchors' }}</span>
-                          </div>
-                          <div class="grid grid-cols-2 gap-2">
-                            @for (strategy of visibleAnchorStrategies(); track strategy.id) {
-                              <button (click)="toggleStrategy(strategy.id)"
-                                      type="button"
-                                      [disabled]="brandDriftCalibrator.selectionLockMode() === 'wheel' || (!isStrategySelected(strategy.id) && isSelectionAtMax())"
-                                      [title]="appMode() === 'care' ? strategy.careModeDescription : strategy.description"
-                                      class="strategy-button group/strategy border-2 !p-2.5 !min-h-0 disabled:opacity-45 disabled:cursor-not-allowed"
-                                      [class.selected]="isStrategySelected(strategy.id)"
-                                      [attr.aria-pressed]="isStrategySelected(strategy.id)"
-                                      [style.--strategy-icon-color]="'var(--strategy-icon-' + strategy.id + ')'">
-                                <div class="flex items-center gap-1.5">
-                                  <app-icon [name]="strategy.icon" [size]="15"
-                                            class="shrink-0 strategy-icon"
-                                            [class.text-(--strategy-icon-color)]="isStrategySelected(strategy.id)"></app-icon>
-                                  <span class="text-xs font-bold leading-tight text-(--text-color) truncate">{{ appMode() === 'care' ? strategy.careModeName : strategy.name }}</span>
-                                </div>
-                              </button>
-                            }
-                          </div>
-                        </div>
+                          </button>
+                        }
                       </div>
                     </div>
                   </div>
                 </aside>
 
-                <!-- RIGHT SIDE (lg:col-span-7): J++ Workspace (Challenge Canvas + L6→L32 Telemetry + Synthesis Launchpad) -->
-                <div class="lg:col-span-7 flex flex-col gap-5 mist-stagger">
+                <!-- RIGHT SIDE (lg:col-span-7): Unified J++ Workbench (Top LCD Telemetry Bar + Center Prompt Canvas + Bottom Action Dock) -->
+                <div class="lg:col-span-7 flex flex-col gap-4 mist-stagger">
+                  <div class="p-5 bg-(--card-bg) border border-(--border-color) rounded-2xl shadow-xl space-y-4">
 
-                  <!-- J++ Workspace Header & Challenge Input -->
-                  <div class="step-pour" [class.active-step]="problemInput().length > 5">
-                    <div class="p-5 bg-(--card-bg) border border-(--border-color) rounded-2xl shadow-xl space-y-3">
-                      <div class="flex items-center justify-between gap-3 flex-wrap border-b border-(--border-color) pb-3">
-                        <div>
-                          <div class="text-[11px] font-mono uppercase tracking-widest text-(--text-accent)">
-                            Right Side · J++ Synthesis Workspace &amp; Prompt Canvas
-                          </div>
-                          <label for="problem-input" class="mt-0.5 text-lg font-bold font-serif text-(--text-color) flex items-center gap-2">
-                            <app-icon [name]="appMode() === 'care' ? 'heart' : 'sparkles'" [size]="18" class="text-(--text-accent)"></app-icon>
-                            <span>{{ appMode() === 'care' ? 'Positive Life & Care Goal' : 'Lateral Thinking Challenge' }}</span>
-                          </label>
-                        </div>
+                    <!-- 1. Top J++ LCD Display Strip -->
+                    <app-brand-drift-calibrator panelMode="jpp"></app-brand-drift-calibrator>
 
-                        <!-- Surprise Me / Spark Button -->
-                        <div class="flex items-center gap-2 flex-wrap">
-                          <button (click)="randomizeChallenge()"
-                                  type="button"
-                                  class="text-xs font-semibold py-1.5 px-3 rounded-lg border border-(--border-color) bg-(--card-bg-subtle) hover:bg-(--button-bg-hover) text-(--text-color) transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
-                                  title="Shuffle and explore a positive real-world scenario">
-                            <app-icon name="dice" [size]="14" class="text-(--text-accent)"></app-icon>
-                            <span>Surprise Me</span>
-                          </button>
-                        </div>
-                      </div>
+                    <!-- 2. Workbench Header & Category Sparks -->
+                    <div class="flex items-center justify-between gap-3 flex-wrap pt-1">
+                      <label for="problem-input" class="text-base font-bold font-serif text-(--text-color) flex items-center gap-2">
+                        <app-icon [name]="appMode() === 'care' ? 'heart' : 'sparkles'" [size]="18" class="text-(--text-accent)"></app-icon>
+                        <span>{{ appMode() === 'care' ? 'Positive Life & Care Goal' : 'J++ Workbench Canvas' }}</span>
+                      </label>
 
-                      <!-- Quick Category Sparks (Theme Chips) -->
-                      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none non-printable">
-                        <button (click)="setScenarioFilter(null)"
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <button (click)="randomizeChallenge()"
                                 type="button"
-                                class="text-[11px] font-medium py-1 px-2.5 rounded-full border transition-all cursor-pointer whitespace-nowrap"
-                                [class.bg-(--text-accent)]="activeScenarioFilter() === null"
-                                [class.text-(--bg-color)]="activeScenarioFilter() === null"
-                                [class.border-(--text-accent)]="activeScenarioFilter() === null"
-                                [class.bg-(--card-bg)]="activeScenarioFilter() !== null"
-                                [class.text-(--text-color-muted)]="activeScenarioFilter() !== null"
-                                [class.border-(--border-color)]="activeScenarioFilter() !== null">
-                          All Sparks
+                                class="text-xs font-semibold py-1.5 px-3 rounded-lg border border-(--border-color) bg-(--card-bg-subtle) hover:bg-(--button-bg-hover) text-(--text-color) transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                                title="Shuffle and explore a positive real-world scenario">
+                          <app-icon name="dice" [size]="14" class="text-(--text-accent)"></app-icon>
+                          <span>Surprise Me</span>
                         </button>
-                        @for (cat of availableStarterCategories(); track cat.category) {
-                          <button (click)="setScenarioFilter(cat.category)"
-                                  type="button"
-                                  class="text-[11px] font-medium py-1 px-2.5 rounded-full border transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap"
-                                  [class.bg-(--text-accent)]="activeScenarioFilter() === cat.category"
-                                  [class.text-(--bg-color)]="activeScenarioFilter() === cat.category"
-                                  [class.border-(--text-accent)]="activeScenarioFilter() === cat.category"
-                                  [class.bg-(--card-bg)]="activeScenarioFilter() !== cat.category"
-                                  [class.text-(--text-color-muted)]="activeScenarioFilter() !== cat.category"
-                                  [class.border-(--border-color)]="activeScenarioFilter() !== cat.category">
-                            <app-icon [name]="cat.icon" [size]="11"></app-icon>
-                            <span>{{ cat.label }}</span>
-                          </button>
-                        }
                       </div>
+                    </div>
 
-                      <!-- Active Scenario Badge (if chosen from a spark) -->
-                      @if (activeScenario(); as sc) {
-                        <div class="p-2 px-3 bg-(--card-bg-subtle) border border-(--border-color)/80 rounded-lg flex items-center justify-between gap-2 text-xs">
-                          <div class="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
-                            <span class="p-1 rounded bg-(--text-accent)/10 text-(--text-accent)">
-                              <app-icon [name]="sc.categoryIcon" [size]="13"></app-icon>
-                            </span>
-                            <span class="font-bold text-(--text-color)">{{ sc.title }}</span>
-                            <span class="text-(--text-color-muted) hidden sm:inline">&mdash; {{ sc.gist }}</span>
-                          </div>
-                          <div class="flex items-center gap-1 shrink-0">
-                            <button (click)="randomizeChallenge(sc.category)" 
-                                    type="button" 
-                                    class="p-1 text-(--text-color-muted) hover:text-(--text-color) rounded hover:bg-(--button-bg-hover)" 
-                                    title="Next idea in this category">
-                              <app-icon name="refresh" [size]="13"></app-icon>
-                            </button>
-                            <button (click)="clearActiveScenario()" 
-                                    type="button" 
-                                    class="p-1 text-(--text-color-muted) hover:text-(--text-color) rounded hover:bg-(--button-bg-hover)" 
-                                    title="Clear preset">
-                              <app-icon name="x" [size]="13"></app-icon>
-                            </button>
-                          </div>
-                        </div>
+                    <!-- Quick Category Sparks (Theme Chips) -->
+                    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none non-printable">
+                      <button (click)="setScenarioFilter(null)"
+                              type="button"
+                              class="text-[11px] font-medium py-1 px-2.5 rounded-full border transition-all cursor-pointer whitespace-nowrap"
+                              [class.bg-(--text-accent)]="activeScenarioFilter() === null"
+                              [class.text-(--bg-color)]="activeScenarioFilter() === null"
+                              [class.border-(--text-accent)]="activeScenarioFilter() === null"
+                              [class.bg-(--card-bg)]="activeScenarioFilter() !== null"
+                              [class.text-(--text-color-muted)]="activeScenarioFilter() !== null"
+                              [class.border-(--border-color)]="activeScenarioFilter() !== null">
+                        All Sparks
+                      </button>
+                      @for (cat of availableStarterCategories(); track cat.category) {
+                        <button (click)="setScenarioFilter(cat.category)"
+                                type="button"
+                                class="text-[11px] font-medium py-1 px-2.5 rounded-full border transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap"
+                                [class.bg-(--text-accent)]="activeScenarioFilter() === cat.category"
+                                [class.text-(--bg-color)]="activeScenarioFilter() === cat.category"
+                                [class.border-(--text-accent)]="activeScenarioFilter() === cat.category"
+                                [class.bg-(--card-bg)]="activeScenarioFilter() !== cat.category"
+                                [class.text-(--text-color-muted)]="activeScenarioFilter() !== cat.category"
+                                [class.border-(--border-color)]="activeScenarioFilter() !== cat.category">
+                          <app-icon [name]="cat.icon" [size]="11"></app-icon>
+                          <span>{{ cat.label }}</span>
+                        </button>
                       }
+                    </div>
 
-                      <div class="relative">
-                        <textarea #problemTextarea
-                          id="problem-input"
-                          name="problem-input"
-                          [ngModel]="problemInput()"
-                          (ngModelChange)="updateProblemInput($event)"
-                          maxlength="2000"
-                          rows="4"
-                          [placeholder]="appMode() === 'creative' ? 'Describe your challenge, idea, or question in the J++ Workspace...' : 'Describe a de-identified health goal or support challenge...'"
-                          class="w-full p-4 text-base bg-(--card-bg-subtle) border rounded-xl focus:ring-2 focus:ring-(--ring-color) focus:outline-none transition-all resize-y shadow-inner"
-                          [class.border-(--border-color-strong)]="!politicalAlert() && !piiWarning() && (!acuteTriageAlert() || triageAcknowledged())"
-                          [class.border-rose-500/60]="!!politicalAlert()"
-                          [class.focus:ring-rose-500/50]="!!politicalAlert()"
-                          [class.border-amber-500/60]="!politicalAlert() && !triageAcknowledged() && !!acuteTriageAlert()"
-                          [class.focus:ring-amber-500/50]="!politicalAlert() && !triageAcknowledged() && !!acuteTriageAlert()"
-                          [class.border-amber-500/60]="!politicalAlert() && !acuteTriageAlert() && !!piiWarning()"
-                          [class.focus:ring-amber-500/50]="!politicalAlert() && !acuteTriageAlert() && !!piiWarning()"
-                          [attr.aria-label]="problemInputAriaLabel()"
-                          autocomplete="off">
-                        </textarea>
-                      </div>
-
-                      <!-- Voice Dictation & Containment Status Bar -->
-                      <div class="flex items-center justify-between gap-3 flex-wrap">
-                        <div class="flex items-center gap-2">
-                          <button (click)="toggleVoiceInput()" 
-                                  type="button" 
-                                  aria-label="Toggle living room voice input"
-                                  [attr.aria-pressed]="speechService.isListening()"
-                                  class="text-xs font-semibold py-2 px-3 rounded-lg border border-(--border-color) bg-(--card-bg-subtle) hover:bg-(--button-bg-hover) text-(--text-color) transition-all flex items-center gap-2 cursor-pointer shadow-sm">
-                            <app-icon name="mic" [size]="16" [class]="speechService.isListening() ? 'text-red-400 animate-pulse' : 'text-(--text-accent)'"></app-icon>
-                            <span>{{ speechService.isListening() ? 'Listening (Speak now)...' : 'Voice Input' }}</span>
-                          </button>
-
-                          <!-- Live Privacy & Containment Badge -->
-                          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono border transition-all"
-                                [class.bg-rose-500/15]="!!politicalAlert()"
-                                [class.border-rose-500/40]="!!politicalAlert()"
-                                [class.text-rose-300]="!!politicalAlert()"
-                                [class.bg-emerald-500/10]="!politicalAlert() && ((!piiWarning() && !acuteTriageAlert() && charCount() > 0) || (triageAcknowledged() && !piiWarning()))"
-                                [class.border-emerald-500/30]="!politicalAlert() && ((!piiWarning() && !acuteTriageAlert() && charCount() > 0) || (triageAcknowledged() && !piiWarning()))"
-                                [class.text-emerald-400]="!politicalAlert() && ((!piiWarning() && !acuteTriageAlert() && charCount() > 0) || (triageAcknowledged() && !piiWarning()))"
-                                [class.bg-black/20]="!politicalAlert() && charCount() === 0"
-                                [class.border-white/10]="!politicalAlert() && charCount() === 0"
-                                [class.text-(--text-color-muted)]="!politicalAlert() && charCount() === 0"
-                                [class.bg-amber-500/15]="!politicalAlert() && (!!piiWarning() || (!!acuteTriageAlert() && !triageAcknowledged()))"
-                                [class.border-amber-500/40]="!politicalAlert() && (!!piiWarning() || (!!acuteTriageAlert() && !triageAcknowledged()))"
-                                [class.text-amber-300]="!politicalAlert() && (!!piiWarning() || (!!acuteTriageAlert() && !triageAcknowledged()))">
-                            <app-icon [name]="politicalAlert() ? 'shield' : ((!!acuteTriageAlert() && !triageAcknowledged()) ? 'shield' : (piiWarning() ? 'shield' : 'shield-check'))" [size]="13"></app-icon>
-                            <span>{{ politicalAlert() ? 'Civic Neutrality Guard' : ((!!acuteTriageAlert() && !triageAcknowledged()) ? 'Safety Check Needed' : (triageAcknowledged() && !piiWarning() ? 'Ongoing Recovery Care 🌿' : (piiWarning() ? 'Privacy Shield (Tidy available)' : (charCount() > 0 ? 'Quiet & Private 🌿' : 'Contained & Private 🌿')))) }}</span>
+                    <!-- Active Scenario Badge (if chosen from a spark) -->
+                    @if (activeScenario(); as sc) {
+                      <div class="p-2 px-3 bg-(--card-bg-subtle) border border-(--border-color)/80 rounded-lg flex items-center justify-between gap-2 text-xs">
+                        <div class="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
+                          <span class="p-1 rounded bg-(--text-accent)/10 text-(--text-accent)">
+                            <app-icon [name]="sc.categoryIcon" [size]="13"></app-icon>
                           </span>
+                          <span class="font-bold text-(--text-color)">{{ sc.title }}</span>
+                          <span class="text-(--text-color-muted) hidden sm:inline">&mdash; {{ sc.gist }}</span>
                         </div>
-
-                        <!-- Character Containment Counter -->
-                        <div class="font-mono text-xs text-(--text-color-muted) flex items-center gap-1">
-                          <span [class.text-amber-400]="charCount() > 1800" [class.font-bold]="charCount() > 1800">{{ charCount() }}</span>
-                          <span>/</span>
-                          <span>{{ maxCharLimit }}</span>
-                        </div>
-                      </div>
-
-                      <!-- Acute Triage Emergency & Ongoing Recovery Banner -->
-                      @if (acuteTriageAlert(); as triage) {
-                        @if (!triageAcknowledged()) {
-                          <div role="alert" class="mt-2 p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in bg-stone-900/60 border-amber-500/40 text-stone-200">
-                            <div class="flex items-start gap-3">
-                              <app-icon [name]="triage.type === 'crisis' ? 'heart' : 'shield'" [size]="22" class="shrink-0 mt-0.5 text-amber-400"></app-icon>
-                              <div>
-                                <div class="flex items-center gap-2 flex-wrap">
-                                  <span class="font-bold text-[11px] uppercase tracking-wider px-2 py-0.5 rounded font-mono border"
-                                        [class.bg-amber-500/20]="triage.type === 'medical'"
-                                        [class.border-amber-500/40]="triage.type === 'medical'"
-                                        [class.text-amber-300]="triage.type === 'medical'"
-                                        [class.bg-purple-500/20]="triage.type === 'crisis'"
-                                        [class.border-purple-500/40]="triage.type === 'crisis'"
-                                        [class.text-purple-300]="triage.type === 'crisis'">
-                                    {{ triage.type === 'medical' ? 'Urgent Medical Check' : 'Caregiver Respite & Support' }}
-                                  </span>
-                                  <span class="font-semibold text-xs text-(--text-color)">{{ triage.reason }}</span>
-                                </div>
-                                <p class="text-xs/relaxed text-(--text-color-muted) mt-1.5">{{ triage.guidance }}</p>
-                              </div>
-                            </div>
-                            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
-                              <a [href]="triage.phoneUrl"
-                                 class="px-3.5 py-2 rounded-xl font-medium text-xs text-white shadow-md flex items-center justify-center gap-1.5 transition-all hover:opacity-90 active:scale-95 cursor-pointer text-center"
-                                 [class.bg-amber-700]="triage.type === 'medical'"
-                                 [class.bg-purple-700]="triage.type === 'crisis'">
-                                <app-icon name="phone" [size]="14"></app-icon>
-                                <span>{{ triage.actionTitle }}</span>
-                              </a>
-                              <button (click)="dismissTriage()"
-                                      type="button"
-                                      class="px-3 py-2 rounded-xl font-medium text-xs text-(--text-color) hover:text-(--text-accent) bg-(--card-bg) hover:bg-(--button-bg-hover) border border-(--border-color) transition-all cursor-pointer text-center">
-                                <span>This is for ongoing recovery, continue →</span>
-                              </button>
-                            </div>
-                          </div>
-                        } @else {
-                          <div class="mt-2 px-3.5 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs flex items-center justify-between gap-2 animate-fade-in font-mono">
-                            <div class="flex items-center gap-2">
-                              <app-icon name="leaf" [size]="14" class="text-emerald-400"></app-icon>
-                              <span>Noted: ongoing recovery & rehabilitation support</span>
-                            </div>
-                            <button (click)="resetTriage()" type="button" class="text-[11px] underline text-emerald-400/80 hover:text-emerald-200 cursor-pointer">
-                              Reset check
-                            </button>
-                          </div>
-                        }
-                      }
-
-                      <!-- Civic Neutrality & Anti-Propaganda Banner -->
-                      @if (politicalAlert(); as political) {
-                        <div role="alert" class="mt-2 p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-stone-900/80 border-rose-500/50 text-rose-100 animate-fade-in" style="background: rgba(225, 29, 72, 0.08);">
-                          <div class="flex items-start gap-3 flex-1">
-                            <app-icon name="shield" [size]="20" class="shrink-0 mt-0.5 text-rose-400"></app-icon>
-                            <div class="flex-1">
-                              <h4 class="font-semibold text-xs uppercase tracking-wide mb-1 text-rose-400">{{ political.reason }}</h4>
-                              <p class="text-xs/relaxed text-rose-200/90">{{ political.guidance }}</p>
-                            </div>
-                          </div>
-                        </div>
-                      }
-
-                      <!-- Gentle Privacy Check Banner -->
-                      @if (!politicalAlert() && !acuteTriageAlert() && piiWarning(); as warning) {
-                        <div role="alert" class="mt-2 p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-(--card-bg) border-amber-500/40 text-stone-200 animate-fade-in" style="background: rgba(212, 164, 76, 0.06);">
-                          <div class="flex items-start gap-3 flex-1">
-                            <app-icon name="shield" [size]="20" class="shrink-0 mt-0.5 text-amber-400"></app-icon>
-                            <div class="flex-1">
-                              <h4 class="font-semibold text-xs uppercase tracking-wide mb-1 text-amber-400">A Gentle Privacy Check</h4>
-                              <p class="text-xs/relaxed text-(--text-color-muted)">{{ warning }}</p>
-                            </div>
-                          </div>
-                          <button (click)="autoDeIdentify()"
-                                  type="button"
-                                  class="px-3.5 py-2 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-medium shrink-0 transition-all cursor-pointer flex items-center justify-center gap-1.5 self-start sm:self-auto shadow-sm">
-                            <app-icon name="sparkles" [size]="14"></app-icon>
-                            <span>✨ Tidy details for me</span>
+                        <div class="flex items-center gap-1 shrink-0">
+                          <button (click)="randomizeChallenge(sc.category)" 
+                                  type="button" 
+                                  class="p-1 text-(--text-color-muted) hover:text-(--text-color) rounded hover:bg-(--button-bg-hover)" 
+                                  title="Next idea in this category">
+                            <app-icon name="refresh" [size]="13"></app-icon>
+                          </button>
+                          <button (click)="clearActiveScenario()" 
+                                  type="button" 
+                                  class="p-1 text-(--text-color-muted) hover:text-(--text-color) rounded hover:bg-(--button-bg-hover)" 
+                                  title="Clear preset">
+                            <app-icon name="x" [size]="13"></app-icon>
                           </button>
                         </div>
-                      }
+                      </div>
+                    }
+
+                    <!-- 3. Prompt Input Canvas -->
+                    <div class="relative">
+                      <textarea #problemTextarea
+                        id="problem-input"
+                        name="problem-input"
+                        [ngModel]="problemInput()"
+                        (ngModelChange)="updateProblemInput($event)"
+                        maxlength="2000"
+                        rows="5"
+                        [placeholder]="appMode() === 'creative' ? 'Describe your challenge, idea, or question...' : 'Describe a de-identified health goal or support challenge...'"
+                        class="w-full p-4 text-base bg-(--card-bg-subtle) border rounded-xl focus:ring-2 focus:ring-(--ring-color) focus:outline-none transition-all resize-y shadow-inner"
+                        [class.border-(--border-color-strong)]="!politicalAlert() && !piiWarning() && (!acuteTriageAlert() || triageAcknowledged())"
+                        [class.border-rose-500/60]="!!politicalAlert()"
+                        [class.focus:ring-rose-500/50]="!!politicalAlert()"
+                        [class.border-amber-500/60]="!politicalAlert() && !triageAcknowledged() && !!acuteTriageAlert()"
+                        [class.focus:ring-amber-500/50]="!politicalAlert() && !triageAcknowledged() && !!acuteTriageAlert()"
+                        [class.border-amber-500/60]="!politicalAlert() && !acuteTriageAlert() && !!piiWarning()"
+                        [class.focus:ring-amber-500/50]="!politicalAlert() && !acuteTriageAlert() && !!piiWarning()"
+                        [attr.aria-label]="problemInputAriaLabel()"
+                        autocomplete="off">
+                      </textarea>
                     </div>
-                  </div>
 
-                  <!-- Right-Side J++ Layer Workspace & Drift Guard Telemetry (L6 → L16 → L24 → L32) -->
-                  <app-brand-drift-calibrator panelMode="jpp"></app-brand-drift-calibrator>
+                    <!-- Voice Dictation & Containment Status Bar -->
+                    <div class="flex items-center justify-between gap-3 flex-wrap">
+                      <div class="flex items-center gap-2">
+                        <button (click)="toggleVoiceInput()" 
+                                type="button" 
+                                aria-label="Toggle living room voice input"
+                                [attr.aria-pressed]="speechService.isListening()"
+                                class="text-xs font-semibold py-2 px-3 rounded-lg border border-(--border-color) bg-(--card-bg-subtle) hover:bg-(--button-bg-hover) text-(--text-color) transition-all flex items-center gap-2 cursor-pointer shadow-sm">
+                          <app-icon name="mic" [size]="16" [class]="speechService.isListening() ? 'text-red-400 animate-pulse' : 'text-(--text-accent)'"></app-icon>
+                          <span>{{ speechService.isListening() ? 'Listening...' : 'Voice Input' }}</span>
+                        </button>
 
-                  @if (appMode() === 'care') {
-                    <!-- Care Mode Persona Selector -->
-                    <div class="step-pour" [class.active-step]="activeCareRoles().size > 0">
-                      <div class="step-section bg-(--card-bg) p-5 rounded-2xl border border-(--border-color) shadow-xl relative overflow-hidden">
-                        <div class="space-y-3">
-                          <div>
-                            <h2 class="text-(--text-accent) flex items-center gap-2 mb-1 text-lg font-serif">
-                              <app-icon name="user-check" [size]="18"></app-icon>
-                              Adopt a Care Persona
-                            </h2>
-                            <p class="text-xs text-(--text-color-muted)">Select a care role to guide the J++ synthesis tone.</p>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono border transition-all"
+                              [class.bg-rose-500/15]="!!politicalAlert()"
+                              [class.border-rose-500/40]="!!politicalAlert()"
+                              [class.text-rose-300]="!!politicalAlert()"
+                              [class.bg-emerald-500/10]="!politicalAlert() && ((!piiWarning() && !acuteTriageAlert() && charCount() > 0) || (triageAcknowledged() && !piiWarning()))"
+                              [class.border-emerald-500/30]="!politicalAlert() && ((!piiWarning() && !acuteTriageAlert() && charCount() > 0) || (triageAcknowledged() && !piiWarning()))"
+                              [class.text-emerald-400]="!politicalAlert() && ((!piiWarning() && !acuteTriageAlert() && charCount() > 0) || (triageAcknowledged() && !piiWarning()))"
+                              [class.bg-black/20]="!politicalAlert() && charCount() === 0"
+                              [class.border-white/10]="!politicalAlert() && charCount() === 0"
+                              [class.text-(--text-color-muted)]="!politicalAlert() && charCount() === 0"
+                              [class.bg-amber-500/15]="!politicalAlert() && (!!piiWarning() || (!!acuteTriageAlert() && !triageAcknowledged()))"
+                              [class.border-amber-500/40]="!politicalAlert() && (!!piiWarning() || (!!acuteTriageAlert() && !triageAcknowledged()))"
+                              [class.text-amber-300]="!politicalAlert() && (!!piiWarning() || (!!acuteTriageAlert() && !triageAcknowledged()))">
+                          <app-icon [name]="politicalAlert() ? 'shield' : ((!!acuteTriageAlert() && !triageAcknowledged()) ? 'shield' : (piiWarning() ? 'shield' : 'shield-check'))" [size]="13"></app-icon>
+                          <span>{{ politicalAlert() ? 'Civic Neutrality Guard' : ((!!acuteTriageAlert() && !triageAcknowledged()) ? 'Safety Check Needed' : (triageAcknowledged() && !piiWarning() ? 'Ongoing Recovery Care 🌿' : (piiWarning() ? 'Privacy Shield' : 'Contained & Private 🌿'))) }}</span>
+                        </span>
+                      </div>
+
+                      <div class="font-mono text-xs text-(--text-color-muted) flex items-center gap-1">
+                        <span [class.text-amber-400]="charCount() > 1800" [class.font-bold]="charCount() > 1800">{{ charCount() }}</span>
+                        <span>/</span>
+                        <span>{{ maxCharLimit }}</span>
+                      </div>
+                    </div>
+
+                    <!-- Acute Triage Emergency & Ongoing Recovery Banner -->
+                    @if (acuteTriageAlert(); as triage) {
+                      @if (!triageAcknowledged()) {
+                        <div role="alert" class="p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in bg-stone-900/60 border-amber-500/40 text-stone-200">
+                          <div class="flex items-start gap-3">
+                            <app-icon [name]="triage.type === 'crisis' ? 'heart' : 'shield'" [size]="22" class="shrink-0 mt-0.5 text-amber-400"></app-icon>
+                            <div>
+                              <span class="font-semibold text-xs text-(--text-color)">{{ triage.reason }}</span>
+                              <p class="text-xs/relaxed text-(--text-color-muted) mt-1">{{ triage.guidance }}</p>
+                            </div>
                           </div>
-                          <div class="flex flex-wrap items-center gap-2">
-                            @for (role of careRoles(); track role.name) {
-                              <div class="relative group/role">
-                                <button (click)="setCareRole(role)"
-                                        [class.bg-(--text-accent)]="activeCareRoles().has(role.name)"
-                                        [class.text-(--primary-cta-text)]="activeCareRoles().has(role.name)"
-                                        [class.bg-(--button-bg)]="!activeCareRoles().has(role.name)"
-                                        [class.hover:bg-(--button-bg-hover)]="!activeCareRoles().has(role.name)"
-                                        class="flex items-center justify-center gap-2 text-xs font-medium py-2 px-3 min-h-10 rounded-lg border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
-                                  <app-icon [name]="role.icon" [size]="16"></app-icon>
-                                  <span>{{ role.name }}</span>
-                                </button>
-                              </div>
-                            }
-                            <button (click)="openCustomRoleModal()" class="flex items-center justify-center gap-1.5 text-xs font-semibold py-2 px-3 min-h-10 rounded-lg border border-dashed border-(--text-accent) text-(--text-accent) hover:bg-(--text-accent)/10 transition-colors cursor-pointer">
-                              <app-icon name="plus" [size]="14" fallback="sparkles"></app-icon>
-                              <span>+ Custom Role</span>
+                          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+                            <a [href]="triage.phoneUrl"
+                               class="px-3.5 py-2 rounded-xl font-medium text-xs text-white shadow-md flex items-center justify-center gap-1.5 cursor-pointer text-center"
+                               [class.bg-amber-700]="triage.type === 'medical'"
+                               [class.bg-purple-700]="triage.type === 'crisis'">
+                              <app-icon name="phone" [size]="14"></app-icon>
+                              <span>{{ triage.actionTitle }}</span>
+                            </a>
+                            <button (click)="dismissTriage()"
+                                    type="button"
+                                    class="px-3 py-2 rounded-xl font-medium text-xs text-(--text-color) bg-(--card-bg) border border-(--border-color) cursor-pointer">
+                              <span>Ongoing recovery →</span>
                             </button>
                           </div>
                         </div>
+                      }
+                    }
+
+                    <!-- Civic Neutrality & Anti-Propaganda Banner -->
+                    @if (politicalAlert(); as political) {
+                      <div role="alert" class="p-4 rounded-xl border flex items-start gap-3 bg-stone-900/80 border-rose-500/50 text-rose-100 animate-fade-in">
+                        <app-icon name="shield" [size]="20" class="shrink-0 mt-0.5 text-rose-400"></app-icon>
+                        <div class="flex-1">
+                          <h4 class="font-semibold text-xs uppercase tracking-wide mb-1 text-rose-400">{{ political.reason }}</h4>
+                          <p class="text-xs/relaxed text-rose-200/90">{{ political.guidance }}</p>
+                        </div>
+                      </div>
+                    }
+
+                    <!-- Gentle Privacy Check Banner -->
+                    @if (!politicalAlert() && !acuteTriageAlert() && piiWarning(); as warning) {
+                      <div role="alert" class="p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-(--card-bg) border-amber-500/40 text-stone-200 animate-fade-in">
+                        <div class="flex items-start gap-3 flex-1">
+                          <app-icon name="shield" [size]="20" class="shrink-0 mt-0.5 text-amber-400"></app-icon>
+                          <div class="flex-1">
+                            <h4 class="font-semibold text-xs uppercase tracking-wide mb-1 text-amber-400">A Gentle Privacy Check</h4>
+                            <p class="text-xs/relaxed text-(--text-color-muted)">{{ warning }}</p>
+                          </div>
+                        </div>
+                        <button (click)="autoDeIdentify()"
+                                type="button"
+                                class="px-3.5 py-2 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-medium shrink-0 cursor-pointer flex items-center gap-1.5">
+                          <app-icon name="sparkles" [size]="14"></app-icon>
+                          <span>✨ Tidy details</span>
+                        </button>
+                      </div>
+                    }
+
+                    @if (appMode() === 'care') {
+                      <!-- Care Mode Persona Strip -->
+                      <div class="pt-3 border-t border-(--border-color) space-y-2">
+                        <div class="text-xs font-bold text-(--text-accent) flex items-center gap-1.5">
+                          <app-icon name="user-check" [size]="15"></app-icon>
+                          <span>Adopt a Care Persona</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-1.5">
+                          @for (role of careRoles(); track role.name) {
+                            <button (click)="setCareRole(role)"
+                                    type="button"
+                                    [class.bg-(--text-accent)]="activeCareRoles().has(role.name)"
+                                    [class.text-(--primary-cta-text)]="activeCareRoles().has(role.name)"
+                                    [class.bg-(--button-bg)]="!activeCareRoles().has(role.name)"
+                                    class="flex items-center gap-1.5 text-xs font-medium py-1.5 px-3 rounded-lg border border-(--border-color) cursor-pointer">
+                              <app-icon [name]="role.icon" [size]="14"></app-icon>
+                              <span>{{ role.name }}</span>
+                            </button>
+                          }
+                          <button (click)="openCustomRoleModal()" type="button" class="text-xs font-semibold py-1.5 px-2.5 rounded-lg border border-dashed border-(--text-accent) text-(--text-accent) cursor-pointer">
+                            + Custom
+                          </button>
+                        </div>
+                      </div>
+                    }
+
+                    <!-- 4. Integrated Action Dock (Idea Style + Generate) -->
+                    <div class="pt-3 border-t border-(--border-color) space-y-3">
+                      <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span class="text-xs font-bold text-(--text-color-muted)">Idea Style:</span>
+                        <div class="flex items-center gap-1.5" role="group" aria-label="Idea realism level">
+                          <button type="button"
+                                  (click)="setIdeaRealism('practical')"
+                                  [class]="ideaRealismLevel() === 'practical' ? 'bg-(--text-accent) text-white font-bold' : 'bg-(--button-bg) text-(--text-color-muted) hover:text-(--text-color)'"
+                                  class="text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer">
+                            Practical &amp; Everyday
+                          </button>
+                          <button type="button"
+                                  (click)="setIdeaRealism('balanced')"
+                                  [class]="ideaRealismLevel() === 'balanced' ? 'bg-(--text-accent) text-white font-bold' : 'bg-(--button-bg) text-(--text-color-muted) hover:text-(--text-color)'"
+                                  class="text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer">
+                            Balanced
+                          </button>
+                          <button type="button"
+                                  (click)="setIdeaRealism('bold')"
+                                  [class]="ideaRealismLevel() === 'bold' ? 'bg-(--text-accent) text-white font-bold' : 'bg-(--button-bg) text-(--text-color-muted) hover:text-(--text-color)'"
+                                  class="text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer">
+                            Adventurous
+                          </button>
+                        </div>
+                      </div>
+
+                      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <button (click)="generateInsights()"
+                                [disabled]="isGenerateDisabled()"
+                                class="generate-button sm:col-span-2 font-bold text-lg py-4 px-6 min-h-12 rounded-xl shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
+                          <app-icon [name]="generateButtonIcon()" [size]="22"></app-icon>
+                          <span>{{ generateButtonText() }}</span>
+                        </button>
+
+                        <button (click)="generateDeepInsights()"
+                                [disabled]="isGenerateDisabled()"
+                                title="Run 5-phase multi-agent debate and structured consensus synthesis"
+                                class="bg-(--card-bg-subtle) hover:bg-(--button-bg-hover) text-(--text-accent) border-2 border-(--text-accent)/40 font-bold text-sm py-4 px-4 min-h-12 rounded-xl shadow-md flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
+                          <app-icon name="refresh" [size]="18" class="text-(--text-accent)"></app-icon>
+                          <span>Multi-Agent Debate</span>
+                        </button>
                       </div>
                     </div>
-                  }
 
-                  <!-- Grounded ↔ Bold Realism Selector & Generate Buttons -->
-                  <div class="p-4 rounded-2xl bg-(--card-bg) border border-(--border-color) shadow-xl space-y-3">
-                    <div class="flex flex-wrap items-center justify-between gap-2">
-                      <span class="text-xs font-bold text-(--text-color-muted)">Idea Style:</span>
-                      <div class="flex items-center gap-1.5" role="group" aria-label="Idea realism level">
-                        <button type="button"
-                                (click)="setIdeaRealism('practical')"
-                                [class]="ideaRealismLevel() === 'practical' ? 'bg-(--text-accent) text-white font-bold' : 'bg-(--button-bg) text-(--text-color-muted) hover:text-(--text-color)'"
-                                class="text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer">
-                          Practical &amp; Everyday
-                        </button>
-                        <button type="button"
-                                (click)="setIdeaRealism('balanced')"
-                                [class]="ideaRealismLevel() === 'balanced' ? 'bg-(--text-accent) text-white font-bold' : 'bg-(--button-bg) text-(--text-color-muted) hover:text-(--text-color)'"
-                                class="text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer">
-                          Balanced
-                        </button>
-                        <button type="button"
-                                (click)="setIdeaRealism('bold')"
-                                [class]="ideaRealismLevel() === 'bold' ? 'bg-(--text-accent) text-white font-bold' : 'bg-(--button-bg) text-(--text-color-muted) hover:text-(--text-color)'"
-                                class="text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer">
-                          Adventurous
-                        </button>
-                      </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <button (click)="generateInsights()"
-                              [disabled]="isGenerateDisabled()"
-                              class="generate-button sm:col-span-2 font-bold text-lg py-4 px-6 min-h-12 rounded-xl shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
-                        <app-icon [name]="generateButtonIcon()" [size]="22"></app-icon>
-                        <span>{{ generateButtonText() }}</span>
-                      </button>
-
-                      <button (click)="generateDeepInsights()"
-                              [disabled]="isGenerateDisabled()"
-                              title="Run 5-phase multi-agent debate and structured consensus synthesis"
-                              class="bg-(--card-bg-subtle) hover:bg-(--button-bg-hover) text-(--text-accent) border-2 border-(--text-accent)/40 font-bold text-sm py-4 px-4 min-h-12 rounded-xl shadow-md flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
-                        <app-icon name="refresh" [size]="18" class="text-(--text-accent)"></app-icon>
-                        <span>Multi-Agent Debate</span>
-                      </button>
-                    </div>
                   </div>
-
-                </div><!-- /RIGHT SIDE (J++ Workspace) -->
+                </div><!-- /RIGHT SIDE (Unified J++ Workbench) -->
 
               </div>
             </div>
