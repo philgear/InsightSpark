@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnDestroy } from '@angular/core';
+import { Component, Input, inject, signal, computed, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrator.service';
 
@@ -21,11 +21,11 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
               [class.bg-rose-500]="calibrator.currentTurn().isDrifting"
             ></span>
             <span class="text-[11px] font-mono uppercase tracking-widest text-(--text-accent)">
-              J++ Workspace Lens × MIT Drift Calibrator · Local 3.2B Telemetry
+              {{ panelMode === 'dial' ? 'Left Control Dial · 6-Axis Provocation Wheel' : (panelMode === 'jpp' ? 'J++ Workspace Lens · L6→L32 Telemetry' : 'J++ Workspace Lens × MIT Drift Calibrator · Local 3.2B Telemetry') }}
             </span>
           </div>
           <h3 class="mt-1 font-serif text-lg font-bold text-(--text-color)">
-            6-Axis Brand &amp; Strategy Drift Calibrator
+            {{ panelMode === 'dial' ? '6-Axis Strategy &amp; Provocation Dial' : (panelMode === 'jpp' ? 'J++ Layer Workspace &amp; Drift Guard' : '6-Axis Brand &amp; Strategy Drift Calibrator') }}
           </h3>
         </div>
 
@@ -37,7 +37,7 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
               class="rounded-lg border border-amber-500/40 bg-amber-500/15 px-2.5 py-1 text-xs font-mono font-bold text-amber-400 hover:bg-amber-500/25 transition-all cursor-pointer"
               title="Unlock the 6-Axis Wheel to override your manual provocation picks"
             >
-              🔒 Manual Picks (Unlock Wheel)
+              🔒 Manual Picks (Unlock Dial)
             </button>
           } @else {
             <button
@@ -45,14 +45,14 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
               (click)="calibrator.applyBrandSteeringVector()"
               class="rounded-lg bg-(--text-accent) px-2.5 py-1 text-xs font-mono font-bold text-white shadow-xs hover:opacity-90 transition-all cursor-pointer"
             >
-              ⚡ Apply Steering
+              ⚡ Sync Dial &amp; J++
             </button>
           }
           <button
             type="button"
             (click)="isExpanded.set(!isExpanded())"
             [attr.aria-expanded]="isExpanded()"
-            class="xl:hidden rounded-lg border border-(--border-color) bg-(--button-bg) px-2.5 py-1 text-xs font-semibold text-(--text-color-muted) hover:text-(--text-color) transition-all cursor-pointer"
+            class="lg:hidden rounded-lg border border-(--border-color) bg-(--button-bg) px-2.5 py-1 text-xs font-semibold text-(--text-color-muted) hover:text-(--text-color) transition-all cursor-pointer"
           >
             {{ isExpanded() ? 'Hide' : 'Show' }}
           </button>
@@ -63,6 +63,7 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
       @if (isExpanded()) {
         <div class="mt-4 space-y-4">
           <!-- Mode Toggle: 12-Pole Sunburst Wheel vs. 4-Petal Fibonacci Sunflower -->
+          @if (panelMode !== 'jpp') {
           <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
             <div class="flex items-center gap-1.5">
               <button
@@ -73,7 +74,7 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
                 [class.bg-emerald-500/15]="lensMode() === 'sunburst'"
                 [class.border-(--border-color)]="lensMode() !== 'sunburst'"
               >
-                🎯 12-Pole Axis Wheel
+                🎯 12-Pole Axis Dial
               </button>
               <button
                 type="button"
@@ -103,8 +104,9 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
               }
             </div>
           </div>
+          }
 
-          @if (lensMode() === 'sunburst') {
+          @if (panelMode !== 'jpp' && lensMode() === 'sunburst') {
             <!-- Compact 12-Pole Connected Sunburst + Connected Axis Control Panel -->
             <div class="space-y-3">
               @if (calibrator.selectionLockMode() === 'manual') {
@@ -326,23 +328,47 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
             </div>
           }
 
-          @if (showUnderTheHood()) {
-            <div class="rounded-xl border border-(--border-color) bg-(--card-bg-subtle) p-3 grid grid-cols-2 gap-2 text-xs font-mono">
-              <div class="rounded border border-(--border-color) p-2">
-                <div class="text-[10px] text-(--text-color-muted)">L6 · Core Concepts</div>
-                <div class="mt-1 font-semibold">{{ calibrator.currentTurn().jppLayers.l6.join(', ') }}</div>
+          @if (panelMode === 'jpp' || (panelMode !== 'dial' && showUnderTheHood())) {
+            <div class="space-y-3">
+              <div class="rounded-xl border border-(--border-color) bg-(--card-bg-subtle) p-3.5 space-y-2.5 text-xs">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                  <span class="font-bold text-(--text-accent) uppercase tracking-wider text-[11px]">
+                    Active Axis {{ calibrator.focusedAxisPair().axisIndex + 1 }} Vector:
+                    <span class="text-emerald-400">{{ calibrator.focusedAxisPair().axis.positivePole }} ({{ (calibrator.focusedAxisPair().posScore * 100).toFixed(0) }}%)</span>
+                    ↔
+                    <span class="text-rose-400">Ban {{ calibrator.focusedAxisPair().axis.negativePole }}</span>
+                  </span>
+                  <button
+                    type="button"
+                    (click)="calibrator.cycleCircadianScene()"
+                    class="rounded-lg border border-(--border-color) bg-(--card-bg) px-2.5 py-1 text-[11px] font-mono text-(--text-color) hover:border-(--text-accent) cursor-pointer"
+                  >
+                    ☀️ {{ circadianLabel() }}
+                  </button>
+                </div>
+                <div class="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-2.5 text-[11px] leading-relaxed">
+                  <span class="font-bold text-emerald-400">J++ Steering Vector (+{{ calibrator.steeringBeta().toFixed(2) }}): </span>
+                  <span class="text-(--text-color)">{{ calibrator.focusedAxisPair().axis.positiveAnchor }}</span>
+                </div>
               </div>
-              <div class="rounded border border-(--border-color) p-2">
-                <div class="text-[10px] text-(--text-color-muted)">L16 · Strategy Frame</div>
-                <div class="mt-1 font-semibold">{{ calibrator.currentTurn().jppLayers.l16.join(', ') }}</div>
-              </div>
-              <div class="rounded border border-(--border-color) p-2">
-                <div class="text-[10px] text-(--text-color-muted)">L24 · Tone Check</div>
-                <div class="mt-1 font-semibold">{{ calibrator.currentTurn().jppLayers.l24.join(', ') }}</div>
-              </div>
-              <div class="rounded border border-(--border-color) p-2">
-                <div class="text-[10px] text-(--text-color-muted)">L32 · Output Status</div>
-                <div class="mt-1 font-semibold text-(--text-accent)">{{ calibrator.currentTurn().jppLayers.l32.join(', ') }}</div>
+
+              <div class="rounded-xl border border-(--border-color) bg-(--card-bg-subtle) p-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs font-mono">
+                <div class="rounded-lg border border-(--border-color) bg-(--card-bg) p-2.5">
+                  <div class="text-[10px] text-amber-400 font-bold uppercase">L6 · Core Prompt &amp; Sensory Tokens</div>
+                  <div class="mt-1 font-semibold text-(--text-color)">{{ calibrator.currentTurn().jppLayers.l6.join(' · ') }}</div>
+                </div>
+                <div class="rounded-lg border border-(--border-color) bg-(--card-bg) p-2.5">
+                  <div class="text-[10px] text-purple-400 font-bold uppercase">L16 · Active Strategy Frame</div>
+                  <div class="mt-1 font-semibold text-(--text-color)">{{ calibrator.currentTurn().jppLayers.l16.join(' · ') }}</div>
+                </div>
+                <div class="rounded-lg border border-(--border-color) bg-(--card-bg) p-2.5">
+                  <div class="text-[10px] text-emerald-400 font-bold uppercase">L24 · Tone &amp; Fallacy Guard</div>
+                  <div class="mt-1 font-semibold text-(--text-color)">{{ calibrator.currentTurn().jppLayers.l24.join(' · ') }}</div>
+                </div>
+                <div class="rounded-lg border border-(--border-color) bg-(--card-bg) p-2.5">
+                  <div class="text-[10px] text-(--text-accent) font-bold uppercase">L32 · Output Synthesis Status</div>
+                  <div class="mt-1 font-semibold text-(--text-accent)">{{ calibrator.currentTurn().jppLayers.l32.join(' · ') }}</div>
+                </div>
               </div>
             </div>
           }
@@ -352,10 +378,11 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
   `,
 })
 export class BrandDriftCalibratorComponent implements OnDestroy {
+  @Input() panelMode: 'full' | 'dial' | 'jpp' = 'full';
   readonly calibrator = inject(BrandDriftCalibratorService);
   readonly isExpanded = signal<boolean>(true);
   readonly lensMode = signal<'sunburst' | 'sunflower'>('sunburst');
-  readonly showUnderTheHood = signal<boolean>(false);
+  readonly showUnderTheHood = signal<boolean>(true);
   readonly isBreathing = signal<boolean>(false);
   readonly breathPhase = signal<'inhale' | 'exhale'>('inhale');
   private breathTimer: ReturnType<typeof setInterval> | null = null;
