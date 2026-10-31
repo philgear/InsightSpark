@@ -164,7 +164,7 @@ export interface SynergyPreset {
   templateUrl: './app.component.html',
 })
 export class AppComponent implements OnDestroy {
-  public geminiService = inject(GeminiService);
+  private geminiService = inject(GeminiService);
   private location: Location = inject(Location);
   private swUpdate: SwUpdate | null = inject(SwUpdate, { optional: true });
   public storageService = inject(StorageService);
@@ -440,18 +440,6 @@ export class AppComponent implements OnDestroy {
       this.geminiService.clearCache();
       const current = this.insights();
       if (current?.length) {
-        const selectedSet = this.selectedStrategyIds();
-        const activeStrategies = this.availableStrategies().filter(s => selectedSet.has(s.id));
-        if (activeStrategies.length > 0 && this.problemInput().trim()) {
-          this.insights.set(
-            this.geminiService.warehouse.synthesizeFromWarehouse(
-              this.problemInput(),
-              activeStrategies,
-              this.appMode()
-            )
-          );
-          return;
-        }
         this.insights.set(
           current.map(group => ({
             ...group,

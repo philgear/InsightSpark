@@ -75,6 +75,12 @@ app.use(helmet({
 // allowing iframe embeds on pocketgull.app and philgear.dev (relying on CSP frame-ancestors).
 // AI crawler access is governed by public/robots.txt and public/llms.txt (welcoming Google & Gemini).
 app.use((req, res, next) => {
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  res.setHeader('Cross-Origin-Resource-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
   res.removeHeader('X-Frame-Options');
   next();
 });

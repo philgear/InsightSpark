@@ -17,15 +17,15 @@
     "agent:edge": "node scripts/smart_context_agent.js"
   },
   "dependencies": {
-    "@angular/build": "^22.1.0",
-    "@angular/cli": "^22.1.0",
-    "@angular/common": "^22.1.0",
-    "@angular/compiler": "^22.1.0",
-    "@angular/compiler-cli": "^22.1.0",
-    "@angular/core": "^22.1.0",
-    "@angular/forms": "^22.1.0",
-    "@angular/platform-browser": "^22.2.1",
-    "@angular/service-worker": "^22.2.1",
+    "@angular/build": "~22.2.3",
+    "@angular/cli": "~22.2.3",
+    "@angular/common": "~22.2.3",
+    "@angular/compiler": "~22.2.3",
+    "@angular/compiler-cli": "~22.2.3",
+    "@angular/core": "~22.2.3",
+    "@angular/forms": "~22.2.3",
+    "@angular/platform-browser": "~22.2.3",
+    "@angular/service-worker": "~22.2.3",
     "@google/genai": "2.8.0",
     "compression": "^1.8.2",
     "cors": "2.8.6",
@@ -64,7 +64,8 @@
     "proxy-addr": "^2.0.8",
     "source-map-js": "^1.2.2",
     "@modelcontextprotocol/sdk": "^1.31.0",
-    "compression": "^1.8.2"
+    "compression": "^1.8.2",
+    "vite": "^8.1.6"
   },
   "allowScripts": {
     "esbuild@0.27.2": true,
