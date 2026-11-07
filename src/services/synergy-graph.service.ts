@@ -303,7 +303,7 @@ export class SynergyGraphService {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(
         'spark_synergy_bridge',
-        `[SMART SYNERGY TRIAD (${chosen.bridgeTitle} — Axis: ${axisEntry.axisName}): ${chosen.bridgeMechanism}]`
+        `[SMART SYNERGY TRIAD (${chosen.bridgeTitle} - Axis: ${axisEntry.axisName}): ${chosen.bridgeMechanism}]`.replace(/[^\x20-\x7E]/g, '-')
       );
     }
 

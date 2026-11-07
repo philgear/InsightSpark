@@ -88,7 +88,7 @@ Mode: ${mode.toUpperCase()}
 Input Challenge: "${problem}"
 
 Instructions:
-Synthesize 2-3 actionable, asset-framed insights directly addressing this situation. Avoid pathologizing deficit language.
+Synthesize 2-3 actionable, asset-framed insights using the 2-Step Lateral Leap & Grounded Landing protocol: (1) leap outside the box via cross-domain isomorphism or constraint reversal, then (2) land on a concrete $0 real-world household or team mechanism. Avoid predictable textbook advice and pathologizing deficit language.
   `.trim();
 
   return {

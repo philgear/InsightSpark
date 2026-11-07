@@ -775,26 +775,32 @@ body {
 }
 
 .header-controls-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) auto auto auto;
-  gap: 0.5rem;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.375rem;
   align-items: center;
   background: rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(12px);
-  padding: 0.375rem;
-  border-radius: 1.25rem;
+  padding: 0.3rem;
+  border-radius: 1.15rem;
   border: 1px solid var(--border-color);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 @media (max-width: 768px) {
   .header-controls-grid {
-    grid-template-columns: repeat(2, 1fr);
-    width: 100%;
+    gap: 0.2rem;
     padding: 0.25rem;
   }
   .header-chip {
-    padding: 0.5rem 0.75rem;
+    padding: 0.375rem 0.55rem;
+    min-width: 38px;
+    min-height: 38px;
+  }
+  .action-btn {
+    min-width: 38px;
+    min-height: 38px;
+    padding: 0.375rem;
   }
 }
 
@@ -1227,4 +1233,86 @@ body {
 
 .font-fluid {
   font-family: var(--font-fluid);
+}
+
+/* ── Missing Static Utility Shims (Tailwind v4 Static Bridge) ───────────────── */
+@layer utilities {
+  .gap-6 { gap: 1.5rem; }
+  .w-44 { width: 11rem; }
+  .h-44 { height: 11rem; }
+  .w-2\.5 { width: 0.625rem; }
+  .h-2\.5 { height: 0.625rem; }
+  .pt-0\.5 { padding-top: 0.125rem; }
+  .pt-1\.5 { padding-top: 0.375rem; }
+  .\!p-2\.5 { padding: 0.625rem !important; }
+  .\!min-h-0 { min-height: 0px !important; }
+  .rounded-xs { border-radius: 0.125rem; }
+  .select-none { user-select: none; -webkit-user-select: none; }
+  .overflow-visible { overflow: visible; }
+  .overflow-x-auto { overflow-x: auto; }
+  .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .text-ellipsis { text-overflow: ellipsis; }
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .cursor-not-allowed { cursor: not-allowed; }
+  .disabled\:opacity-45:disabled { opacity: 0.45; }
+  .hover\:opacity-95:hover { opacity: 0.95; }
+  .fill-\(--card-bg\) { fill: var(--card-bg); }
+  .text-\(--bg-color\) { color: var(--bg-color); }
+  .border-\(--border-color\)\/80 { border-color: color-mix(in srgb, var(--border-color) 80%, transparent); }
+  .border-amber-400 { border-color: var(--color-amber-400, #fbbf24); }
+  .bg-emerald-500\/5 { background-color: rgba(16, 185, 129, 0.05); }
+  .hover\:bg-amber-500\/30:hover { background-color: rgba(245, 158, 11, 0.3); }
+  .bg-stone-900\/80 { background-color: rgba(28, 25, 23, 0.8); }
+  .border-rose-500\/40 { border-color: rgba(244, 63, 94, 0.4); }
+  .border-rose-500\/50 { border-color: rgba(244, 63, 94, 0.5); }
+  .border-rose-500\/60 { border-color: rgba(244, 63, 94, 0.6); }
+  .focus\:ring-rose-500\/50:focus { --tw-ring-color: rgba(244, 63, 94, 0.5); }
+  .text-rose-100 { color: #ffe4e6; }
+  .text-rose-200\/90 { color: rgba(254, 205, 211, 0.9); }
+  .text-rose-400 { color: #fb7185; }
+  .border-l-\[\#9D1F3B\] { border-left-color: #9D1F3B; }
+  .border-l-\[\#6C7A68\] { border-left-color: #6C7A68; }
+  .border-l-\[\#E8B9C8\] { border-left-color: #E8B9C8; }
+  .border-l-\[\#FDD87A\] { border-left-color: #FDD87A; }
+  .text-\[7px\] { font-size: 7px; }
+  .text-\[8px\] { font-size: 8px; }
+  .text-\[9px\] { font-size: 9px; }
+  .text-\[9\.5px\] { font-size: 9.5px; }
+  .text-\[10\.5px\] { font-size: 10.5px; }
+
+  @media (min-width: 640px) {
+    .sm\:p-5 { padding: 1.25rem; }
+  }
+
+  @media (min-width: 1280px) {
+    .xl\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+    .xl\:col-span-7 { grid-column: span 7 / span 7; }
+    .xl\:col-span-5 { grid-column: span 5 / span 5; }
+    .xl\:sticky { position: sticky; }
+    .xl\:top-6 { top: 1.5rem; }
+    .xl\:hidden { display: none; }
+  }
+}
+
+
+/* ── Sticky Bottom Generate Dock on Mobile Viewports ─── */
+@media (max-width: 639px) {
+  .mobile-sticky-generate-dock {
+    position: sticky;
+    bottom: 0.5rem;
+    z-index: 30;
+    padding: 0.625rem;
+    border-radius: 1.25rem;
+    background: color-mix(in srgb, var(--card-bg) 92%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color-strong);
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.35);
+  }
 }

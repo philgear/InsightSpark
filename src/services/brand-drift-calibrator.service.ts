@@ -63,8 +63,8 @@ export const BRAND_STRATEGY_AXES: BrandDriftAxis[] = [
     negativePole: 'Predictable Orthodoxy',
     positiveAnchor: 'Cross-domain structural isomorphism linking biological resilience, aviation checklists, and care transitions.',
     negativeAnchor: 'Standard textbook list of generic best practices and conventional bullet points.',
-    positiveKeywords: ['biomimetic', 'inversion', 'cascade', 'isomorphism', 'lateral', 'bridge', 'counter-intuitive', 'lever'],
-    negativeKeywords: ['best practices', 'standard', 'typical', 'usual', 'obvious', 'conventional', 'routine'],
+    positiveKeywords: ['biomimetic', 'inversion', 'cascade', 'isomorphism', 'lateral', 'bridge', 'counter-intuitive', 'lever', 'provocation', 'cross-pollination', 'reframe', 'asymmetry', 'exaptation', 'constraint-reversal', 'zero-base', 'analogous', 'orthodoxy-breaker', 'tactile-anchor'],
+    negativeKeywords: ['best practices', 'standard', 'typical', 'usual', 'obvious', 'conventional', 'routine', 'communicate better', 'take regular breaks', 'stay organized', 'use a calendar', 'be mindful', 'consult a professional'],
   },
   {
     id: 'human-agency',
@@ -91,6 +91,26 @@ export const BRAND_STRATEGY_AXES: BrandDriftAxis[] = [
 })
 export class BrandDriftCalibratorService {
   readonly axes = BRAND_STRATEGY_AXES;
+  readonly lateralExemplars = [
+    {
+      domain: 'Aviation Sterile Cockpit → 72h Care Discharge',
+      lateralLeap: 'PO: Treat the kitchen table during post-op handoffs like an Airbus flight deck below 10,000 feet.',
+      groundedLanding: 'Replace a 14-page discharge binder with 3 color-coded fridge magnets (Morning Green, Midday Amber, Night Blue) and a 10-minute no-phone handoff window between family shifts.',
+      rejectedOrthodoxy: 'Communicate better with family members and stay organized with a shared calendar.',
+    },
+    {
+      domain: 'Formula 1 Pit-Stop Choreography → Caregiver Respite',
+      lateralLeap: 'PO: Design family respite handoffs like a 2.4-second F1 tire change where the incoming crew member needs zero verbal briefing.',
+      groundedLanding: 'Stage a pre-packed "Respite Tray" by the front door so the relief partner can step in on Tuesday at 2 PM with zero friction while the primary caregiver takes 3 protected hours.',
+      rejectedOrthodoxy: 'Make sure the primary caregiver takes regular breaks to avoid burnout.',
+    },
+    {
+      domain: 'Mycelial Nutrient Routing → Multi-Generational Kinship',
+      lateralLeap: 'PO: Route household tasks like forest mycorrhizal networks shifting carbon from sunlit canopy trees to shaded saplings.',
+      groundedLanding: 'Pair a grandchild’s 15-minute after-school music playlist routine with a grandparent’s seated mobility stretch—turning a chore into a shared dopamine ritual.',
+      rejectedOrthodoxy: 'Encourage family members to help out and spend quality time together.',
+    },
+  ];
   readonly activeModel = signal<'pivotpulse:latest' | 'branddesk:latest'>('pivotpulse:latest');
   readonly steeringAlpha = signal<number>(0.70);
   readonly steeringBeta = signal<number>(0.55);
@@ -596,7 +616,7 @@ export class BrandDriftCalibratorService {
 
   getSteeringSystemDirective(): string {
     const axis = this.axes[this.focusedAxisIndex() % 6];
-    return `[6-AXIS CALIBRATOR (-${this.steeringAlpha().toFixed(2)}·v_slop + ${this.steeringBeta().toFixed(2)}·v_craft) | Primary Anchor: ${axis.positivePole} (${axis.positiveAnchor}) | Strictly Ban: ${axis.negativePole} (${axis.negativeKeywords.slice(0, 5).join(', ')})]`;
+    return `[6-AXIS CALIBRATOR (-${this.steeringAlpha().toFixed(2)}*v_slop + ${this.steeringBeta().toFixed(2)}*v_craft) | Primary Anchor: ${axis.positivePole} (${axis.positiveAnchor}) | 2-Step Lateral Protocol: (1) Leap outside the box via cross-domain isomorphism or constraint reversal, then (2) Land on a concrete $0 real-world mechanism | Strictly Ban: ${axis.negativePole} (${axis.negativeKeywords.slice(0, 5).join(', ')})]`.replace(/[^\x20-\x7E]/g, '-');
   }
 
   /**

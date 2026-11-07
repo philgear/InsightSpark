@@ -207,7 +207,7 @@ export const STARTER_SCENARIOS: StarterScenario[] = [
     mode: 'creative',
     title: 'Sponge-City Municipal Food Forest',
     prompt: 'Designing a self-sustaining municipal park that doubles as an absorbent flood barrier, native bio-swale, and community agricultural commons.',
-    recommendedStrategies: ['nature', 'combinatorial', 'fmea'],
+    recommendedStrategies: ['butterfly', 'combinatorial', 'fmea'],
     gist: 'Harmonizing flood engineering with hyper-local food sovereignty and public park space.',
   },
   {

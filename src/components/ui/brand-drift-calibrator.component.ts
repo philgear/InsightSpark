@@ -230,6 +230,28 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
                       {{ showUnderTheHood() ? 'Hide J++' : 'J++ (L6→L32)' }}
                     </button>
                   </div>
+                  <!-- 2-Step Lateral Leap -> $0 Grounded Landing Exemplar Card -->
+                  <div class="pt-2 border-t border-(--border-color)/60 space-y-1.5 text-[11px]">
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="font-mono text-[10px] uppercase tracking-wider text-(--text-accent) font-bold">
+                        ⚡ 2-Step Lateral Exemplar ({{ activeExemplarIndex() + 1 }}/{{ calibrator.lateralExemplars.length }})
+                      </span>
+                      <button
+                        type="button"
+                        (click)="nextExemplar()"
+                        class="rounded border border-(--border-color) bg-(--card-bg) px-2 py-0.5 text-[10px] font-semibold text-(--text-color) hover:border-(--text-accent) cursor-pointer"
+                      >
+                        Next Domain →
+                      </button>
+                    </div>
+                    <div class="font-bold text-(--text-color)">{{ currentExemplar().domain }}</div>
+                    <div class="text-(--text-color-muted)">
+                      <strong class="text-purple-400">1. Lateral Leap:</strong> {{ currentExemplar().lateralLeap }}
+                    </div>
+                    <div class="text-(--text-color)">
+                      <strong class="text-emerald-400">2. $0 Grounded Landing:</strong> {{ currentExemplar().groundedLanding }}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -356,6 +378,14 @@ export class BrandDriftCalibratorComponent implements OnDestroy {
   readonly isExpanded = signal<boolean>(true);
   readonly lensMode = signal<'sunburst' | 'sunflower'>('sunburst');
   readonly showUnderTheHood = signal<boolean>(false);
+  readonly activeExemplarIndex = signal<number>(0);
+  readonly currentExemplar = computed(() => {
+    const list = this.calibrator.lateralExemplars;
+    return list[this.activeExemplarIndex() % list.length];
+  });
+  nextExemplar(): void {
+    this.activeExemplarIndex.update(i => (i + 1) % this.calibrator.lateralExemplars.length);
+  }
   readonly isBreathing = signal<boolean>(false);
   readonly breathPhase = signal<'inhale' | 'exhale'>('inhale');
   private breathTimer: ReturnType<typeof setInterval> | null = null;

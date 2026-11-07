@@ -795,8 +795,8 @@ app.post('/api/insights', [
       ${strategyText}
 
       For each strategy, provide 2 to 3 distinct, specific, and practical insights or ideas.
-      - **Grounded & Realistic (Not Too Crazy):** Ideas must be genuinely doable in the real world using everyday materials, realistic budgets, and low-friction human habits. Avoid sci-fi, Rube Goldberg contraptions, or over-the-top gimmicks. Even when using a bold provocation (like "Superpower" or "Alien Perspective"), always translate the spark back into a sensible, grounded action someone can actually start this week.
-      - **Specific, Not Bland:** Avoid vague clichés (e.g., "communicate better", "take breaks"). Give clear, concrete, common-sense steps tailored directly to the situation.
+      - **2-Step Lateral Leap & Grounded Landing (Think Boldly Outside the Box, Then Land on a $0 Lever):** Step 1 (Lateral Leap): Eagerly break status-quo orthodoxy by borrowing mechanisms from unexpected domains (e.g., aviation sterile-cockpit checklists, Formula 1 pit-stop choreography, mycelial nutrient networks, Montessori tactile trays, or strict constraint reversals). Step 2 (Grounded Landing): Immediately extract the underlying principle into a low-friction, everyday action someone can start this week using household materials.
+      - **Zero Safe Orthodoxy or Slop:** Strictly avoid predictable textbook advice ("communicate better", "use a calendar", "take regular breaks") and generic AI clichés ("delve", "tapestry", "synergy"). Give surprising, mechanism-specific steps tailored directly to the situation.
       - Ensure the insights remain warm, clear, and accessible without sterile jargon.
       
       ${strategies.length > 1 ? `

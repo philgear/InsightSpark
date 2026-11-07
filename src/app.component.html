@@ -75,17 +75,16 @@
             <app-icon [name]="theme() === 'dark' ? 'sun' : 'moon'" [size]="20"></app-icon>
           </button>
 
-          <!-- API Key Connected Status / Clear Key -->
-          <div class="flex items-center gap-2 border-l border-(--border-color) pl-3">
-            <span class="text-xs text-emerald-500 font-medium hidden md:inline-flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1.5 rounded-full" title="Gemini API Key is stored locally">
-              <app-icon name="check" [size]="14"></app-icon>
-              Connected
-            </span>
-            <button (click)="clearApiKey()" 
-                    class="header-chip action-btn text-(--color-danger) p-2!"
-                    title="Change or Remove API Key"
-                    aria-label="Remove Gemini API Key">
-              <app-icon name="key" [size]="20"></app-icon>
+          <!-- 1-Tap Active Engine Pill / Switcher -->
+          <div class="flex items-center gap-1.5 border-l border-(--border-color) pl-2">
+            <button (click)="clearApiKey()"
+                    type="button"
+                    class="header-chip action-btn px-2.5! py-1.5! rounded-full border text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                    [class]="activeProviderBadge().colorClass"
+                    title="Switch AI Engine (Cloud, Local Ollama, WebGPU, or Demo)"
+                    aria-label="Switch AI Engine or Remove Gemini API Key">
+              <app-icon [name]="activeProviderBadge().icon" [size]="15"></app-icon>
+              <span class="hidden sm:inline">{{ activeProviderBadge().label }}</span>
             </button>
           </div>
         </div>
@@ -931,7 +930,7 @@
                         </h2>
                         <p class="text-xs text-(--text-color-muted)">
                           @if (brandDriftCalibrator.selectionLockMode() === 'wheel') {
-                            🔒 Driven by 6-Axis Wheel Triad — click <strong>Customize Manually</strong> to edit individual pills.
+                            🎯Synced with 6-Axis Wheel Triad — tap any pill below to customize manually.
                           } @else if (brandDriftCalibrator.selectionLockMode() === 'manual') {
                             🔒 {{ selectedStrategiesCount() }}/{{ MAX_STRATEGY_SELECTION }} selected (4-Slot Max · 6-Axis Wheel synced &amp; locked to your picks).
                           } @else {
@@ -941,7 +940,7 @@
                       </div>
                       <div class="flex items-center gap-1.5 text-xs">
                         @if (brandDriftCalibrator.selectionLockMode() === 'wheel') {
-                          <button (click)="unlockManualProvocations()" type="button" class="px-2.5 py-1 rounded-lg border border-amber-500/40 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 font-semibold cursor-pointer">
+                          <button (click)="unlockManualProvocations()" type="button" class="px-2.5 py-1 rounded-lg border border-(--border-color-strong) bg-(--text-accent)/15 hover:bg-(--text-accent)/25 text-(--text-accent) font-bold cursor-pointer">
                             🔓 Customize Manually
                           </button>
                         } @else if (brandDriftCalibrator.selectionLockMode() === 'manual') {
@@ -973,7 +972,7 @@
                                 class="flex items-center gap-1.5 text-xs font-bold py-1.5 px-3 rounded-lg bg-(--text-accent) text-(--primary-cta-text) hover:opacity-90 active:scale-95 transition-all shadow-sm cursor-pointer self-start sm:self-auto"
                                 title="Automatically combine a Spark + Bridge + Anchor matched to your challenge and 6-Axis Wheel">
                           <app-icon name="zap" [size]="13"></app-icon>
-                          <span>⚡ Roll Smart Synergy</span>
+                          <span>Roll Smart Synergy</span>
                         </button>
                       </div>
 
@@ -1019,7 +1018,7 @@
                           <span>{{ appMode() === 'care' ? 'Exploratory Perspectives' : 'Divergent Provocations' }}</span>
                         </span>
                         @if (brandDriftCalibrator.selectionLockMode() === 'wheel') {
-                          <span class="text-[10px] font-mono text-amber-400">🔒 Locked to 6-Axis Triad</span>
+                          <span class="text-[10px] font-mono text-(--text-accent)">🎯 6-Axis Triad Active</span>
                         } @else if (isSelectionAtMax()) {
                           <span class="text-[10px] font-mono text-emerald-400">✓ 4/4 Ceiling Reached</span>
                         }
@@ -1028,7 +1027,7 @@
                         @for (strategy of visibleProvocationStrategies(); track strategy.id) {
                           <button (click)="toggleStrategy(strategy.id)"
                                   type="button"
-                                  [disabled]="brandDriftCalibrator.selectionLockMode() === 'wheel' || (!isStrategySelected(strategy.id) && isSelectionAtMax())"
+                                  [disabled]="!isStrategySelected(strategy.id) && isSelectionAtMax()"
                                   [title]="appMode() === 'care' ? strategy.careModeDescription : strategy.description"
                                   class="strategy-button group/strategy !p-2.5 !min-h-0 disabled:opacity-45 disabled:cursor-not-allowed"
                                   [class.selected]="isStrategySelected(strategy.id)"
@@ -1060,7 +1059,7 @@
                         @for (strategy of visibleAnchorStrategies(); track strategy.id) {
                           <button (click)="toggleStrategy(strategy.id)"
                                   type="button"
-                                  [disabled]="brandDriftCalibrator.selectionLockMode() === 'wheel' || (!isStrategySelected(strategy.id) && isSelectionAtMax())"
+                                  [disabled]="!isStrategySelected(strategy.id) && isSelectionAtMax()"
                                   [title]="appMode() === 'care' ? strategy.careModeDescription : strategy.description"
                                   class="strategy-button group/strategy border-2 !p-2.5 !min-h-0 disabled:opacity-45 disabled:cursor-not-allowed"
                                   [class.selected]="isStrategySelected(strategy.id)"
@@ -1110,20 +1109,20 @@
                   </div>
                 </div>
 
-                <!-- Generate Buttons (Standard & Multi-Agent Debate) -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <!-- Generate Buttons (Sticky Bottom Dock on Mobile, Standard Grid on Desktop) -->
+                <div class="mobile-sticky-generate-dock grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3">
                   <button (click)="generateInsights()"
                           [disabled]="isGenerateDisabled()"
-                          class="generate-button sm:col-span-2 font-bold text-lg py-5 px-8 min-h-12 rounded-xl shadow-lg flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
-                    <app-icon [name]="generateButtonIcon()" [size]="22"></app-icon>
+                          class="generate-button sm:col-span-2 font-bold text-base sm:text-lg py-3.5 sm:py-5 px-6 sm:px-8 min-h-12 rounded-xl shadow-lg flex items-center justify-center gap-2.5 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
+                    <app-icon [name]="generateButtonIcon()" [size]="20"></app-icon>
                     <span>{{ generateButtonText() }}</span>
                   </button>
 
                   <button (click)="generateDeepInsights()"
                           [disabled]="isGenerateDisabled()"
                           title="Run 5-phase multi-agent debate and structured consensus synthesis"
-                          class="bg-(--card-bg) hover:bg-(--button-bg-hover) text-(--text-accent) border-2 border-(--text-accent)/40 font-bold text-sm py-4 px-4 min-h-12 rounded-xl shadow-md flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
-                    <app-icon name="refresh" [size]="18" class="text-(--text-accent)"></app-icon>
+                          class="bg-(--card-bg) hover:bg-(--button-bg-hover) text-(--text-accent) border-2 border-(--text-accent)/40 font-bold text-xs sm:text-sm py-2.5 sm:py-4 px-3.5 sm:px-4 min-h-11 sm:min-h-12 rounded-xl shadow-md flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer">
+                    <app-icon name="refresh" [size]="16" class="text-(--text-accent)"></app-icon>
                     <span>Multi-Agent Debate</span>
                   </button>
                 </div>

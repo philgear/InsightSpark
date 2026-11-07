@@ -66,6 +66,7 @@ Desktop.ini
 
 # Developer scratch & temporary scripts
 scratch/
+tmp/
 test-partial.js
 deploy-setup.ps1
 cleanup-policy.json

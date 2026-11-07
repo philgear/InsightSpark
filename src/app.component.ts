@@ -189,6 +189,14 @@ export class AppComponent implements OnDestroy {
   // API Key State
   userApiKey = signal<string>(getStoredApiKey());
   showKeyOverlay = computed(() => !this.userApiKey());
+  activeProviderBadge = computed(() => {
+    const k = this.userApiKey();
+    if (k === 'demo-key-active') return { label: 'Demo', icon: 'sparkles', colorClass: 'text-amber-400 border-amber-500/30 bg-amber-500/10' };
+    if (k === 'local-ollama-active') return { label: 'Local GPU', icon: 'zap', colorClass: 'text-purple-400 border-purple-500/30 bg-purple-500/10' };
+    if (k === 'webgpu-active' || k === 'chrome-on-device-builtin') return { label: 'On-Device', icon: 'shield-check', colorClass: 'text-cyan-400 border-cyan-500/30 bg-cyan-500/10' };
+    if (k === 'server-hosted-pass') return { label: 'Cloud AI', icon: 'zap', colorClass: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' };
+    return { label: 'Custom Key', icon: 'key', colorClass: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10' };
+  });
   showAdvancedProviders = signal<boolean>(false);
 
   // On-Device AI Availability State
@@ -683,7 +691,13 @@ export class AppComponent implements OnDestroy {
 
   private activateDemoPresetIfEmpty() {
     if (!this.problemInput()) {
-      this.randomizeChallenge();
+      const defaultId = this.appMode() === 'care' ? 'care-nature' : 'creative-civic';
+      const defaultScenario = this.starterScenarios().find(s => s.id === defaultId);
+      if (defaultScenario) {
+        this.applyScenario(defaultScenario);
+      } else {
+        this.randomizeChallenge();
+      }
     }
   }
 
@@ -899,7 +913,7 @@ export class AppComponent implements OnDestroy {
 
   toggleStrategy(id: string) {
     if (this.brandDriftCalibrator.selectionLockMode() === 'wheel') {
-      return;
+      this.brandDriftCalibrator.selectionLockMode.set('manual');
     }
 
     this.selectedStrategyIds.update(current => {

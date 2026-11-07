@@ -79,6 +79,18 @@ export class GeminiService {
     if (synergyBridge) {
       authHeaders['x-synergy-bridge'] = synergyBridge;
     }
+    for (const [key, val] of Object.entries(authHeaders)) {
+      if (typeof val === 'string') {
+        authHeaders[key] = val
+          .replace(/[·•]/g, '*')
+          .replace(/[—–]/g, '-')
+          .replace(/[→]/g, '->')
+          .replace(/[↔]/g, '<->')
+          .replace(/[“”]/g, '"')
+          .replace(/[‘’]/g, "'")
+          .replace(/[^\x20-\x7E]/g, '');
+      }
+    }
     return authHeaders;
   }
 
