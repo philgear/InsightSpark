@@ -68,4 +68,25 @@ test.describe('HTTP Security Headers, ASCII Fetch Headers & Mobile Header Layout
     const resultsRegion = page.locator('section[role="region"]');
     await expect(resultsRegion).toBeVisible({ timeout: 15000 });
   });
+
+  test('Edge 503 Resilience: seamlessly falls back to client-side synthesis when /api/insights returns 503', async ({ page }) => {
+    await page.route('**/api/insights', route =>
+      route.fulfill({ status: 503, contentType: 'text/html', body: '<h1>503 Service Unavailable</h1>' })
+    );
+    await page.goto('/');
+
+    // Click Private On-Device AI (sets webgpu-active, which calls /api/insights when window.ai is absent)
+    const onDeviceBtn = page.locator('button:has-text("Private On-Device AI")');
+    await expect(onDeviceBtn).toBeVisible();
+    await onDeviceBtn.click({ force: true });
+
+    const generateBtn = page.locator('button.generate-button');
+    await generateBtn.click({ force: true });
+
+    const resultsRegion = page.locator('section[role="region"]');
+    await expect(resultsRegion).toBeVisible({ timeout: 15000 });
+
+    const errorBanner = page.locator('text=Generation Error');
+    await expect(errorBanner).toBeHidden();
+  });
 });

@@ -228,5 +228,35 @@ describe('GeminiService Chaos Engineering & Retry Resilience', () => {
       assert.ok(careResult.length > 0);
     });
   });
+
+  test('Edge 503 Resilience: Should fail fast on 503 and seamlessly fall back to client-side synthesis without retries', async () => {
+    const prevFetch = globalThis.fetch;
+    globalThis.localStorage.setItem('spark_cfg_val', 'webgpu-active');
+    globalThis.fetch = async () => ({
+      ok: false,
+      status: 503,
+      statusText: 'Service Unavailable',
+      json: async () => { throw new Error('HTML 503 body'); }
+    });
+    try {
+      service = new GeminiService();
+      service.simulatedFailureType = null;
+      delayCalls = [];
+
+      const insights = await service.generateInsights(
+        'Municipal park flood risk',
+        [{ id: 'simplify', name: 'Eliminate & Simplify' }],
+        'creative'
+      );
+      assert.ok(insights.length > 0, 'Should return client-side synthesized insights on 503');
+      assert.strictEqual(delayCalls.length, 0, 'Should fail fast on 503 without wasting retry delays');
+
+      const structured = await service.structureHealthGoal('Grandmother hip recovery garden');
+      assert.ok(structured.title.length > 0, 'Should return structured problem on 503');
+    } finally {
+      globalThis.fetch = prevFetch;
+      globalThis.localStorage.removeItem('spark_cfg_val');
+    }
+  });
 });
 

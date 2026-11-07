@@ -133,12 +133,15 @@ export class GeminiService {
       } catch (error) {
         const errMessage = (error as Error).message || '';
         
-        // Fail fast on specific API key or billing cap issues (exclude transient 429/RESOURCE_EXHAUSTED rate limits from failing fast)
+        // Fail fast on specific API key, billing cap, or static-edge 502/503/504 issues
         if (
           errMessage.includes('monthly spending cap') ||
           errMessage.includes('API key') ||
           errMessage.includes('not valid') ||
-          errMessage.includes('Billing')
+          errMessage.includes('Billing') ||
+          errMessage.includes('Server returned 503') ||
+          errMessage.includes('Server returned 502') ||
+          errMessage.includes('Server returned 504')
         ) {
           throw new ApiRetryError(errMessage);
         }
@@ -156,48 +159,65 @@ export class GeminiService {
     }
   }
 
-  async structureHealthGoal(problem: string, image?: { mimeType: string; data: string }): Promise<StructuredProblem> {
-    if (this.isDemoMode()) {
-      const pLower = problem.toLowerCase();
-      const matched = STARTER_SCENARIOS.find(s => 
-        s.prompt === problem ||
-        pLower.includes(s.category) ||
-        pLower.includes(s.title.toLowerCase())
-      );
-      if (matched && matched.domainContext) {
-        return {
-          title: matched.title,
-          condition: `Active Vitality & ${matched.categoryLabel}`,
-          goal: matched.gist,
-          barriers: [
-            "Fear of fatigue or overexertion during active sessions",
-            "Need for ergonomic adaptations and safe seated stations",
-            "Protecting caregiver stamina and scheduled weekly respite"
-          ],
-          dsrp: {
-            identityDistinctions: matched.domainContext.identityAssets,
-            systemicEcosystem: matched.domainContext.ecosystem,
-            relationalBridge: matched.domainContext.relational,
-            triadPerspectives: matched.domainContext.perspectives
-          }
-        };
-      }
+  private isEdgeUnavailableError(error: unknown): boolean {
+    if (this.simulatedFailureType !== null) return false;
+    const msg = (error as Error)?.message || '';
+    return (
+      msg.includes('Server returned 503') ||
+      msg.includes('Server returned 502') ||
+      msg.includes('Server returned 504') ||
+      msg.includes('503 Service Unavailable') ||
+      msg.includes('502 Bad Gateway') ||
+      msg.includes('504 Gateway Timeout')
+    );
+  }
+
+  private getDemoStructuredProblem(problem: string): StructuredProblem {
+    const pLower = problem.toLowerCase();
+    const matched = STARTER_SCENARIOS.find(s => 
+      s.prompt === problem ||
+      pLower.includes(s.category) ||
+      pLower.includes(s.title.toLowerCase())
+    );
+    if (matched && matched.domainContext) {
       return {
-        title: "Hip Recovery & Gardening Connection",
-        condition: "Post-hip fracture recovery",
-        goal: "Safely rebuild mobility and maintain emotional well-being through modified gardening activities.",
+        title: matched.title,
+        condition: `Active Vitality & ${matched.categoryLabel}`,
+        goal: matched.gist,
         barriers: [
-          "Fear of falling or re-injury",
-          "Inability to bend down or lift heavy watering cans",
-          "Fatigue and limited standing tolerance"
+          "Fear of fatigue or overexertion during active sessions",
+          "Need for ergonomic adaptations and safe seated stations",
+          "Protecting caregiver stamina and scheduled weekly respite"
         ],
         dsrp: {
-          identityDistinctions: "Lifelong master gardener and community mentor — 100% unaffected passion for botany, propagation, and seed catalog curation to fuel rehabilitation.",
-          systemicEcosystem: "Circadian pacing: morning hip stiffness mitigated by 10-minute warm compress + chamomile tea, balancing parasympathetic vagal tone and protecting restorative deep sleep architecture.",
-          relationalBridge: "Granddaughter assists with elevated potting bench soil transfers; spouse handles heavy watering cans, breaking the isolation-pain-immobility feedback loop.",
-          triadPerspectives: "Clinician (biomechanical hip precautions & gradual weight bearing) + Patient (morning apprehension and fear of falling) + Future Self (walking kneeling-free in the summer sunflower garden in 6 months)."
+          identityDistinctions: matched.domainContext.identityAssets,
+          systemicEcosystem: matched.domainContext.ecosystem,
+          relationalBridge: matched.domainContext.relational,
+          triadPerspectives: matched.domainContext.perspectives
         }
       };
+    }
+    return {
+      title: "Hip Recovery & Gardening Connection",
+      condition: "Post-hip fracture recovery",
+      goal: "Safely rebuild mobility and maintain emotional well-being through modified gardening activities.",
+      barriers: [
+        "Fear of falling or re-injury",
+        "Inability to bend down or lift heavy watering cans",
+        "Fatigue and limited standing tolerance"
+      ],
+      dsrp: {
+        identityDistinctions: "Lifelong master gardener and community mentor — 100% unaffected passion for botany, propagation, and seed catalog curation to fuel rehabilitation.",
+        systemicEcosystem: "Circadian pacing: morning hip stiffness mitigated by 10-minute warm compress + chamomile tea, balancing parasympathetic vagal tone and protecting restorative deep sleep architecture.",
+        relationalBridge: "Granddaughter assists with elevated potting bench soil transfers; spouse handles heavy watering cans, breaking the isolation-pain-immobility feedback loop.",
+        triadPerspectives: "Clinician (biomechanical hip precautions & gradual weight bearing) + Patient (morning apprehension and fear of falling) + Future Self (walking kneeling-free in the summer sunflower garden in 6 months)."
+      }
+    };
+  }
+
+  async structureHealthGoal(problem: string, image?: { mimeType: string; data: string }): Promise<StructuredProblem> {
+    if (this.isDemoMode()) {
+      return this.getDemoStructuredProblem(problem);
     }
     const cacheKey = problem.trim() + (image ? `|img:${image.data.substring(0, 32)}` : '');
     if (this.structureCache.has(cacheKey)) {
@@ -210,28 +230,36 @@ export class GeminiService {
   }
 
   private async _structureHealthGoal(problem: string, image?: { mimeType: string; data: string }): Promise<StructuredProblem> {
-    return this._withRetries(async () => {
-      const response = await fetch('/api/structure', {
-        method: 'POST',
-        headers: this.getAuthHeaders({
-          'Content-Type': 'application/json'
-        }),
-        body: JSON.stringify({ problem, image })
-      });
+    try {
+      return await this._withRetries(async () => {
+        const response = await fetch('/api/structure', {
+          method: 'POST',
+          headers: this.getAuthHeaders({
+            'Content-Type': 'application/json'
+          }),
+          body: JSON.stringify({ problem, image })
+        });
 
-      if (!response.ok) {
-        let errorMsg = `Server returned ${response.status} ${response.statusText}`;
-        try {
-          const errData = await response.json();
-          if (errData && errData.error) errorMsg = errData.error;
-        } catch {
-          // Ignore error parsing, fall back to default msg
+        if (!response.ok) {
+          let errorMsg = `Server returned ${response.status} ${response.statusText}`;
+          try {
+            const errData = await response.json();
+            if (errData && errData.error) errorMsg = errData.error;
+          } catch {
+            // Ignore error parsing, fall back to default msg
+          }
+          throw new Error(errorMsg);
         }
-        throw new Error(errorMsg);
-      }
 
-      return response.json();
-    });
+        return response.json();
+      });
+    } catch (error) {
+      if (this.isEdgeUnavailableError(error)) {
+        console.warn('Cloud API returned 502/503/504; falling back to local client-side structured synthesis.');
+        return this.getDemoStructuredProblem(problem);
+      }
+      throw error;
+    }
   }
 
   private generateInsightCacheKey(problem: string, strategies: CreativeStrategy[], mode: 'creative' | 'care', gist?: string, healthSnapshot?: string, image?: { mimeType: string; data: string }): string {
@@ -281,7 +309,7 @@ export class GeminiService {
         const selectedModel = localStorage.getItem('spark_model_val') || localStorage.getItem('user_gemini_model');
         
         // On-device execution branch: Chrome Built-in AI (Gemini Nano via window.ai)
-        const win = window as unknown as { ai?: { languageModel?: { create: (opts: { systemPrompt: string }) => Promise<{ prompt: (p: string) => Promise<string>; destroy?: () => void }> } } };
+        const win = (typeof window !== 'undefined' ? window : undefined) as unknown as { ai?: { languageModel?: { create: (opts: { systemPrompt: string }) => Promise<{ prompt: (p: string) => Promise<string>; destroy?: () => void }> } } } | undefined;
         if ((selectedModel === 'on-device-nano' || selectedModel === 'window.ai') && typeof win?.ai?.languageModel?.create === 'function') {
           try {
             const systemPrompt = mode === 'care'
@@ -416,6 +444,14 @@ export class GeminiService {
       });
       return results;
     } catch (error) {
+      if (this.isEdgeUnavailableError(error)) {
+        console.warn('Cloud API returned 502/503/504; falling back to local client-side insight synthesis.');
+        const fallbackData = this.getMockInsights(problem, strategies, mode);
+        if (onUpdate) {
+          onUpdate(fallbackData);
+        }
+        return fallbackData;
+      }
       console.error(`Failed to generate insights for problem: '${problem}'`, error);
       const errMsg = (error as Error).message || "Failed to generate any insights. Please check your connection or try again.";
       throw new Error(errMsg, { cause: error });
@@ -521,90 +557,94 @@ export class GeminiService {
     return `${problem.trim()}||${insightTexts}`;
   }
 
+  private getDemoCarePlan(problem: string): CarePlan {
+    const pLower = problem.toLowerCase();
+    const matched = STARTER_SCENARIOS.find(s => 
+      s.prompt === problem ||
+      pLower.includes(s.category) ||
+      pLower.includes(s.title.toLowerCase())
+    );
+    if (matched && matched.domainContext) {
+      return {
+        personGoal: matched.gist,
+        keyInterventions: matched.domainContext.sampleInterventions,
+        monitoringPlan: [
+          `Track daily engagement and flow scores during ${matched.categoryLabel} sessions.`,
+          `Observe posture comfort and fatigue cues with 15-minute natural pacing intervals.`,
+          `Verify caregiver weekly respite hours to guarantee protected rest.`
+        ],
+        guidanceAndEducation: [
+          `Introduce ergonomic adaptations and seated stations to eliminate prolonged physical strain.`,
+          `Prioritize connection, storytelling, and micro-mastery over speed or perfection.`,
+          `Empower the person with autonomous choice over timing, partners, and activity selection.`
+        ],
+        positiveAchievements: [
+          `Celebrate completion of the first weekly ${matched.categoryLabel} session with family.`,
+          `Acknowledge successful micro-mastery without pain or exhaustion.`,
+          `Recognize the multi-generational bond and joy shared across family circles.`
+        ],
+        recommendations: [
+          `Schedule recurring sessions at the same comfortable time of day.`,
+          `Maintain a dedicated, clutter-free space with accessible tools and adaptive seating.`,
+          `Keep a lighthearted reflection journal capturing memorable stories, insights, or laughs.`
+        ],
+        transitionChecklist: [
+          `Verify 72-hour safety clearance: confirm path, lighting, and seating stability.`,
+          `Reconcile activity timing with medication schedules to prevent peak fatigue windows.`,
+          `Establish direct contact protocol between family coordinator and clinical team.`
+        ],
+        respiteClosureChecklist: [
+          `Schedule dedicated 3-hour weekly respite window for primary caregiver.`,
+          `Confirm secondary family partner or neighbor volunteer handoff.`,
+          `Check in on caregiver fatigue metrics weekly to adjust support pacing.`
+        ]
+      };
+    }
+    return {
+      personGoal: "Re-engage in modified gardening activities to safely build mobility and lift mood post-hip recovery.",
+      keyInterventions: [
+        "Install waist-high raised garden beds to eliminate bending requirements.",
+        "Perform seated planting exercises using lightweight, ergonomic hand tools.",
+        "Schedule daily 10-minute supported walking segments in the garden paths with a physical therapist or helper."
+      ],
+      monitoringPlan: [
+        "Observe pain levels and balance stability during movement.",
+        "Monitor daily mood score and verbal engagement levels.",
+        "Track total active standing/walking minutes in the garden."
+      ],
+      guidanceAndEducation: [
+        "Teach the 'nose over toes' safe standing technique when rising from garden chairs.",
+        "Demonstrate proper posture to prevent back strain when reaching for plants.",
+        "Educate on signs of fatigue to prevent over-exertion."
+      ],
+      positiveAchievements: [
+        "Celebrate standing for 5 continuous minutes at the raised bed.",
+        "Celebrate planting the first set of indoor seedlings.",
+        "Acknowledge walk to the end of the garden path and back without pain."
+      ],
+      recommendations: [
+        "Consult physical therapy to clear specific movements before starting outdoor gardening.",
+        "Purchase a lightweight watering wand to make hydration of plants easy."
+      ],
+      transitionChecklist: [
+        "Verify 72-hour post-recovery pathway clearance: confirm walker/cane fits beside garden planter.",
+        "Reconcile morning medication schedule prior to any outdoor gardening sessions.",
+        "Establish direct emergency contact protocol between family coordinator and physical therapist."
+      ],
+      respiteClosureChecklist: [
+        "Schedule dedicated 3-hour Saturday respite window for primary caregiver.",
+        "Confirm secondary family member or neighbor handoff for Sunday afternoon supervision.",
+        "Check in on caregiver fatigue metrics weekly to adjust support pacing."
+      ]
+    };
+  }
+
   async generateCarePlan(problem: string, insights: SavedInsight[]): Promise<CarePlan> {
     if (insights.length === 0) {
       throw new Error("No insights provided to generate a care plan.");
     }
     if (this.isDemoMode()) {
-      const pLower = problem.toLowerCase();
-      const matched = STARTER_SCENARIOS.find(s => 
-        s.prompt === problem ||
-        pLower.includes(s.category) ||
-        pLower.includes(s.title.toLowerCase())
-      );
-      if (matched && matched.domainContext) {
-        return {
-          personGoal: matched.gist,
-          keyInterventions: matched.domainContext.sampleInterventions,
-          monitoringPlan: [
-            `Track daily engagement and flow scores during ${matched.categoryLabel} sessions.`,
-            `Observe posture comfort and fatigue cues with 15-minute natural pacing intervals.`,
-            `Verify caregiver weekly respite hours to guarantee protected rest.`
-          ],
-          guidanceAndEducation: [
-            `Introduce ergonomic adaptations and seated stations to eliminate prolonged physical strain.`,
-            `Prioritize connection, storytelling, and micro-mastery over speed or perfection.`,
-            `Empower the person with autonomous choice over timing, partners, and activity selection.`
-          ],
-          positiveAchievements: [
-            `Celebrate completion of the first weekly ${matched.categoryLabel} session with family.`,
-            `Acknowledge successful micro-mastery without pain or exhaustion.`,
-            `Recognize the multi-generational bond and joy shared across family circles.`
-          ],
-          recommendations: [
-            `Schedule recurring sessions at the same comfortable time of day.`,
-            `Maintain a dedicated, clutter-free space with accessible tools and adaptive seating.`,
-            `Keep a lighthearted reflection journal capturing memorable stories, insights, or laughs.`
-          ],
-          transitionChecklist: [
-            `Verify 72-hour safety clearance: confirm path, lighting, and seating stability.`,
-            `Reconcile activity timing with medication schedules to prevent peak fatigue windows.`,
-            `Establish direct contact protocol between family coordinator and clinical team.`
-          ],
-          respiteClosureChecklist: [
-            `Schedule dedicated 3-hour weekly respite window for primary caregiver.`,
-            `Confirm secondary family partner or neighbor volunteer handoff.`,
-            `Check in on caregiver fatigue metrics weekly to adjust support pacing.`
-          ]
-        };
-      }
-      return {
-        personGoal: "Re-engage in modified gardening activities to safely build mobility and lift mood post-hip recovery.",
-        keyInterventions: [
-          "Install waist-high raised garden beds to eliminate bending requirements.",
-          "Perform seated planting exercises using lightweight, ergonomic hand tools.",
-          "Schedule daily 10-minute supported walking segments in the garden paths with a physical therapist or helper."
-        ],
-        monitoringPlan: [
-          "Observe pain levels and balance stability during movement.",
-          "Monitor daily mood score and verbal engagement levels.",
-          "Track total active standing/walking minutes in the garden."
-        ],
-        guidanceAndEducation: [
-          "Teach the 'nose over toes' safe standing technique when rising from garden chairs.",
-          "Demonstrate proper posture to prevent back strain when reaching for plants.",
-          "Educate on signs of fatigue to prevent over-exertion."
-        ],
-        positiveAchievements: [
-          "Celebrate standing for 5 continuous minutes at the raised bed.",
-          "Celebrate planting the first set of indoor seedlings.",
-          "Acknowledge walk to the end of the garden path and back without pain."
-        ],
-        recommendations: [
-          "Consult physical therapy to clear specific movements before starting outdoor gardening.",
-          "Purchase a lightweight watering wand to make hydration of plants easy."
-        ],
-        transitionChecklist: [
-          "Verify 72-hour post-recovery pathway clearance: confirm walker/cane fits beside garden planter.",
-          "Reconcile morning medication schedule prior to any outdoor gardening sessions.",
-          "Establish direct emergency contact protocol between family coordinator and physical therapist."
-        ],
-        respiteClosureChecklist: [
-          "Schedule dedicated 3-hour Saturday respite window for primary caregiver.",
-          "Confirm secondary family member or neighbor handoff for Sunday afternoon supervision.",
-          "Check in on caregiver fatigue metrics weekly to adjust support pacing."
-        ]
-      };
+      return this.getDemoCarePlan(problem);
     }
     
     const cacheKey = this.generateCarePlanCacheKey(problem, insights);
@@ -618,31 +658,39 @@ export class GeminiService {
   }
 
   private async _generateCarePlan(problem: string, insights: SavedInsight[]): Promise<CarePlan> {
-    return this._withRetries(async () => {
-      const response = await fetch('/api/care-plan', {
-        method: 'POST',
-        headers: this.getAuthHeaders({
-          'Content-Type': 'application/json'
-        }),
-        body: JSON.stringify({
-          problem,
-          insights
-        })
-      });
+    try {
+      return await this._withRetries(async () => {
+        const response = await fetch('/api/care-plan', {
+          method: 'POST',
+          headers: this.getAuthHeaders({
+            'Content-Type': 'application/json'
+          }),
+          body: JSON.stringify({
+            problem,
+            insights
+          })
+        });
 
-      if (!response.ok) {
-        let errorMsg = `Server returned ${response.status} ${response.statusText}`;
-        try {
-          const errData = await response.json();
-          if (errData && errData.error) errorMsg = errData.error;
-        } catch {
-          // Ignore error parsing, fall back to default msg
+        if (!response.ok) {
+          let errorMsg = `Server returned ${response.status} ${response.statusText}`;
+          try {
+            const errData = await response.json();
+            if (errData && errData.error) errorMsg = errData.error;
+          } catch {
+            // Ignore error parsing, fall back to default msg
+          }
+          throw new Error(errorMsg);
         }
-        throw new Error(errorMsg);
-      }
 
-      return response.json();
-    });
+        return response.json();
+      });
+    } catch (error) {
+      if (this.isEdgeUnavailableError(error)) {
+        console.warn('Cloud API returned 502/503/504; falling back to local client-side care plan synthesis.');
+        return this.getDemoCarePlan(problem);
+      }
+      throw error;
+    }
   }
 
   private generateCreativePlanCacheKey(problem: string, insights: SavedInsight[]): string {
@@ -650,78 +698,82 @@ export class GeminiService {
     return `${problem.trim()}||${insightTexts}`;
   }
 
+  private getDemoCreativePlan(problem: string, insights: SavedInsight[]): CreativePlan {
+    const pLower = problem.toLowerCase();
+    const matched = STARTER_SCENARIOS.find(s =>
+      s.mode === 'creative' && (
+        s.prompt === problem ||
+        pLower.includes(s.title.toLowerCase()) ||
+        pLower.includes(s.category)
+      )
+    );
+    if (matched && matched.id !== 'creative-civic') {
+      const insightSteps = insights.slice(0, 4).map((ins, idx) => `${idx + 1}. ${ins.text}`);
+      return {
+        conceptualGoal: `${matched.title}: ${matched.gist}`,
+        criticalPath: insightSteps.length >= 2 ? insightSteps : [
+          `1. Establish baseline prototype parameters for ${matched.title}.`,
+          `2. Integrate saved lateral insights (${insights[0]?.strategyName || 'Core'}) into a physical bench test.`,
+          `3. Stress-test failure modes under real-world community operating conditions.`,
+          `4. Document open-source blueprints for neighborhood replication.`
+        ],
+        riskAssessment: [
+          `1. Mechanical or environmental wear under peak seasonal load — mitigate via modular, tool-free replacement joints.`,
+          `2. Community adoption friction — mitigate by co-designing the interface alongside local elders and youth.`
+        ],
+        requiredResources: [
+          `Modular fabrication materials for ${matched.categoryLabel}`,
+          `Neighborhood co-design host space`,
+          `Low-voltage telemetry & acoustic/optical measurement kit`,
+          `Open-source documentation templates`
+        ],
+        milestones: [
+          `Month 1: Bench-scale functional prototype validated with initial user circle.`,
+          `Month 3: Full installation operational with zero-grid or low-friction autonomy.`,
+          `Month 6: Community stewardship handoff and open-source blueprint release.`
+        ],
+        nextSteps: [
+          `Assemble a 48-hour rapid physical mock-up of: "${insights[0]?.text.slice(0, 80)}..."`,
+          `Host a 60-minute hands-on review session with local domain stakeholders.`
+        ]
+      };
+    }
+    return {
+      conceptualGoal: "To establish a dual-purpose urban green space combining flood defense with local food production.",
+      criticalPath: [
+        "1. Map historical flood contours to identify low-lying agricultural zones.",
+        "2. Anchor vertical hydroponic farming walls along the primary concrete flood barriers.",
+        "3. Configure kinetic pathways to capture pedestrian traffic energy for irrigation pumps.",
+        "4. Launch community compost programs to nourish the vertical farm beds."
+      ],
+      riskAssessment: [
+        "1. Over-saturation: Extreme storms could flood the agricultural beds if drainage thresholds are exceeded.",
+        "2. Energy mismatch: Low pedestrian traffic during winter may require battery backup for lighting."
+      ],
+      requiredResources: [
+        "Kinetic paving materials",
+        "Hydroponic wall structures",
+        "Community compost digesters",
+        "Volunteer coordination platform"
+      ],
+      milestones: [
+        "Month 3: Flood defense wall structural reinforcement complete.",
+        "Month 6: First seasonal hydroponic harvest distributed to local community.",
+        "Month 12: Kinetic energy grid fully self-sustaining."
+      ],
+      nextSteps: [
+        "Consult local environmental engineers for contour analysis.",
+        "Host a community meeting to recruit initial farming volunteers."
+      ]
+    };
+  }
+
   async generateCreativePlan(problem: string, insights: SavedInsight[]): Promise<CreativePlan> {
     if (insights.length === 0) {
       throw new Error("No insights provided to generate a creative plan.");
     }
     if (this.isDemoMode()) {
-      const pLower = problem.toLowerCase();
-      const matched = STARTER_SCENARIOS.find(s =>
-        s.mode === 'creative' && (
-          s.prompt === problem ||
-          pLower.includes(s.title.toLowerCase()) ||
-          pLower.includes(s.category)
-        )
-      );
-      if (matched && matched.id !== 'creative-civic') {
-        const insightSteps = insights.slice(0, 4).map((ins, idx) => `${idx + 1}. ${ins.text}`);
-        return {
-          conceptualGoal: `${matched.title}: ${matched.gist}`,
-          criticalPath: insightSteps.length >= 2 ? insightSteps : [
-            `1. Establish baseline prototype parameters for ${matched.title}.`,
-            `2. Integrate saved lateral insights (${insights[0]?.strategyName || 'Core'}) into a physical bench test.`,
-            `3. Stress-test failure modes under real-world community operating conditions.`,
-            `4. Document open-source blueprints for neighborhood replication.`
-          ],
-          riskAssessment: [
-            `1. Mechanical or environmental wear under peak seasonal load — mitigate via modular, tool-free replacement joints.`,
-            `2. Community adoption friction — mitigate by co-designing the interface alongside local elders and youth.`
-          ],
-          requiredResources: [
-            `Modular fabrication materials for ${matched.categoryLabel}`,
-            `Neighborhood co-design host space`,
-            `Low-voltage telemetry & acoustic/optical measurement kit`,
-            `Open-source documentation templates`
-          ],
-          milestones: [
-            `Month 1: Bench-scale functional prototype validated with initial user circle.`,
-            `Month 3: Full installation operational with zero-grid or low-friction autonomy.`,
-            `Month 6: Community stewardship handoff and open-source blueprint release.`
-          ],
-          nextSteps: [
-            `Assemble a 48-hour rapid physical mock-up of: "${insights[0]?.text.slice(0, 80)}..."`,
-            `Host a 60-minute hands-on review session with local domain stakeholders.`
-          ]
-        };
-      }
-      return {
-        conceptualGoal: "To establish a dual-purpose urban green space combining flood defense with local food production.",
-        criticalPath: [
-          "1. Map historical flood contours to identify low-lying agricultural zones.",
-          "2. Anchor vertical hydroponic farming walls along the primary concrete flood barriers.",
-          "3. Configure kinetic pathways to capture pedestrian traffic energy for irrigation pumps.",
-          "4. Launch community compost programs to nourish the vertical farm beds."
-        ],
-        riskAssessment: [
-          "1. Over-saturation: Extreme storms could flood the agricultural beds if drainage thresholds are exceeded.",
-          "2. Energy mismatch: Low pedestrian traffic during winter may require battery backup for lighting."
-        ],
-        requiredResources: [
-          "Kinetic paving materials",
-          "Hydroponic wall structures",
-          "Community compost digesters",
-          "Volunteer coordination platform"
-        ],
-        milestones: [
-          "Month 3: Flood defense wall structural reinforcement complete.",
-          "Month 6: First seasonal hydroponic harvest distributed to local community.",
-          "Month 12: Kinetic energy grid fully self-sustaining."
-        ],
-        nextSteps: [
-          "Consult local environmental engineers for contour analysis.",
-          "Host a community meeting to recruit initial farming volunteers."
-        ]
-      };
+      return this.getDemoCreativePlan(problem, insights);
     }
     
     const cacheKey = this.generateCreativePlanCacheKey(problem, insights);
@@ -735,31 +787,39 @@ export class GeminiService {
   }
 
   private async _generateCreativePlan(problem: string, insights: SavedInsight[]): Promise<CreativePlan> {
-    return this._withRetries(async () => {
-      const response = await fetch('/api/creative-plan', {
-        method: 'POST',
-        headers: this.getAuthHeaders({
-          'Content-Type': 'application/json'
-        }),
-        body: JSON.stringify({
-          problem,
-          insights
-        })
-      });
+    try {
+      return await this._withRetries(async () => {
+        const response = await fetch('/api/creative-plan', {
+          method: 'POST',
+          headers: this.getAuthHeaders({
+            'Content-Type': 'application/json'
+          }),
+          body: JSON.stringify({
+            problem,
+            insights
+          })
+        });
 
-      if (!response.ok) {
-        let errorMsg = `Server returned ${response.status} ${response.statusText}`;
-        try {
-          const errData = await response.json();
-          if (errData && errData.error) errorMsg = errData.error;
-        } catch {
-          // Ignore error parsing, fall back to default msg
+        if (!response.ok) {
+          let errorMsg = `Server returned ${response.status} ${response.statusText}`;
+          try {
+            const errData = await response.json();
+            if (errData && errData.error) errorMsg = errData.error;
+          } catch {
+            // Ignore error parsing, fall back to default msg
+          }
+          throw new Error(errorMsg);
         }
-        throw new Error(errorMsg);
-      }
 
-      return response.json();
-    });
+        return response.json();
+      });
+    } catch (error) {
+      if (this.isEdgeUnavailableError(error)) {
+        console.warn('Cloud API returned 502/503/504; falling back to local client-side creative plan synthesis.');
+        return this.getDemoCreativePlan(problem, insights);
+      }
+      throw error;
+    }
   }
 
   // ─── Agentic Pipeline Methods ─────────────────────────────────────────
@@ -813,6 +873,76 @@ export class GeminiService {
     });
   }
 
+  private getDemoAgenticResult(
+    problem: string,
+    mode: 'creative' | 'care',
+    onPhaseChange: (phase: AgenticPhase) => void,
+    onUpdate: (partial: Partial<AgenticResult>) => void
+  ): AgenticResult {
+    onPhaseChange('selecting');
+    const selection = {
+      selectedIds: ['what-if', 'constraints', 'critical-path', 'fmea'],
+      reasoning: 'Balancing divergent lateral provocation with grounding failure-mode analysis and dependency sequencing.',
+      problemCategory: mode === 'care' ? 'clinical & family care' : 'systemic innovation'
+    };
+    onUpdate({ selection });
+
+    onPhaseChange('generating');
+    const initialInsights = this.getMockInsights(problem, [
+      { id: 'what-if', name: 'What If?', description: '', icon: 'sparkles', color: '#8E75C2' },
+      { id: 'critical-path', name: 'Critical Path Method', description: '', icon: 'git-branch', color: '#38BDF8' }
+    ], mode);
+    onUpdate({ selection, initialInsights });
+
+    onPhaseChange('debating');
+    const debate: DebateEntry[] = [
+      {
+        agentId: 'fmea',
+        agentName: 'FMEA (Risk Analysis)',
+        targetInsight: initialInsights[0]?.insights[0]?.text || 'Initial insight',
+        critique: 'This provocation overlooks caregiver fatigue thresholds during the initial 72 hours.',
+        strengthens: false,
+        suggestedRefinement: 'Pair the creative intervention with a structured caregiver relief schedule.'
+      },
+      {
+        agentId: 'critical-path',
+        agentName: 'Critical Path Method',
+        targetInsight: initialInsights[0]?.insights[0]?.text || 'Initial insight',
+        critique: 'Strong concept, but requires step 1 equipment clearance before initiation.',
+        strengthens: true,
+        suggestedRefinement: 'Sequence equipment installation on day 1 followed by gradual engagement.'
+      }
+    ];
+    onUpdate({ selection, initialInsights, debate });
+
+    onPhaseChange('refining');
+    const refinedInsights: RefinedInsight[] = [
+      {
+        original: initialInsights[0]?.insights[0]?.text || 'Initial insight',
+        refined: 'Structured, paced engagement with verified equipment clearance and designated respite intervals.',
+        debateInfluences: ['FMEA (Risk Analysis)', 'Critical Path Method'],
+        confidence: 0.94
+      }
+    ];
+    const consensus = 'The panel converged on an asset-based strategy grounded in strict sequence dependencies and caregiver sustainability.';
+    const synthesisActionBridge = {
+      divergentLeap: 'Reimagining the recovery environment through adaptive micro-engagements.',
+      groundingGuardrail: 'Mandatory 72-hour transition safety check and non-negotiable caregiver respite.',
+      immediateTractionStep: 'Confirm walker path clearance and schedule weekend family respite handoff.'
+    };
+    onUpdate({ selection, initialInsights, debate, refinedInsights, consensus, synthesisActionBridge });
+
+    onPhaseChange('complete');
+    return {
+      selection,
+      initialInsights,
+      debate,
+      refinedInsights,
+      consensus,
+      synthesisActionBridge
+    };
+  }
+
   async runAgenticPipeline(
     problem: string,
     mode: 'creative' | 'care',
@@ -821,143 +951,90 @@ export class GeminiService {
     gist?: string
   ): Promise<AgenticResult> {
     if (this.isDemoMode()) {
-      onPhaseChange('selecting');
-      const selection = {
-        selectedIds: ['what-if', 'constraints', 'critical-path', 'fmea'],
-        reasoning: 'Balancing divergent lateral provocation with grounding failure-mode analysis and dependency sequencing.',
-        problemCategory: mode === 'care' ? 'clinical & family care' : 'systemic innovation'
-      };
-      onUpdate({ selection });
-
-      onPhaseChange('generating');
-      const initialInsights = this.getMockInsights(problem, [
-        { id: 'what-if', name: 'What If?', description: '', icon: 'sparkles', color: '#8E75C2' },
-        { id: 'critical-path', name: 'Critical Path Method', description: '', icon: 'git-branch', color: '#38BDF8' }
-      ], mode);
-      onUpdate({ selection, initialInsights });
-
-      onPhaseChange('debating');
-      const debate: DebateEntry[] = [
-        {
-          agentId: 'fmea',
-          agentName: 'FMEA (Risk Analysis)',
-          targetInsight: initialInsights[0]?.insights[0]?.text || 'Initial insight',
-          critique: 'This provocation overlooks caregiver fatigue thresholds during the initial 72 hours.',
-          strengthens: false,
-          suggestedRefinement: 'Pair the creative intervention with a structured caregiver relief schedule.'
-        },
-        {
-          agentId: 'critical-path',
-          agentName: 'Critical Path Method',
-          targetInsight: initialInsights[0]?.insights[0]?.text || 'Initial insight',
-          critique: 'Strong concept, but requires step 1 equipment clearance before initiation.',
-          strengthens: true,
-          suggestedRefinement: 'Sequence equipment installation on day 1 followed by gradual engagement.'
-        }
-      ];
-      onUpdate({ selection, initialInsights, debate });
-
-      onPhaseChange('refining');
-      const refinedInsights: RefinedInsight[] = [
-        {
-          original: initialInsights[0]?.insights[0]?.text || 'Initial insight',
-          refined: 'Structured, paced engagement with verified equipment clearance and designated respite intervals.',
-          debateInfluences: ['FMEA (Risk Analysis)', 'Critical Path Method'],
-          confidence: 0.94
-        }
-      ];
-      const consensus = 'The panel converged on an asset-based strategy grounded in strict sequence dependencies and caregiver sustainability.';
-      const synthesisActionBridge = {
-        divergentLeap: 'Reimagining the recovery environment through adaptive micro-engagements.',
-        groundingGuardrail: 'Mandatory 72-hour transition safety check and non-negotiable caregiver respite.',
-        immediateTractionStep: 'Confirm walker path clearance and schedule weekend family respite handoff.'
-      };
-      onUpdate({ selection, initialInsights, debate, refinedInsights, consensus, synthesisActionBridge });
-
-      onPhaseChange('complete');
-      return {
-        selection,
-        initialInsights,
-        debate,
-        refinedInsights,
-        consensus,
-        synthesisActionBridge
-      };
+      return this.getDemoAgenticResult(problem, mode, onPhaseChange, onUpdate);
     }
 
-    return this._withRetries(async () => {
-      const response = await fetch('/api/agent/pipeline', {
-        method: 'POST',
-        headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ problem, mode, gist }),
-      });
+    try {
+      return await this._withRetries(async () => {
+        const response = await fetch('/api/agent/pipeline', {
+          method: 'POST',
+          headers: this.getAuthHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify({ problem, mode, gist }),
+        });
 
-      if (!response.ok) {
-        const errData = await response.json().catch(() => null);
-        throw new Error(errData?.error || `Server returned ${response.status}`);
-      }
+        if (!response.ok) {
+          const errData = await response.json().catch(() => null);
+          throw new Error(errData?.error || `Server returned ${response.status}`);
+        }
 
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('Response body is not readable');
+        const reader = response.body?.getReader();
+        if (!reader) throw new Error('Response body is not readable');
 
-      const decoder = new TextDecoder();
-      let result: Partial<AgenticResult> = {};
+        const decoder = new TextDecoder();
+        let result: Partial<AgenticResult> = {};
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const dataStr = line.slice(6).trim();
-            if (dataStr === '[DONE]') break;
-            if (dataStr) {
-              try {
-                const data = JSON.parse(dataStr);
-                if (data.error) throw new Error(data.error);
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.slice(6).trim();
+              if (dataStr === '[DONE]') break;
+              if (dataStr) {
+                try {
+                  const data = JSON.parse(dataStr);
+                  if (data.error) throw new Error(data.error);
 
-                if (data.phase) {
-                  onPhaseChange(data.phase as AgenticPhase);
+                  if (data.phase) {
+                    onPhaseChange(data.phase as AgenticPhase);
 
-                  if (data.result) {
-                    switch (data.phase) {
-                      case 'selecting':
-                        result.selection = data.result;
-                        break;
-                      case 'generating':
-                        result.initialInsights = data.result;
-                        break;
-                      case 'debating':
-                        result.debate = data.result;
-                        break;
-                      case 'refining':
-                        result.refinedInsights = data.result.refinedInsights;
-                        result.consensus = data.result.consensus;
-                        result.synthesisActionBridge = data.result.synthesisActionBridge;
-                        break;
-                      case 'complete':
-                        result = data.result;
-                        break;
+                    if (data.result) {
+                      switch (data.phase) {
+                        case 'selecting':
+                          result.selection = data.result;
+                          break;
+                        case 'generating':
+                          result.initialInsights = data.result;
+                          break;
+                        case 'debating':
+                          result.debate = data.result;
+                          break;
+                        case 'refining':
+                          result.refinedInsights = data.result.refinedInsights;
+                          result.consensus = data.result.consensus;
+                          result.synthesisActionBridge = data.result.synthesisActionBridge;
+                          break;
+                        case 'complete':
+                          result = data.result;
+                          break;
+                      }
+                      onUpdate({ ...result });
                     }
-                    onUpdate({ ...result });
                   }
+                } catch (e) {
+                  if ((e as Error).message?.includes('PII') || (e as Error).message?.includes('API')) {
+                    throw e;
+                  }
+                  // Ignore partial parse errors
                 }
-              } catch (e) {
-                if ((e as Error).message?.includes('PII') || (e as Error).message?.includes('API')) {
-                  throw e;
-                }
-                // Ignore partial parse errors
               }
             }
           }
         }
-      }
 
-      return result as AgenticResult;
-    }, 1); // Only 1 retry for the pipeline (it's expensive)
+        return result as AgenticResult;
+      }, 1); // Only 1 retry for the pipeline (it's expensive)
+    } catch (error) {
+      if (this.isEdgeUnavailableError(error)) {
+        console.warn('Cloud API returned 502/503/504; falling back to local client-side agentic synthesis.');
+        return this.getDemoAgenticResult(problem, mode, onPhaseChange, onUpdate);
+      }
+      throw error;
+    }
   }
 
   private isDemoMode(): boolean {
@@ -1222,19 +1299,65 @@ export class GeminiService {
         }
       }
 
-      // Context-aware dynamic fallback for custom prompts or other strategies in Demo Mode
+      // Context-aware dynamic fallback for custom prompts or other strategies in Demo / Offline Mode
       if (insights.length === 0) {
-        const snippet = problem.trim().length > 60 ? `${problem.trim().slice(0, 57)}...` : problem.trim();
-        insights = [
-          {
-            text: `${strategyName} Approach: Look at the most frustrating step in "${snippet}" and simplify it using existing household or neighborhood resources so it takes half the effort.`,
-            ...(mode === 'care' && { influence: `Builds everyday confidence and comfort without adding extra burden.` })
+        const snippet = problem.trim().length > 65 ? `${problem.trim().slice(0, 62)}...` : problem.trim();
+        const mechanismByStrategy: Record<string, { leap: string; landing: string; influence?: string }> = {
+          'simplify': {
+            leap: `Step 1 (Lateral Leap): Strip away 50% of the coordination overhead in "${snippet}" by replacing multi-step approvals or complex tools with a single visible self-service station.`,
+            landing: `Step 2 ($0 Grounded Landing): Run a 48-hour trial this week using existing furniture, a 1-page laminated checklist, and one designated point person.`,
+            influence: `Accomplishment (A): Removes decision fatigue and restores immediate daily autonomy.`
           },
-          {
-            text: `Simple 15-Minute Trial: Test this adjustment once over the next two days with a family member or friend, keeping what feels natural and setting aside anything that feels complicated.`,
-            ...(mode === 'care' && { influence: `Protects caregiver rest and keeps the routine low-stress.` })
+          'first-principles': {
+            leap: `Step 1 (Lateral Leap): Deconstruct "${snippet}" down to its irreducible physical requirement—passive gravity, natural daylight, or direct human eye contact—before adding any equipment.`,
+            landing: `Step 2 ($0 Grounded Landing): Rearrange the existing room or site layout in 15 minutes today so the default physical path naturally supports the goal.`,
+            influence: `Agency (A): Aligns the physical environment with effortless daily habits.`
+          },
+          'critical-path': {
+            leap: `Step 1 (Lateral Leap): Sequence "${snippet}" strictly by bottleneck dependencies—securing physical safety and pathway clearance on Day 1 before layering on group activities.`,
+            landing: `Step 2 ($0 Grounded Landing): Complete the single highest-leverage 10-minute setup step before noon tomorrow and verify comfort with one partner.`,
+            influence: `Safety & Flow (E): Eliminates early friction and builds compounding momentum.`
+          },
+          'fmea': {
+            leap: `Step 1 (Lateral Leap): Run a pre-mortem inversion on "${snippet}": assume the primary point of failure is mid-week exhaustion or clogged handoffs, and install a passive mechanical guardrail first.`,
+            landing: `Step 2 ($0 Grounded Landing): Lock in a non-negotiable 3-hour weekly backup handoff with a neighbor or partner so no single person carries 100% of the load.`,
+            influence: `Vitality (+H): Protects caregiver respite and prevents systemic burnout.`
+          },
+          'opposite': {
+            leap: `Step 1 (Lateral Leap): Invert the direction of effort in "${snippet}"—bring the resource directly to the resting person or neighborhood sidewalk instead of requiring travel to a central hub.`,
+            landing: `Step 2 ($0 Grounded Landing): Pilot a portable tray, rolling cart, or porch drop-box for 3 days using containers already on hand.`,
+            influence: `Positive Emotion (P): Turns a high-friction chore into an inviting, low-effort ritual.`
+          },
+          'nature': {
+            leap: `Step 1 (Lateral Leap): Apply biomimetic self-regulation to "${snippet}" by mimicking how forest root networks and tidal basins buffer peak surges passively without central pumps.`,
+            landing: `Step 2 ($0 Grounded Landing): Pair peak activity windows with a 15-minute natural decompression buffer and passive environmental cues (warm lighting or mulched borders).`,
+            influence: `Systems (S): Harmonizes daily pacing with natural circadian and environmental rhythms.`
           }
-        ];
+        };
+        const customMech = mechanismByStrategy[sId];
+        if (customMech) {
+          insights = [
+            {
+              text: customMech.leap,
+              ...(mode === 'care' && customMech.influence ? { influence: customMech.influence } : {})
+            },
+            {
+              text: customMech.landing,
+              ...(mode === 'care' && { influence: `Respite & Sustainability: $0 immediate action step with zero added burden.` })
+            }
+          ];
+        } else {
+          insights = [
+            {
+              text: `Step 1 (Lateral Leap — ${strategyName}): Reframe the core bottleneck in "${snippet}" by turning the biggest constraint into a passive, self-reinforcing neighborhood or household asset.`,
+              ...(mode === 'care' && { influence: `PERMA+H Asset Framing: Builds everyday confidence and comfort without adding extra burden.` })
+            },
+            {
+              text: `Step 2 ($0 Grounded Landing): Test this adjustment in a 15-minute trial over the next 48 hours with a family member or neighbor, keeping what feels effortless.`,
+              ...(mode === 'care' && { influence: `Respite Invariant: Protects caregiver rest and keeps the routine low-stress.` })
+            }
+          ];
+        }
       }
 
       return {
