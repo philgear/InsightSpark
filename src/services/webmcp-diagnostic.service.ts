@@ -27,12 +27,6 @@ export interface ModelContext {
   unregisterTool?: (name: string) => Promise<void>;
 }
 
-declare global {
-  interface Document {
-    modelContext?: ModelContext;
-  }
-}
-
 @Injectable({
   providedIn: 'root'
 })
