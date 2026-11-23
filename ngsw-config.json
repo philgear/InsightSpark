@@ -21,6 +21,7 @@
       "resources": {
         "files": [
           "/assets/**",
+          "!/assets/ort/**",
           "/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
         ]
       }
@@ -45,7 +46,9 @@
     "!/**/*__*",
     "!/terms",
     "!/privacy",
+    "!/transparency",
     "!/terms.html",
-    "!/privacy.html"
+    "!/privacy.html",
+    "!/transparency.html"
   ]
 }

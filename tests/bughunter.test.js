@@ -144,6 +144,17 @@ describe('Bug Hunter Audit: Security, Privacy & Stream Fuzzing Suite', () => {
       });
     });
 
+    test('server.js should not HTML-escape prompts and should sanitize non-server model sentinels', async () => {
+      const fs = await import('node:fs');
+      const serverSrc = fs.readFileSync('server.js', 'utf8');
+      assert.ok(!/\.escape\(\)/.test(serverSrc), 'server.js should not HTML-escape prompt fields before sending to AI models');
+      assert.ok(serverSrc.includes('NON_SERVER_MODEL_SENTINELS'), 'server.js should sanitize client-only sentinel model IDs');
+      assert.ok(serverSrc.includes('interactions.create'), 'server.js should use the GA Interactions API');
+      assert.ok(/store:\s*false/.test(serverSrc), 'server.js must set store: false on Interactions calls for HIPAA zero-retention');
+      assert.ok(serverSrc.includes("'gemini-4-hydrogen'"), 'server.js must default to gemini-4-hydrogen');
+      assert.ok(!/\.generateContent(?:Stream)?\b/.test(serverSrc), 'server.js should contain no legacy generateContent or generateContentStream calls');
+    });
+
     test('server.js should boot and listen on port without runtime reference errors', async () => {
       const { spawn } = await import('node:child_process');
       await new Promise((resolve, reject) => {

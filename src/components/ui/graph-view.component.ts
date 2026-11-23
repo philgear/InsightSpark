@@ -217,9 +217,15 @@ export class GraphViewComponent implements AfterViewInit, OnChanges {
   }
 
   private getStrategyColor(strategyName: string): string {
-    const strategyId = strategyName.toLowerCase().replace('’', '').replace(/\s+/g, '-');
+    const lower = (strategyName || '').toLowerCase();
+    const matched = this.strategies().find(
+      s => s.name.toLowerCase() === lower || (s.careModeName || '').toLowerCase() === lower
+    );
+    const strategyId = matched
+      ? matched.id
+      : lower.replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     const style = getComputedStyle(document.documentElement);
-    return style.getPropertyValue(`--strategy-${strategyId}`).trim() || 'gray';
+    return style.getPropertyValue(`--strategy-${strategyId}`).trim() || matched?.color || 'gray';
   }
 
   private getBlendedStrategyColor(strategyName: string, blendRatio = 0): string {

@@ -70,11 +70,11 @@ describe('GeminiService Chaos Engineering & Retry Resilience', () => {
       capturedHeaders = options?.headers;
       return { ok: true, json: async () => ({ title: 'Structured Goal' }) };
     };
-    globalThis.localStorage.setItem('spark_model_val', 'gemini-3.6-flash');
+    globalThis.localStorage.setItem('spark_model_val', 'gemini-4-hydrogen');
     try {
       service = new GeminiService();
       await service.structureHealthGoal('Test Problem');
-      assert.strictEqual(capturedHeaders['x-gemini-model'], 'gemini-3.6-flash');
+      assert.strictEqual(capturedHeaders['x-gemini-model'], 'gemini-4-hydrogen');
     } finally {
       globalThis.fetch = prevFetch;
       globalThis.localStorage.removeItem('spark_model_val');
@@ -253,9 +253,164 @@ describe('GeminiService Chaos Engineering & Retry Resilience', () => {
 
       const structured = await service.structureHealthGoal('Grandmother hip recovery garden');
       assert.ok(structured.title.length > 0, 'Should return structured problem on 503');
+      assert.ok(service.fallbackNotice() && service.fallbackNotice().includes('503'), 'Should set fallbackNotice on 503 fallback');
     } finally {
       globalThis.fetch = prevFetch;
       globalThis.localStorage.removeItem('spark_cfg_val');
+    }
+  });
+
+  test('SSE Framing: Reassembles split SSE chunks across TCP boundaries without dropping data', async () => {
+    const prevFetch = globalThis.fetch;
+    const payload = JSON.stringify({
+      results: [
+        { strategyName: 'What If?', insights: [{ text: 'Split-chunk insight one' }, { text: 'Split-chunk insight two' }] }
+      ]
+    });
+    const sseFrame = `data: ${JSON.stringify({ text: payload })}\n\ndata: [DONE]\n\n`;
+    const midpoint = Math.floor(sseFrame.length / 2);
+    const encoder = new TextEncoder();
+    const chunks = [
+      encoder.encode(sseFrame.slice(0, midpoint)),
+      encoder.encode(sseFrame.slice(midpoint))
+    ];
+
+    globalThis.fetch = async () => ({
+      ok: true,
+      body: new ReadableStream({
+        start(controller) {
+          for (const c of chunks) controller.enqueue(c);
+          controller.close();
+        }
+      })
+    });
+
+    try {
+      service = new GeminiService();
+      service.simulatedFailureType = null;
+      const updates = [];
+      const res = await service.generateInsights(
+        'How to coordinate volunteer garden shifts',
+        [{ id: 'what-if', name: 'What If?' }],
+        'creative',
+        undefined,
+        undefined,
+        (partial) => updates.push(partial)
+      );
+      assert.strictEqual(res.length, 1);
+      assert.strictEqual(res[0].strategyName, 'What If?');
+      assert.strictEqual(res[0].insights.length, 2);
+      assert.strictEqual(res[0].insights[0].text, 'Split-chunk insight one');
+      assert.strictEqual(res[0].insights[1].text, 'Split-chunk insight two');
+      assert.strictEqual(service.fallbackNotice(), null, 'Live 200 response should clear fallbackNotice');
+    } finally {
+      globalThis.fetch = prevFetch;
+    }
+  });
+
+  test('SSE Error Propagation: Mid-stream error event rejects instead of returning empty array', async () => {
+    const prevFetch = globalThis.fetch;
+    const encoder = new TextEncoder();
+    const sseError = `data: ${JSON.stringify({ error: 'Local Ollama error (404): model missing' })}\n\n`;
+
+    globalThis.fetch = async () => ({
+      ok: true,
+      body: new ReadableStream({
+        start(controller) {
+          controller.enqueue(encoder.encode(sseError));
+          controller.close();
+        }
+      })
+    });
+
+    try {
+      service = new GeminiService();
+      service.simulatedFailureType = null;
+      await assert.rejects(
+        async () => {
+          await service.generateInsights(
+            'Stream error test prompt',
+            [{ id: 'what-if', name: 'What If?' }],
+            'creative'
+          );
+        },
+        /Local Ollama error \(404\)/
+      );
+    } finally {
+      globalThis.fetch = prevFetch;
+    }
+  });
+
+  test('Extraction Resilience: Filters empty stubs and extracts Ollama map & wrapped object formats', async () => {
+    const prevFetch = globalThis.fetch;
+    const encoder = new TextEncoder();
+    const strategies = [{ id: 'what-if', name: 'What If?' }];
+
+    const cases = [
+      JSON.stringify({ 'What If?': ['String idea A', 'String idea B'] }),
+      JSON.stringify({ results: [{ strategyName: 'What If?', insights: [{}, { text: 'Valid insight' }] }] }),
+      JSON.stringify({ insights: [{ text: 'Flat insight A' }, { text: 'Flat insight B' }] })
+    ];
+
+    try {
+      for (let idx = 0; idx < cases.length; idx++) {
+        const bodyText = `data: ${JSON.stringify({ text: cases[idx] })}\n\ndata: [DONE]\n\n`;
+        globalThis.fetch = async () => ({
+          ok: true,
+          body: new ReadableStream({
+            start(controller) {
+              controller.enqueue(encoder.encode(bodyText));
+              controller.close();
+            }
+          })
+        });
+
+        service = new GeminiService();
+        service.simulatedFailureType = null;
+        const res = await service.generateInsights(
+          `Extraction test ${idx}`,
+          strategies,
+          'creative'
+        );
+        assert.strictEqual(res.length, 1);
+        assert.strictEqual(res[0].strategyName, 'What If?');
+        assert.ok(res[0].insights.every(item => typeof item.text === 'string' && item.text.length > 0));
+      }
+    } finally {
+      globalThis.fetch = prevFetch;
+    }
+  });
+
+  test('Mock Scenario Matching: Avoids substring false-positives on "start" or "parking"', async () => {
+    const prevGetItem = globalThis.localStorage.getItem;
+    globalThis.localStorage.getItem = (key) => {
+      if (key === 'spark_cfg_val') return 'demo-key-active';
+      return null;
+    };
+
+    try {
+      service = new GeminiService();
+      const startRes = await service.generateInsights(
+        'How to start a community tool library',
+        [{ id: 'simplify', name: 'Eliminate & Simplify' }],
+        'creative'
+      );
+      assert.ok(
+        startRes[0].insights.some(i => i.text.includes('How to start a community tool library')),
+        'Should route custom "start" prompt to custom dynamic fallback, not unrelated starter scenario'
+      );
+
+      const parkRes = await service.generateInsights(
+        'Parking lot solar canopy retrofit',
+        [{ id: 'simplify', name: 'Eliminate & Simplify' }],
+        'creative'
+      );
+      assert.ok(
+        parkRes[0].insights.some(i => i.text.includes('Parking lot solar canopy retrofit')),
+        'Should route custom "Parking" prompt to custom dynamic fallback, not municipal flood park'
+      );
+    } finally {
+      globalThis.localStorage.getItem = prevGetItem;
     }
   });
 });

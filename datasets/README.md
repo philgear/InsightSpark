@@ -36,7 +36,7 @@ Directly compatible with Hugging Face **TRL (`DPOTrainer`)**, Unsloth, Axolotl, 
 - **Framework Target**: Hugging Face TRL (`trl.trainer.DPOTrainer`)
 - **License**: Apache-2.0
 - **Supported Formats**: Parquet (`multitask-dpo.parquet`) & JSON Lines (`multitask-dpo.jsonl`, `kinship-care-dpo.jsonl`)
-- **Total Multitask Pairs**: 48 pairwise instances + 1 metadata header
+- **Total Multitask Pairs**: 58 pairwise instances (29 strategies × 2 modes) + 1 metadata header
 
 ---
 
@@ -75,6 +75,8 @@ Each preference sample is structured as follows:
 
 ## How to Use with Hugging Face TRL
 
+Compatible with current Hugging Face `trl` + `transformers` releases across `google/gemma-4-E4B-it`, `google/gemma-4-E2B-it`, and `HuggingFaceTB/SmolLM3-3B`:
+
 ```python
 from datasets import load_dataset
 from trl import DPOTrainer, DPOConfig
@@ -83,8 +85,15 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 # Load InsightSpark dataset
 dataset = load_dataset("parquet", data_files="datasets/multitask-dpo.parquet", split="train")
 
-# Train with DPOTrainer
-# trainer = DPOTrainer(model=model, ref_model=ref_model, args=dpo_config, train_dataset=dataset, tokenizer=tokenizer)
+dpo_config = DPOConfig(
+    output_dir="models/pivotpulse-dora",
+    eval_strategy="no",
+    max_length=1024,
+    max_prompt_length=512,
+)
+
+# Train with DPOTrainer (pass AutoProcessor for multimodal Gemma 4 E4B/E2B checkpoints)
+# trainer = DPOTrainer(model=model, ref_model=None, args=dpo_config, train_dataset=dataset, processing_class=tokenizer)
 ```
 
 ---

@@ -11,6 +11,47 @@
   font-display: swap;
 }
 
+/* ── PocketGull v4.000 Sovereign Editorial Pairing (UI Sans + Slab Headings) ─── */
+@font-face {
+  font-family: 'PocketGull';
+  src: url('/fonts/PocketGull-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PocketGull';
+  src: url('/fonts/PocketGull-Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PocketGull';
+  src: url('/fonts/PocketGull-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PocketGull Slab';
+  src: url('/fonts/PocketGull-Slab-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PocketGull Slab';
+  src: url('/fonts/PocketGull-Slab-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ── PocketGull Soft Sovereign Typography (Organic Warmth & Clinical Life-Safety) ─── */
 @font-face {
   font-family: 'PocketGull Soft';
@@ -32,7 +73,8 @@
 
 @font-face {
   font-family: 'PocketGull Mono';
-  src: url('/fonts/PocketGullMono-Regular.ttf') format('truetype');
+  src: url('/fonts/PocketGullMono-Regular.woff2') format('woff2'),
+       url('/fonts/PocketGullMono-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -88,8 +130,10 @@ html {
 
 :root {
   --font-vf: 'Spark DSRP', system-ui, -apple-system, sans-serif;
-  --font-serif: 'Spark DSRP', Georgia, serif;
-  --font-sans: 'Spark DSRP', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Spark DSRP', 'PocketGull Slab', Georgia, serif;
+  --font-serif: 'PocketGull Slab', 'Spark DSRP', Georgia, serif;
+  --font-sans: 'PocketGull', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-care-sans: 'PocketGull Soft', 'PocketGull', system-ui, -apple-system, sans-serif;
   --font-mono: 'PocketGull Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --font-fluid: 'Fluid Thinking', var(--font-vf);
   --font-sight-alimentive: 'Sight Alimentive', var(--font-fluid);
@@ -97,14 +141,14 @@ html {
   --font-sight-conic: 'Sight Conic', var(--font-fluid);
   --font-sight-philosophic: 'Sight Philosophic', var(--font-fluid);
 
-  /* Standard Typography Scale */
-  --font-size-sm: 0.75rem; /* 12px */
-  --font-size-base: 0.875rem; /* 14px */
-  --font-size-lg: 1rem; /* 16px */
-  --font-size-xl: 1.125rem; /* 18px */
-  --font-size-2xl: 1.25rem; /* 20px */
-  --font-size-3xl: 1.5rem; /* 24px */
-  --font-size-4xl: 1.875rem; /* 30px */
+  /* Modular Fluid Typography Scale */
+  --font-size-sm: 0.8125rem;
+  --font-size-base: 0.9375rem;
+  --font-size-lg: 1.0625rem;
+  --font-size-xl: clamp(1.125rem, 1.05rem + 0.35vw, 1.25rem);
+  --font-size-2xl: clamp(1.25rem, 1.15rem + 0.55vw, 1.5rem);
+  --font-size-3xl: clamp(1.5rem, 1.32rem + 0.9vw, 1.95rem);
+  --font-size-4xl: clamp(1.875rem, 1.6rem + 1.35vw, 2.5rem);
 
   /* Dried Thistle Palette - Dark Theme */
   --bg-color: #24211c;
@@ -136,6 +180,22 @@ html {
   --color-warning: #d4a44c;
   --color-success: #7aab62;
 
+  /* Theme-aware console & pill contrast tokens (Dark Theme) */
+  --tone-cyan-text: #67e8f9;
+  --tone-cyan-bg: rgba(8, 51, 68, 0.35);
+  --tone-cyan-badge-bg: rgba(6, 182, 212, 0.2);
+  --tone-emerald-text: #6ee7b7;
+  --tone-emerald-badge-bg: rgba(16, 185, 129, 0.18);
+  --tone-purple-text: #d8b4fe;
+  --tone-purple-bg: rgba(59, 7, 100, 0.28);
+  --tone-purple-badge-bg: rgba(168, 85, 247, 0.2);
+  --tone-amber-text: #fde68a;
+  --tone-amber-badge-bg: rgba(245, 158, 11, 0.2);
+  --tone-blue-text: #93c5fd;
+  --tone-blue-badge-bg: rgba(59, 130, 246, 0.2);
+  --surface-console-card: rgba(0, 0, 0, 0.32);
+  --surface-console-card-active: rgba(6, 182, 212, 0.16);
+
   /* Vibrant Strategy Colors - Dark Theme */
   --strategy-purple: #9d7dfa;
   --strategy-green: #9ae6b4;
@@ -163,6 +223,9 @@ html {
   --strategy-random: var(--strategy-thistle);
   --strategy-first-principles: var(--strategy-green);
   --strategy-root-cause: var(--strategy-purple);
+  --strategy-sensory-bridge: var(--strategy-chocolate);
+  --strategy-found-kinship: var(--strategy-thistle);
+  --strategy-time-dilation: var(--strategy-green);
   --strategy-fmea: var(--strategy-green);
   --strategy-critical-path: var(--strategy-thistle);
   --strategy-perma-strengths: var(--strategy-green);
@@ -174,6 +237,7 @@ html {
   --strategy-system-fractal: #6c7a68;
   --strategy-feedback-loop: #e8b9c8;
   --strategy-perspective-inversion: #fdd87a;
+  --strategy-porters-five-forces: var(--strategy-purple);
 
   /* Icon Assignments */
   --strategy-icon-what-if: var(--icon-purple);
@@ -204,6 +268,7 @@ html {
   --strategy-icon-respite-pacing: var(--icon-green);
   --strategy-icon-ethical-dignity: var(--icon-chocolate);
   --strategy-icon-environmental-safety: var(--icon-purple);
+  --strategy-icon-porters-five-forces: var(--icon-purple);
 
   --logo-url: url('/assets/logo-dark.svg');
   accent-color: var(--text-accent);
@@ -272,6 +337,22 @@ html {
   --color-warning: #b7770d;
   --color-success: #3d7a37;
 
+  /* Theme-aware console & pill contrast tokens (Light Theme WCAG AA/AAA on #fdf5e6) */
+  --tone-cyan-text: #0e5a6d;
+  --tone-cyan-bg: rgba(14, 116, 144, 0.08);
+  --tone-cyan-badge-bg: rgba(14, 116, 144, 0.14);
+  --tone-emerald-text: #166534;
+  --tone-emerald-badge-bg: rgba(22, 101, 52, 0.13);
+  --tone-purple-text: #5b21b6;
+  --tone-purple-bg: rgba(107, 33, 168, 0.07);
+  --tone-purple-badge-bg: rgba(107, 33, 168, 0.12);
+  --tone-amber-text: #92400e;
+  --tone-amber-badge-bg: rgba(180, 83, 9, 0.14);
+  --tone-blue-text: #1e40af;
+  --tone-blue-badge-bg: rgba(30, 64, 175, 0.13);
+  --surface-console-card: rgba(255, 255, 255, 0.78);
+  --surface-console-card-active: rgba(14, 116, 144, 0.13);
+
   /* Adaptive Strategy Colors for Light Theme */
   --strategy-purple: #6b46c1;
   --strategy-green: #2f855a;
@@ -295,8 +376,12 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: var(--font-size-base);
-  line-height: 1.618; /* Golden Ratio line height */
-  font-feature-settings: 'ss02' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1;
+  line-height: 1.62;
+  font-optical-sizing: auto;
+  font-kerning: normal;
+  text-rendering: optimizeLegibility;
+  hanging-punctuation: first allow-end;
+  font-feature-settings: 'kern' 1, 'liga' 1, 'ss02' 1, 'cv05' 1, 'cv08' 1, 'cv11' 1;
 }
 
 @layer base {
@@ -309,14 +394,18 @@ body {
     font-family: var(--font-serif);
     font-weight: 700;
     font-style: normal;
-    letter-spacing: -0.015em;
+    font-optical-sizing: auto;
+    font-kerning: normal;
   }
 
   code,
   kbd,
   samp,
-  pre {
+  pre,
+  .font-mono {
     font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums lining-nums;
+    font-feature-settings: 'tnum' 1, 'zero' 1, 'cv08' 1, 'ss02' 1;
   }
 
   /* ── DSRP Typographic Modifiers (Derek & Laura Cabrera Systems Framework) ─── */
@@ -342,7 +431,7 @@ body {
     font-variation-settings: 'wght' 450, 'opsz' 22, 'GRAV' 0.7, 'THRM' 0.8;
   }
 
-  /* ── Modern Typographic Rhythm & Widow Elimination ─── */
+  /* ── Modern Typographic Rhythm, Measure & Widow Elimination ─── */
   h1, h2, h3, h4, .text-balance {
     text-wrap: balance;
   }
@@ -351,36 +440,62 @@ body {
     text-wrap: pretty;
   }
 
+  .prose-measure,
+  .insight-card-magical p,
+  .dsrp-quadrant-card p,
+  .printable-section li {
+    max-width: 65ch;
+  }
+
+  .insight-card-magical p {
+    line-height: 1.65;
+  }
+
+  .dsrp-quadrant-card p {
+    line-height: 1.62;
+  }
+
   /* ── Tabular Lining Numerals (Stable metrics, charts & timers) ─── */
   .font-tabular,
   .tabular-nums,
   .vitals-metric,
   .timer-display {
     font-variant-numeric: tabular-nums lining-nums;
-    font-feature-settings: 'tnum' 1, 'lnum' 1, 'cv08' 1, 'cv05' 1, 'ss02' 1;
+    font-feature-settings: 'tnum' 1, 'lnum' 1, 'zero' 1, 'cv08' 1, 'ss02' 1;
   }
 
-  /* ── Mode-Responsive Variable Typography ─── */
-  /* Creative (Pivot) Mode: Expressive, kinetic slant, crisp lateral leap */
-  .app-mode-creative h1,
-  .app-mode-creative h2 {
-    font-variation-settings: 'wght' 750, 'opsz' 36, 'slnt' -2.5, 'SOFT' 0.3;
+  /* ── Brand Display Wordmark & Mode-Responsive Typography ─── */
+  .brand-wordmark {
     letter-spacing: -0.02em;
   }
-  .app-mode-creative h3,
-  .app-mode-creative h4 {
-    font-variation-settings: 'wght' 650, 'opsz' 24, 'slnt' -1.5, 'SOFT' 0.4;
+
+  /* Creative (Pivot) Mode: Crisp slab hierarchy + expressive kinetic display brand */
+  .app-mode-creative .brand-wordmark {
+    letter-spacing: -0.024em;
+  }
+  .app-mode-creative h1,
+  .app-mode-creative h2 {
+    letter-spacing: -0.02em;
   }
 
-  /* Care (Pulse) Mode: Reassuring, upright, soft curves, elder-friendly high gravity */
-  .app-mode-care h1,
-  .app-mode-care h2 {
-    font-variation-settings: 'wght' 680, 'opsz' 32, 'slnt' 0, 'SOFT' 0.85, 'GRAV' 0.7;
-    letter-spacing: -0.005em;
+  /* Care (Pulse) Mode: Warmer, larger PocketGull Soft prose, upright Slab headings, high legibility */
+  .app-mode-care {
+    --font-size-base: 1rem;
+    font-size: var(--font-size-base);
+    font-family: var(--font-care-sans);
+    line-height: 1.68;
+    letter-spacing: 0.006em;
   }
+  .app-mode-care .brand-wordmark {
+    letter-spacing: -0.012em;
+  }
+  .app-mode-care h1,
+  .app-mode-care h2,
   .app-mode-care h3,
   .app-mode-care h4 {
-    font-variation-settings: 'wght' 600, 'opsz' 22, 'slnt' 0, 'SOFT' 0.8, 'GRAV' 0.6;
+    font-family: var(--font-serif);
+    font-style: normal;
+    letter-spacing: -0.008em;
   }
 
   /* ── Typographic Icon Harmony & Badges ─── */
@@ -394,31 +509,34 @@ body {
 
   h1 {
     font-size: var(--font-size-3xl);
+    line-height: 1.12;
+    letter-spacing: -0.022em;
+    text-shadow: 0 0 24px color-mix(in srgb, var(--text-accent) 28%, transparent);
   }
   h2 {
     font-size: var(--font-size-2xl);
+    line-height: 1.18;
+    letter-spacing: -0.018em;
+    text-shadow: none;
   }
   h3 {
     font-size: var(--font-size-xl);
+    line-height: 1.24;
+    letter-spacing: -0.012em;
+    text-shadow: none;
   }
   h4 {
     font-size: var(--font-size-lg);
+    line-height: 1.3;
+    letter-spacing: -0.005em;
+    text-shadow: none;
   }
   h5,
   h6 {
     font-size: var(--font-size-base);
-  }
-
-  h1,
-  h2,
-  h3 {
-    text-shadow: 0 0 32px color-mix(in srgb, var(--text-accent) 35%, transparent);
-  }
-
-  h4,
-  h5,
-  h6 {
-    text-shadow: 0 0 16px color-mix(in srgb, var(--text-accent) 20%, transparent);
+    line-height: 1.35;
+    letter-spacing: 0;
+    text-shadow: none;
   }
 
   textarea,
@@ -1235,6 +1353,24 @@ body {
   font-family: var(--font-fluid);
 }
 
+/* ── Theme-Aware Semantic Console & Badge Contrast Utilities ────────────── */
+.tone-cyan-text { color: var(--tone-cyan-text); }
+.tone-emerald-text { color: var(--tone-emerald-text); }
+.tone-purple-text { color: var(--tone-purple-text); }
+.tone-amber-text { color: var(--tone-amber-text); }
+.tone-blue-text { color: var(--tone-blue-text); }
+
+.tone-cyan-badge { background-color: var(--tone-cyan-badge-bg); color: var(--tone-cyan-text); }
+.tone-emerald-badge { background-color: var(--tone-emerald-badge-bg); color: var(--tone-emerald-text); }
+.tone-purple-badge { background-color: var(--tone-purple-badge-bg); color: var(--tone-purple-text); }
+.tone-amber-badge { background-color: var(--tone-amber-badge-bg); color: var(--tone-amber-text); }
+.tone-blue-badge { background-color: var(--tone-blue-badge-bg); color: var(--tone-blue-text); }
+
+.console-panel-cyan { background-color: var(--tone-cyan-bg); }
+.console-panel-purple { background-color: var(--tone-purple-bg); }
+.console-subcard { background-color: var(--surface-console-card); color: var(--text-color); }
+.console-subcard-active { background-color: var(--surface-console-card-active); color: var(--text-color); }
+
 /* ── Missing Static Utility Shims (Tailwind v4 Static Bridge) ───────────────── */
 @layer utilities {
   .gap-6 { gap: 1.5rem; }
@@ -1285,6 +1421,7 @@ body {
   .text-\[9px\] { font-size: 9px; }
   .text-\[9\.5px\] { font-size: 9.5px; }
   .text-\[10\.5px\] { font-size: 10.5px; }
+  .max-w-\[65ch\] { max-width: 65ch; }
 
   @media (min-width: 640px) {
     .sm\:p-5 { padding: 1.25rem; }

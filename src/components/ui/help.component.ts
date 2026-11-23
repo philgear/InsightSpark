@@ -4,6 +4,8 @@ import { IconComponent } from './icon.component';
 import { LojongCleansingComponent } from './lojong-cleansing.component';
 import { TranslationService } from '../../services/translation.service';
 import { GeminiService } from '../../services/gemini.service';
+import { MODEL_PRICING_CATALOG, formatUsd } from '../../utils/cost-model';
+import { WEBGPU_MODEL_CATALOG, WebGpuModelKey } from '../../utils/webgpu-engine';
 
 function getStoredApiKey(): string {
   let value = localStorage.getItem('spark_cfg_val');
@@ -39,8 +41,17 @@ function removeStoredApiKey(): void {
   localStorage.removeItem('user_gemini_api_key');
 }
 
+const DEPRECATED_MODEL_PREFIXES = ['gemini-2.5-', 'gemini-2.0-', 'gemini-1.5-', 'gemma-2-'];
+
+type ThinkingLevel = 'low' | 'medium' | 'high' | 'xhigh';
+
 function getStoredModel(): string {
-  return localStorage.getItem('spark_model_val') || localStorage.getItem('user_gemini_model') || 'gemini-3.8-flash';
+  const saved = localStorage.getItem('spark_model_val') || localStorage.getItem('user_gemini_model') || 'gemini-4-hydrogen';
+  const lower = saved.toLowerCase();
+  if (DEPRECATED_MODEL_PREFIXES.some(prefix => lower.startsWith(prefix))) {
+    return 'gemini-4-hydrogen';
+  }
+  return saved;
 }
 
 function setStoredModel(modelName: string): void {
@@ -60,16 +71,30 @@ function setStoredTemperature(temp: number): void {
   localStorage.setItem('spark_temp_val', temp.toString());
 }
 
-function getStoredThinkingBudget(): number {
-  const val = localStorage.getItem('spark_thinking_budget');
-  if (val !== null && !isNaN(Number(val))) {
-    return Number(val);
+function getStoredThinkingLevel(): ThinkingLevel {
+  const saved = (localStorage.getItem('spark_thinking_level') || '').toLowerCase();
+  if (saved === 'low' || saved === 'medium' || saved === 'high' || saved === 'xhigh') {
+    return saved;
   }
-  return 0; // 0 = standard / auto
+  const legacyBudget = localStorage.getItem('spark_thinking_budget');
+  if (legacyBudget !== null && legacyBudget !== '' && !isNaN(Number(legacyBudget))) {
+    const budget = Number(legacyBudget);
+    if (budget > 0 && budget <= 1024) return 'low';
+    if (budget > 1024 && budget <= 2048) return 'medium';
+    return 'high';
+  }
+  return 'high';
 }
 
-function setStoredThinkingBudget(budget: number): void {
-  localStorage.setItem('spark_thinking_budget', budget.toString());
+function setStoredThinkingLevel(level: ThinkingLevel): void {
+  localStorage.setItem('spark_thinking_level', level);
+  const budgetMap: Record<ThinkingLevel, string> = {
+    low: '1024',
+    medium: '2048',
+    high: '4096',
+    xhigh: '4096',
+  };
+  localStorage.setItem('spark_thinking_budget', budgetMap[level]);
 }
 
 @Component({
@@ -273,81 +298,91 @@ function setStoredThinkingBudget(budget: number): void {
           {{ t('settings.model.desc') }}
         </p>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-          <!-- Gemini 3.8 Flash -->
-          <button (click)="updateModel('gemini-3.8-flash')"
-                  [class.bg-(--text-accent)]="userModel() === 'gemini-3.8-flash'"
-                  [class.text-(--primary-cta-text)]="userModel() === 'gemini-3.8-flash'"
-                  [class.bg-(--button-bg)]="userModel() !== 'gemini-3.8-flash'"
-                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemini-3.8-flash'"
+          <!-- Gemini 4 Hydrogen -->
+          <button (click)="updateModel('gemini-4-hydrogen')"
+                  [class.bg-(--text-accent)]="userModel() === 'gemini-4-hydrogen'"
+                  [class.text-(--primary-cta-text)]="userModel() === 'gemini-4-hydrogen'"
+                  [class.bg-(--button-bg)]="userModel() !== 'gemini-4-hydrogen'"
+                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemini-4-hydrogen'"
                   class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
             <div>
               <div class="font-bold text-sm flex items-center gap-1.5">
-                <span>Gemini 3.8 Flash</span>
+                <span>Gemini 4 Hydrogen</span>
                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">NEW</span>
               </div>
-              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Most intelligent Flash model for agents & complex reasoning (Free Tier)</div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Frontier Gemini 4 intelligence via Interactions API with deep reasoning</div>
             </div>
-            <span class="inline-block text-[10px] uppercase font-bold tracking-wider mt-3 px-2 py-0.5 rounded bg-black/20 text-current w-fit">Default</span>
+            <div class="mt-3 flex flex-wrap items-center gap-1.5">
+              <span class="inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-black/20 text-current w-fit">Default</span>
+              <span class="inline-block text-[10px] font-mono px-2 py-0.5 rounded bg-black/25 text-current w-fit">{{ formatUsd(pricingCatalog['gemini-4-hydrogen'].inputPer1M) }} / {{ formatUsd(pricingCatalog['gemini-4-hydrogen'].outputPer1M) }} per 1M · Free Tier / Paid</span>
+            </div>
           </button>
 
-          <!-- Gemini 3.7 Flash -->
-          <button (click)="updateModel('gemini-3.7-flash')"
-                  [class.bg-(--text-accent)]="userModel() === 'gemini-3.7-flash'"
-                  [class.text-(--primary-cta-text)]="userModel() === 'gemini-3.7-flash'"
-                  [class.bg-(--button-bg)]="userModel() !== 'gemini-3.7-flash'"
-                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemini-3.7-flash'"
+          <!-- Gemini 4 Argon -->
+          <button (click)="updateModel('gemini-4-argon')"
+                  [class.bg-(--text-accent)]="userModel() === 'gemini-4-argon'"
+                  [class.text-(--primary-cta-text)]="userModel() === 'gemini-4-argon'"
+                  [class.bg-(--button-bg)]="userModel() !== 'gemini-4-argon'"
+                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemini-4-argon'"
                   class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
             <div>
-              <div class="font-bold text-sm">Gemini 3.7 Flash</div>
-              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Cutting-edge speed with hybrid thinking & reasoning</div>
+              <div class="font-bold text-sm">Gemini 4 Argon</div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Ultra-fast Gemini 4 tier with low, medium & high thinking levels</div>
             </div>
-            <span class="inline-block text-[10px] uppercase font-bold tracking-wider mt-3 px-2 py-0.5 rounded bg-black/20 text-current w-fit">Next-Gen</span>
+            <div class="mt-3 flex flex-wrap items-center gap-1.5">
+              <span class="inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-black/20 text-current w-fit">High Speed</span>
+              <span class="inline-block text-[10px] font-mono px-2 py-0.5 rounded tone-amber-badge w-fit">$2 / $10 per 1M (→ $4 / $20 Dec 1) · Paid Only</span>
+            </div>
           </button>
 
-          <!-- Gemini 2.5 Pro -->
-          <button (click)="updateModel('gemini-2.5-pro')"
-                  [class.bg-(--text-accent)]="userModel() === 'gemini-2.5-pro'"
-                  [class.text-(--primary-cta-text)]="userModel() === 'gemini-2.5-pro'"
-                  [class.bg-(--button-bg)]="userModel() !== 'gemini-2.5-pro'"
-                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemini-2.5-pro'"
+          <!-- Gemini 3.5 Flash-Lite -->
+          <button (click)="updateModel('gemini-3.5-flash-lite')"
+                  [class.bg-(--text-accent)]="userModel() === 'gemini-3.5-flash-lite'"
+                  [class.text-(--primary-cta-text)]="userModel() === 'gemini-3.5-flash-lite'"
+                  [class.bg-(--button-bg)]="userModel() !== 'gemini-3.5-flash-lite'"
+                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemini-3.5-flash-lite'"
                   class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
             <div>
-              <div class="font-bold text-sm">Gemini 2.5 Pro</div>
-              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Deep analytical synthesis for complex clinical edge cases</div>
+              <div class="font-bold text-sm">Gemini 3.5 Flash-Lite</div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Lightweight high-throughput cloud model for rapid structured synthesis</div>
             </div>
-            <span class="inline-block text-[10px] uppercase font-bold tracking-wider mt-3 px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 w-fit">Deep Reasoning</span>
+            <div class="mt-3 flex flex-wrap items-center gap-1.5">
+              <span class="inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded tone-purple-badge w-fit">Lightweight</span>
+              <span class="inline-block text-[10px] font-mono px-2 py-0.5 rounded bg-black/25 text-current w-fit">$0.30 / $2.50 per 1M · Budget Cloud</span>
+            </div>
           </button>
 
           <!-- On-Device Browser AI (Gemini Nano & WebGPU) -->
           <button (click)="updateModel('on-device-nano')"
-                  [class.bg-(--text-accent)]="userModel() === 'on-device-nano' || userModel() === 'window.ai'"
-                  [class.text-(--primary-cta-text)]="userModel() === 'on-device-nano' || userModel() === 'window.ai'"
-                  [class.bg-(--button-bg)]="userModel() !== 'on-device-nano' && userModel() !== 'window.ai'"
-                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'on-device-nano' && userModel() !== 'window.ai'"
+                  [class.bg-(--text-accent)]="isWebGpuActive()"
+                  [class.text-(--primary-cta-text)]="isWebGpuActive()"
+                  [class.bg-(--button-bg)]="!isWebGpuActive()"
+                  [class.hover:bg-(--button-bg-hover)]="!isWebGpuActive()"
                   class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
             <div>
               <div class="font-bold text-sm flex items-center gap-1.5">
-                <span>In-Browser RAM (window.ai)</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-mono">CLIENT RAM</span>
+                <span>In-Browser RAM (window.ai & WebGPU)</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded tone-cyan-badge font-mono">CLIENT RAM</span>
               </div>
               <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Runs on-device inside visitor browser RAM/NPU via Chrome Prompt API or WebGPU. 0 network calls.</div>
             </div>
             <div class="flex flex-wrap items-center gap-1.5 mt-3">
               @if (chromeAiAvailable()) {
-                <span class="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 w-fit">
+                <span class="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded tone-emerald-badge w-fit">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Nano Ready
                 </span>
               } @else if (webGpuAvailable()) {
-                <span class="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 w-fit">
+                <span class="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded tone-cyan-badge w-fit">
                   <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span> WebGPU Active
                 </span>
               } @else {
-                <span class="inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 w-fit">Chrome 127+ / Safari 17.4</span>
+                <span class="inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded tone-amber-badge w-fit">Chrome 127+ / Safari 17.4</span>
               }
+              <span class="inline-block text-[10px] font-mono px-2 py-0.5 rounded tone-cyan-badge w-fit">$0 Cloud · 0 Bytes Egress</span>
             </div>
           </button>
 
-          <!-- Workstation VRAM Engine: pivotpulse (Ollama) -->
+          <!-- Workstation VRAM Engine: pivotpulse (Ollama / Gemma 4) -->
           <button (click)="updateModel('ollama:pivotpulse')"
                   [class.bg-(--text-accent)]="userModel() === 'ollama:pivotpulse' || userModel() === 'pivotpulse' || (userModel().startsWith('ollama:') && !userModel().includes('gemma2'))"
                   [class.text-(--primary-cta-text)]="userModel() === 'ollama:pivotpulse' || userModel() === 'pivotpulse' || (userModel().startsWith('ollama:') && !userModel().includes('gemma2'))"
@@ -356,92 +391,179 @@ function setStoredThinkingBudget(budget: number): void {
                   class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
             <div>
               <div class="font-bold text-sm flex items-center gap-1.5">
-                <span>pivotpulse (GPU VRAM)</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">HOT VRAM</span>
+                <span>pivotpulse (Gemma 4 VRAM)</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded tone-emerald-badge font-mono">HOT VRAM</span>
               </div>
-              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Pre-warmed in workstation GPU VRAM (keep_alive: -1). ~100 tps with zero cloud quota.</div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Gemma 4 VRAM workstation engine (keep_alive: -1). High-speed local synthesis with zero cloud quota.</div>
             </div>
-            <div class="flex items-center gap-1.5 mt-3">
+            <div class="flex flex-wrap items-center gap-1.5 mt-3">
               @if (ollamaAvailable()) {
-                <span class="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 w-fit">
+                <span class="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded tone-emerald-badge w-fit">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Pre-Warmed in VRAM
                 </span>
               } @else {
                 <span class="inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-black/20 text-current w-fit">Ollama Daemon</span>
               }
+              <span class="inline-block text-[10px] font-mono px-2 py-0.5 rounded tone-emerald-badge w-fit">$0 Cloud · Local GPU</span>
             </div>
           </button>
 
-          <!-- Gemma 2 27B (Google Cloud) -->
-          <button (click)="updateModel('gemma-2-27b-it')"
-                  [class.bg-(--text-accent)]="userModel() === 'gemma-2-27b-it'"
-                  [class.text-(--primary-cta-text)]="userModel() === 'gemma-2-27b-it'"
-                  [class.bg-(--button-bg)]="userModel() !== 'gemma-2-27b-it'"
-                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemma-2-27b-it'"
+          <!-- Gemma 4 31B (Google Cloud) -->
+          <button (click)="updateModel('gemma-4-31b-it')"
+                  [class.bg-(--text-accent)]="userModel() === 'gemma-4-31b-it'"
+                  [class.text-(--primary-cta-text)]="userModel() === 'gemma-4-31b-it'"
+                  [class.bg-(--button-bg)]="userModel() !== 'gemma-4-31b-it'"
+                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemma-4-31b-it'"
                   class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
             <div>
               <div class="font-bold text-sm flex items-center gap-1.5">
-                <span>Gemma 2 27B</span>
-                <span class="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 font-mono">OPEN</span>
+                <span>Gemma 4 31B</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded tone-blue-badge font-mono">OPEN</span>
               </div>
-              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Open-weights research architecture hosted on Google AI Studio</div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Open-weights Gemma 4 research architecture hosted via Gemini Interactions API</div>
             </div>
-            <span class="inline-block text-[10px] uppercase font-bold tracking-wider mt-3 px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 w-fit">Google Gemma</span>
+            <div class="mt-3 flex flex-wrap items-center gap-1.5">
+              <span class="inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded tone-blue-badge w-fit">Google Gemma 4</span>
+              <span class="inline-block text-[10px] font-mono px-2 py-0.5 rounded tone-emerald-badge w-fit">$0 / 1M · Free Hosted Open</span>
+            </div>
+          </button>
+
+          <!-- Gemma 4 26B A4B MoE (Google Cloud) -->
+          <button (click)="updateModel('gemma-4-26b-a4b-it')"
+                  [class.bg-(--text-accent)]="userModel() === 'gemma-4-26b-a4b-it'"
+                  [class.text-(--primary-cta-text)]="userModel() === 'gemma-4-26b-a4b-it'"
+                  [class.bg-(--button-bg)]="userModel() !== 'gemma-4-26b-a4b-it'"
+                  [class.hover:bg-(--button-bg-hover)]="userModel() !== 'gemma-4-26b-a4b-it'"
+                  class="text-xs font-semibold p-3.5 rounded-xl border border-(--border-color) transition-all focus:outline-none focus:ring-2 focus:ring-(--ring-color) text-left flex flex-col justify-between cursor-pointer">
+            <div>
+              <div class="font-bold text-sm flex items-center gap-1.5">
+                <span>Gemma 4 26B A4B (MoE)</span>
+                <span class="text-[10px] px-1.5 py-0.5 rounded tone-cyan-badge font-mono">3.8B ACTIVE</span>
+              </div>
+              <div class="opacity-80 text-[11px] font-normal mt-1 leading-snug">Mixture-of-Experts Gemma 4: 26B capability with fast 3.8B active compute via Gemini Interactions API</div>
+            </div>
+            <div class="mt-3 flex flex-wrap items-center gap-1.5">
+              <span class="inline-block text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded tone-blue-badge w-fit">Google Gemma 4 MoE</span>
+              <span class="inline-block text-[10px] font-mono px-2 py-0.5 rounded tone-emerald-badge w-fit">$0 / 1M · Free Hosted MoE</span>
+            </div>
           </button>
         </div>
 
         <!-- Live Engine Diagnostics & Open Models Console -->
         <div class="mt-5 pt-4 border-t border-(--border-color)/60 space-y-4">
           <!-- WebGPU / In-Browser RAM Console -->
-          <div class="p-4 rounded-xl bg-cyan-950/20 border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-cyan-300 flex items-center gap-1.5 font-mono">
-                  <span class="h-2 w-2 rounded-full bg-cyan-400" [class.animate-pulse]="webGpuAvailable()"></span>
-                  WebGPU On-Device Engine
-                </span>
-                <span class="text-[10px] px-2 py-0.5 rounded font-mono"
-                      [class.bg-emerald-500/20]="webGpuAvailable()"
-                      [class.text-emerald-300]="webGpuAvailable()"
-                      [class.bg-amber-500/20]="!webGpuAvailable()"
-                      [class.text-amber-300]="!webGpuAvailable()">
-                  {{ webGpuAvailable() ? 'Hardware GPU Available' : 'Software Fallback' }}
-                </span>
+          <div class="p-4 rounded-xl console-panel-cyan border border-cyan-500/30 space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div class="space-y-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-xs font-bold tone-cyan-text flex items-center gap-1.5 font-mono">
+                    <span class="h-2 w-2 rounded-full bg-cyan-400" [class.animate-pulse]="webGpuAvailable()"></span>
+                    WebGPU On-Device Engine
+                  </span>
+                  <span class="text-[10px] px-2 py-0.5 rounded font-mono font-semibold"
+                        [class.tone-emerald-badge]="webGpuAvailable()"
+                        [class.tone-amber-badge]="!webGpuAvailable()">
+                    {{ webGpuAvailable() ? 'Hardware GPU Available' : 'Software Fallback' }}
+                  </span>
+                  @if (webGpuReadyModel(); as readyKey) {
+                    <span class="text-[10px] px-2 py-0.5 rounded font-mono font-semibold tone-emerald-badge">
+                      ✓ {{ readyKey }} Ready
+                    </span>
+                  }
+                </div>
+                <p class="text-xs text-(--text-color-muted)">
+                  Runs Hugging Face ONNX weights directly in browser GPU memory via Transformers.js & self-hosted <code class="font-mono">/assets/ort/</code> WASM (or Chrome Prompt API). 0 prompt bytes leave your machine.
+                </p>
               </div>
-              <p class="text-xs text-(--text-color-muted)">
-                Runs models directly in browser memory via WebGPU / Chrome Prompt API. 0 bytes leave your machine.
-              </p>
+              <div class="flex flex-wrap items-center gap-2 shrink-0">
+                <button (click)="loadWebGpuModel()"
+                        type="button"
+                        [disabled]="webGpuProgress()?.status === 'checking' || webGpuProgress()?.status === 'loading' || webGpuProgress()?.status === 'generating'"
+                        class="py-2 px-3 rounded-xl text-xs font-bold border border-cyan-500/40 tone-cyan-badge hover:opacity-90 disabled:opacity-50 transition-all cursor-pointer">
+                  @if (webGpuProgress()?.status === 'checking' || webGpuProgress()?.status === 'loading') {
+                    Loading Weights...
+                  } @else if (webGpuReadyModel() === selectedWebGpuModel()) {
+                    ✓ Loaded in WebGPU
+                  } @else {
+                    Load into WebGPU
+                  }
+                </button>
+                <button (click)="activateWebGpu()" 
+                        type="button"
+                        [class.bg-cyan-600]="isWebGpuActive()"
+                        [class.text-white]="isWebGpuActive()"
+                        [class.console-subcard]="!isWebGpuActive()"
+                        class="py-2 px-3.5 rounded-xl text-xs font-bold border border-cyan-500/40 hover:opacity-90 transition-all cursor-pointer">
+                  {{ isWebGpuActive() ? '✓ WebGPU In-Memory Active' : 'Switch to WebGPU' }}
+                </button>
+              </div>
             </div>
-            <button (click)="activateWebGpu()" 
-                    type="button"
-                    [class.bg-cyan-600]="userModel() === 'on-device-nano'"
-                    [class.text-white]="userModel() === 'on-device-nano'"
-                    [class.bg-white/10]="userModel() !== 'on-device-nano'"
-                    class="py-2 px-3.5 rounded-xl text-xs font-bold border border-cyan-500/40 hover:bg-cyan-500/30 transition-all shrink-0 cursor-pointer">
-              {{ userModel() === 'on-device-nano' ? '✓ WebGPU In-Memory Active' : 'Switch to WebGPU' }}
-            </button>
+
+            <!-- Hugging Face ONNX WebGPU Model Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              @for (wg of webGpuCatalog; track wg.key) {
+                <button (click)="selectWebGpuModel(wg.key)"
+                        type="button"
+                        [class.border-cyan-400]="selectedWebGpuModel() === wg.key"
+                        [class.console-subcard-active]="selectedWebGpuModel() === wg.key"
+                        [class.border-cyan-500/25]="selectedWebGpuModel() !== wg.key"
+                        [class.console-subcard]="selectedWebGpuModel() !== wg.key"
+                        class="p-2.5 rounded-xl border text-left transition-all hover:border-cyan-400/70 cursor-pointer flex flex-col justify-between gap-1">
+                  <div>
+                    <div class="flex items-center justify-between gap-1">
+                      <span class="text-xs font-bold text-(--text-color)">{{ wg.shortLabel }}</span>
+                      <span class="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded tone-cyan-badge">{{ wg.dtype }}</span>
+                    </div>
+                    <div class="text-[10px] font-mono tone-cyan-text truncate mt-0.5">{{ wg.hfModelId }}</div>
+                    <div class="text-[11px] text-(--text-color-muted) mt-1 leading-snug">{{ wg.recommendedRole }}</div>
+                  </div>
+                  <div class="text-[10px] font-mono text-(--text-color-muted) pt-1">{{ wg.approxDownloadLabel }}</div>
+                </button>
+              }
+            </div>
+
+            @if (webGpuProgress(); as prog) {
+              <div class="p-2.5 rounded-lg border text-xs space-y-1.5"
+                   [class.border-rose-500/40]="prog.status === 'error'"
+                   [class.bg-rose-950/30]="prog.status === 'error'"
+                   [class.text-rose-200]="prog.status === 'error'"
+                   [class.border-cyan-500/30]="prog.status !== 'error'"
+                   [class.console-subcard]="prog.status !== 'error'">
+                <div class="flex items-center justify-between gap-2 font-mono text-[11px]">
+                  <span class="truncate">{{ prog.message }}</span>
+                  @if (prog.progress !== undefined) {
+                    <span class="shrink-0 font-bold">{{ prog.progress }}%</span>
+                  }
+                </div>
+                @if (prog.status === 'loading' || prog.status === 'checking' || prog.status === 'ready') {
+                  <div class="w-full h-1.5 rounded-full bg-black/50 overflow-hidden">
+                    <div class="h-full bg-cyan-400 transition-all duration-200"
+                         [style.width.%]="prog.progress ?? (prog.status === 'ready' ? 100 : 12)"></div>
+                  </div>
+                }
+              </div>
+            }
           </div>
 
           <!-- Open Models via Localhost / Ollama Console -->
-          <div class="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 space-y-3">
+          <div class="p-4 rounded-xl console-panel-purple border border-purple-500/30 space-y-3">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div class="flex items-center gap-2">
-                <span class="text-xs font-bold text-purple-300 flex items-center gap-1.5 font-mono">
+                <span class="text-xs font-bold tone-purple-text flex items-center gap-1.5 font-mono">
                   <span class="h-2 w-2 rounded-full bg-purple-400" [class.animate-pulse]="ollamaAvailable()"></span>
                   Open Models & Workstation GPU
                 </span>
-                <span class="text-[10px] px-2 py-0.5 rounded font-mono"
-                      [class.bg-emerald-500/20]="ollamaAvailable()"
-                      [class.text-emerald-300]="ollamaAvailable()"
-                      [class.bg-stone-500/20]="!ollamaAvailable()"
-                      [class.text-stone-400]="!ollamaAvailable()">
+                <span class="text-[10px] px-2 py-0.5 rounded font-mono font-semibold"
+                      [class.tone-emerald-badge]="ollamaAvailable()"
+                      [class.bg-(--button-bg)]="!ollamaAvailable()"
+                      [class.text-(--text-color-muted)]="!ollamaAvailable()">
                   {{ ollamaAvailable() ? 'Ollama Bridge Connected' : 'Ollama Offline' }}
                 </span>
               </div>
               <div class="flex items-center gap-2">
                 <button (click)="prewarmVram('pivotpulse')" 
                         type="button"
-                        class="text-[11px] font-semibold px-2.5 py-1 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 border border-purple-500/40 transition-colors cursor-pointer flex items-center gap-1">
+                        class="text-[11px] font-semibold px-2.5 py-1 rounded-lg tone-purple-badge hover:opacity-90 border border-purple-500/40 transition-colors cursor-pointer flex items-center gap-1">
                   <span>{{ prewarmStatus() === 'ready' ? '⚡ Locked in VRAM' : (prewarmStatus() === 'prewarming' ? 'Warming...' : 'Pre-Warm VRAM') }}</span>
                 </button>
               </div>
@@ -451,12 +573,12 @@ function setStoredThinkingBudget(budget: number): void {
             <div>
               <span class="text-[11px] font-semibold text-(--text-color-muted) block mb-1.5">Quick-Select Open Model:</span>
               <div class="flex flex-wrap gap-1.5">
-                @for (m of (ollamaModels().length > 0 ? ollamaModels() : ['pivotpulse', 'gemma2:2b', 'llama3.2:3b', 'qwen2.5:3b', 'mistral:7b']); track m) {
+                @for (m of (ollamaModels().length > 0 ? ollamaModels() : ['pivotpulse', 'gemma4:e4b', 'gemma4:e2b', 'qwen3:4b', 'smollm3:3b']); track m) {
                   <button (click)="selectOpenModel(m)" 
                           type="button"
                           [class.bg-purple-600]="userModel() === 'ollama:' + m || (m === 'pivotpulse' && userModel().includes('pivotpulse'))"
                           [class.text-white]="userModel() === 'ollama:' + m || (m === 'pivotpulse' && userModel().includes('pivotpulse'))"
-                          [class.bg-black/40]="userModel() !== 'ollama:' + m && !(m === 'pivotpulse' && userModel().includes('pivotpulse'))"
+                          [class.console-subcard]="userModel() !== 'ollama:' + m && !(m === 'pivotpulse' && userModel().includes('pivotpulse'))"
                           class="px-2.5 py-1 rounded-lg text-xs font-mono border border-purple-500/30 hover:border-purple-400 transition-all cursor-pointer">
                     {{ m }}
                   </button>
@@ -472,9 +594,9 @@ function setStoredThinkingBudget(budget: number): void {
                   <input #customModelBox
                          id="custom-ollama-input"
                          type="text" 
-                         placeholder="e.g., deepseek-r1:8b, phi3, smollm2" 
+                         placeholder="e.g., gemma4:e4b, gemma4:e2b, qwen3:4b, smollm3:3b" 
                          [value]="customModelInput()"
-                         class="flex-1 bg-black/40 border border-purple-500/30 rounded-lg py-1.5 px-2.5 text-xs text-stone-200 font-mono focus:outline-none focus:ring-1 focus:ring-purple-400"
+                         class="flex-1 console-subcard border border-purple-500/30 rounded-lg py-1.5 px-2.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-purple-400"
                          (keyup.enter)="selectOpenModel(customModelBox.value)">
                   <button (click)="selectOpenModel(customModelBox.value)" 
                           type="button"
@@ -491,7 +613,7 @@ function setStoredThinkingBudget(budget: number): void {
                          type="text" 
                          [value]="ollamaHost()"
                          placeholder="http://localhost:11434"
-                         class="flex-1 bg-black/40 border border-purple-500/30 rounded-lg py-1.5 px-2.5 text-xs text-stone-200 font-mono focus:outline-none focus:ring-1 focus:ring-purple-400"
+                         class="flex-1 console-subcard border border-purple-500/30 rounded-lg py-1.5 px-2.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-purple-400"
                          (keyup.enter)="updateOllamaHost(hostBox.value)">
                   <button (click)="updateOllamaHost(hostBox.value)" 
                           type="button"
@@ -505,7 +627,7 @@ function setStoredThinkingBudget(budget: number): void {
         </div>
       </div>
 
-      <!-- Hyperparameter Fine-Tuning: Temperature & Reasoning Budget -->
+      <!-- Hyperparameter Fine-Tuning: Temperature & Reasoning Level -->
       <div class="bg-(--card-bg) p-6 rounded-2xl border border-(--border-color)">
         <h3 class="text-(--text-accent) flex items-center gap-2 mb-2">
           <app-icon name="activity" [size]="20"></app-icon>
@@ -513,6 +635,7 @@ function setStoredThinkingBudget(budget: number): void {
         </h3>
         <p class="text-sm text-(--text-color-muted) mb-4">
           {{ t('settings.temperature.desc') }}
+          <span class="block text-xs text-(--text-color-muted) mt-1">Custom temperature applies to local Ollama & open models (Gemini 4 uses automatic server sampling).</span>
         </p>
 
         <!-- Temperature Slider -->
@@ -541,42 +664,148 @@ function setStoredThinkingBudget(budget: number): void {
             class="w-full accent-(--text-accent) cursor-pointer"
           />
 
-          <!-- Thinking / Reasoning Budget -->
+          <!-- Thinking / Reasoning Level (Gemini 4 Interactions API) -->
           <div class="pt-4 border-t border-(--border-color)/50">
             <h4 class="text-xs font-semibold text-(--text-color) mb-1.5">{{ t('settings.thinking.title') }}</h4>
             <p class="text-[11px] text-(--text-color-muted) mb-3">{{ t('settings.thinking.desc') }}</p>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <button (click)="updateThinkingBudget(0)"
-                      [class.bg-(--text-accent)]="userThinkingBudget() === 0"
-                      [class.text-(--primary-cta-text)]="userThinkingBudget() === 0"
-                      [class.bg-(--button-bg)]="userThinkingBudget() !== 0"
+              <button (click)="updateThinkingLevel('low')"
+                      [class.bg-(--text-accent)]="userThinkingLevel() === 'low'"
+                      [class.text-(--primary-cta-text)]="userThinkingLevel() === 'low'"
+                      [class.bg-(--button-bg)]="userThinkingLevel() !== 'low'"
                       class="text-xs font-medium py-2 px-3 rounded-lg border border-(--border-color) transition-all cursor-pointer">
-                {{ t('settings.thinking.off') }}
+                Low (Fast)
               </button>
-              <button (click)="updateThinkingBudget(1024)"
-                      [class.bg-(--text-accent)]="userThinkingBudget() === 1024"
-                      [class.text-(--primary-cta-text)]="userThinkingBudget() === 1024"
-                      [class.bg-(--button-bg)]="userThinkingBudget() !== 1024"
+              <button (click)="updateThinkingLevel('medium')"
+                      [class.bg-(--text-accent)]="userThinkingLevel() === 'medium'"
+                      [class.text-(--primary-cta-text)]="userThinkingLevel() === 'medium'"
+                      [class.bg-(--button-bg)]="userThinkingLevel() !== 'medium'"
                       class="text-xs font-medium py-2 px-3 rounded-lg border border-(--border-color) transition-all cursor-pointer">
-                {{ t('settings.thinking.low') }}
+                Medium
               </button>
-              <button (click)="updateThinkingBudget(2048)"
-                      [class.bg-(--text-accent)]="userThinkingBudget() === 2048"
-                      [class.text-(--primary-cta-text)]="userThinkingBudget() === 2048"
-                      [class.bg-(--button-bg)]="userThinkingBudget() !== 2048"
+              <button (click)="updateThinkingLevel('high')"
+                      [class.bg-(--text-accent)]="userThinkingLevel() === 'high'"
+                      [class.text-(--primary-cta-text)]="userThinkingLevel() === 'high'"
+                      [class.bg-(--button-bg)]="userThinkingLevel() !== 'high'"
                       class="text-xs font-medium py-2 px-3 rounded-lg border border-(--border-color) transition-all cursor-pointer">
-                {{ t('settings.thinking.med') }}
+                High (Default)
               </button>
-              <button (click)="updateThinkingBudget(4096)"
-                      [class.bg-(--text-accent)]="userThinkingBudget() === 4096"
-                      [class.text-(--primary-cta-text)]="userThinkingBudget() === 4096"
-                      [class.bg-(--button-bg)]="userThinkingBudget() !== 4096"
+              <button (click)="updateThinkingLevel('xhigh')"
+                      [class.bg-(--text-accent)]="userThinkingLevel() === 'xhigh'"
+                      [class.text-(--primary-cta-text)]="userThinkingLevel() === 'xhigh'"
+                      [class.bg-(--button-bg)]="userThinkingLevel() !== 'xhigh'"
                       class="text-xs font-medium py-2 px-3 rounded-lg border border-(--border-color) transition-all cursor-pointer">
-                {{ t('settings.thinking.high') }}
+                xHigh (Deepest)
               </button>
             </div>
+            <p class="text-[11px] text-(--text-color-muted) mt-2.5 leading-relaxed">
+              Reasoning tokens are billed at the model's output rate (Low ≈ 1×, Medium ≈ 1.6×, High ≈ 2.5×, xHigh ≈ 4× output spend; 4-phase Agentic Debate executes 4 sequential calls). Hosted defaults cap reasoning at Medium (Low on 4-phase debates); supply your own API key or local GPU for High/xHigh and Argon.
+            </p>
           </div>
         </div>
+      </div>
+
+      <!-- Session Compute & Cost Receipt -->
+      <div class="bg-(--card-bg) p-6 rounded-2xl border border-(--border-color)">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 class="text-(--text-accent) flex items-center gap-2">
+              <app-icon name="layers" [size]="20"></app-icon>
+              Session Compute &amp; Cost Receipt
+            </h3>
+            <p class="text-xs text-(--text-color-muted) mt-1">
+              In-memory session telemetry only — never written to disk or databases.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <a href="/transparency"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="text-xs font-semibold px-3 py-1.5 rounded-lg border border-(--border-color) hover:border-(--text-accent) text-(--text-accent) transition-colors">
+              Full Cost Ledger &rarr;
+            </a>
+            @if (sessionSummary().callCount > 0) {
+              <button (click)="resetSessionReceipt()"
+                      type="button"
+                      class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-(--button-bg) hover:bg-(--button-bg-hover) border border-(--border-color) flex items-center gap-1.5 transition-colors cursor-pointer">
+                <app-icon name="refresh" [size]="13"></app-icon>
+                <span>Reset Receipt</span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div class="p-3.5 rounded-xl bg-white/5 border border-(--border-color)/50">
+            <div class="text-[11px] uppercase tracking-wider text-(--text-color-muted)">Requests</div>
+            <div class="text-lg font-bold font-mono text-(--text-color) mt-1">{{ sessionSummary().requestCount }}</div>
+            <div class="text-[11px] text-(--text-color-muted) mt-0.5">{{ sessionSummary().callCount }} model calls</div>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-white/5 border border-(--border-color)/50">
+            <div class="text-[11px] uppercase tracking-wider text-(--text-color-muted)">Tokens</div>
+            <div class="text-lg font-bold font-mono text-(--text-color) mt-1">{{ sessionSummary().totalTokens | number }}</div>
+            <div class="text-[11px] text-(--text-color-muted) mt-0.5 font-mono">
+              {{ sessionSummary().totalInputTokens | number }} in / {{ sessionSummary().totalOutputTokens | number }} out / {{ sessionSummary().totalThoughtTokens | number }} thought
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-white/5 border border-(--border-color)/50">
+            <div class="text-[11px] uppercase tracking-wider text-(--text-color-muted)">Est. Cloud Cost</div>
+            <div class="text-lg font-bold font-mono text-(--text-highlight) mt-1">{{ formatUsd(sessionSummary().totalEstimatedCostUsd) }}</div>
+            <div class="text-[11px] text-(--text-color-muted) mt-0.5">Live session estimate</div>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-white/5 border border-(--border-color)/50">
+            <div class="text-[11px] uppercase tracking-wider text-(--text-color-muted)">$0 Local/Free Share</div>
+            <div class="text-lg font-bold font-mono text-emerald-300 mt-1">{{ sessionSummary().zeroCostPercent }}%</div>
+            <div class="text-[11px] text-(--text-color-muted) mt-0.5">Est. saved: {{ formatUsd(sessionSummary().estimatedCloudSavingsUsd) }}</div>
+          </div>
+        </div>
+
+        @if (sessionEntries().length > 0) {
+          <div class="mt-4 pt-3 border-t border-(--border-color)/50">
+            <button (click)="toggleReceiptDetails()"
+                    type="button"
+                    class="text-xs font-semibold text-(--text-accent) hover:underline flex items-center gap-1.5 cursor-pointer">
+              <app-icon [name]="showReceiptDetails() ? 'chevron-up' : 'chevron-down'" [size]="14"></app-icon>
+              <span>{{ showReceiptDetails() ? 'Hide per-call breakdown' : 'Show per-call breakdown (' + sessionEntries().length + ')' }}</span>
+            </button>
+
+            @if (showReceiptDetails()) {
+              <div class="mt-3 overflow-x-auto">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr class="border-b border-(--border-color) text-(--text-color-muted)">
+                      <th scope="col" class="py-2 pr-3 font-semibold">Endpoint</th>
+                      <th scope="col" class="py-2 pr-3 font-semibold">Model</th>
+                      <th scope="col" class="py-2 pr-3 font-semibold">Source</th>
+                      <th scope="col" class="py-2 pr-3 font-semibold text-right">Tokens (In/Out/Thought)</th>
+                      <th scope="col" class="py-2 font-semibold text-right">Est. Cost</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (entry of sessionEntries(); track entry.timestamp + entry.endpoint + $index) {
+                      <tr class="border-b border-(--border-color)/30 font-mono text-[11px]">
+                        <td class="py-2 pr-3 text-(--text-color)">{{ entry.endpoint }}</td>
+                        <td class="py-2 pr-3 text-(--text-color-muted)">{{ entry.model }}</td>
+                        <td class="py-2 pr-3">
+                          <span class="px-1.5 py-0.5 rounded bg-white/5 border border-(--border-color)/40">{{ entry.billingSource }}</span>
+                        </td>
+                        <td class="py-2 pr-3 text-right text-(--text-color-muted)">
+                          {{ entry.inputTokens | number }} / {{ entry.outputTokens | number }} / {{ entry.thoughtTokens | number }}
+                        </td>
+                        <td class="py-2 text-right font-semibold text-(--text-highlight)">
+                          {{ formatUsd(entry.estimatedCostUsd) }}
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </div>
+        }
       </div>
 
       <!-- Multilingual & Portland Sister Cities Target Language -->
@@ -672,10 +901,12 @@ function setStoredThinkingBudget(budget: number): void {
           Let's Get Started
         </button>
 
-        <div class="text-xs text-(--text-color-muted) flex flex-wrap justify-center gap-x-4 gap-y-1 opacity-80 pt-4 border-t border-(--border-color) max-w-sm mx-auto">
-          <a href="/terms" target="_blank" class="hover:text-(--text-accent) transition-colors">Terms & Conditions</a>
+        <div class="text-xs text-(--text-color-muted) flex flex-wrap justify-center gap-x-4 gap-y-1 opacity-80 pt-4 border-t border-(--border-color) max-w-md mx-auto">
+          <a href="/terms" target="_blank" rel="noopener noreferrer" class="hover:text-(--text-accent) transition-colors">Terms &amp; Conditions</a>
           <span class="text-(--border-color)">•</span>
-          <a href="/privacy" target="_blank" class="hover:text-(--text-accent) transition-colors">Privacy Policy</a>
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" class="hover:text-(--text-accent) transition-colors">Privacy Policy</a>
+          <span class="text-(--border-color)">•</span>
+          <a href="/transparency" target="_blank" rel="noopener noreferrer" class="hover:text-(--text-accent) transition-colors">Cost Transparency</a>
         </div>
       </div>
     </section>
@@ -696,17 +927,39 @@ export class HelpComponent implements OnInit {
   userModel = signal(getStoredModel());
   userLanguage = signal(this.translationService.currentLang());
   userTemperature = signal(getStoredTemperature());
-  userThinkingBudget = signal(getStoredThinkingBudget());
+  userThinkingLevel = signal<ThinkingLevel>(getStoredThinkingLevel());
   showChangelog = signal(false);
+  pricingCatalog = MODEL_PRICING_CATALOG;
+  sessionSummary = this.geminiService.sessionCostSummary;
+  sessionEntries = this.geminiService.sessionUsageEntries;
+  showReceiptDetails = signal(false);
+  formatUsd = formatUsd;
 
   toggleChangelog() {
     this.showChangelog.update(v => !v);
+  }
+
+  toggleReceiptDetails() {
+    this.showReceiptDetails.update(v => !v);
+  }
+
+  resetSessionReceipt() {
+    this.geminiService.clearSessionUsage();
   }
 
   chromeAiAvailable = signal(false);
   ollamaAvailable = signal(false);
   ollamaModels = signal<string[]>([]);
   webGpuAvailable = signal(false);
+  webGpuCatalog = Object.values(WEBGPU_MODEL_CATALOG);
+  selectedWebGpuModel = signal<WebGpuModelKey>(this.geminiService.getSelectedWebGpuModelKey());
+  webGpuProgress = this.geminiService.webGpuProgress;
+  webGpuReadyModel = this.geminiService.webGpuReadyModel;
+
+  isWebGpuActive(): boolean {
+    const model = this.userModel();
+    return model === 'on-device-nano' || model === 'window.ai' || model.startsWith('webgpu:');
+  }
   
   // Categorized languages
   sisterCityLanguages = this.translationService.supportedLanguages.filter(l => l.isSisterCity || l.code === 'en');
@@ -753,19 +1006,35 @@ export class HelpComponent implements OnInit {
     setStoredTemperature(val);
   }
 
-  updateThinkingBudget(val: number) {
-    this.userThinkingBudget.set(val);
-    setStoredThinkingBudget(val);
+  updateThinkingLevel(val: ThinkingLevel) {
+    this.userThinkingLevel.set(val);
+    setStoredThinkingLevel(val);
   }
 
   ollamaHost = signal(localStorage.getItem('spark_ollama_host') || 'http://localhost:11434');
   customModelInput = signal(localStorage.getItem('spark_custom_ollama_model') || '');
   prewarmStatus = signal<'idle' | 'prewarming' | 'ready' | 'error'>('idle');
 
+  selectWebGpuModel(key: WebGpuModelKey) {
+    this.selectedWebGpuModel.set(key);
+    this.geminiService.setSelectedWebGpuModelKey(key);
+    if (this.isWebGpuActive()) {
+      this.updateModel(`webgpu:${key}`);
+    }
+  }
+
   activateWebGpu() {
-    this.updateModel('on-device-nano');
+    const key = this.selectedWebGpuModel();
+    this.geminiService.setSelectedWebGpuModelKey(key);
+    this.updateModel(`webgpu:${key}`);
     setStoredApiKey('webgpu-active');
     this.userApiKey.set('webgpu-active');
+  }
+
+  async loadWebGpuModel() {
+    const key = this.selectedWebGpuModel();
+    this.activateWebGpu();
+    await this.geminiService.preloadWebGpuModel(key);
   }
 
   selectOpenModel(modelName: string) {

@@ -181,7 +181,7 @@ The table below catalogs analyzed source files, sorted descending by code size.
 `;
 
 fileBreakdowns.forEach(f => {
-    markdown += `| [${path.basename(f.path)}](file:///${projectRoot.replace(/\\/g, '/')}/${f.path}) | ${f.moduleName} | ${f.sloc.toLocaleString()} | ${f.proportion.toFixed(2)}% | ${f.hours.toFixed(1)} hrs | ${f.complexity} |\n`;
+    markdown += `| [${path.basename(f.path)}](../${f.path}) | ${f.moduleName} | ${f.sloc.toLocaleString()} | ${f.proportion.toFixed(2)}% | ${f.hours.toFixed(1)} hrs | ${f.complexity} |\n`;
 });
 
 markdown += `

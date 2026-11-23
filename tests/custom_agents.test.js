@@ -42,9 +42,9 @@ describe('Google GenAI Custom Managed Agents Suite', () => {
 
   test('Kinship Planner agent configuration conforms to platform schema', () => {
     const agent = AGENTS_REGISTRY['insightspark-kinship-planner'];
-    assert.strictEqual(agent.base_agent, 'antigravity-preview-05-2026');
+    assert.strictEqual(agent.base_agent, 'antigravity-preview-09-2026');
     assert.strictEqual(agent.agent_config.type, 'antigravity');
-    assert.strictEqual(agent.agent_config.model, 'gemini-3.8-flash');
+    assert.strictEqual(agent.agent_config.model, 'gemini-4-hydrogen');
     assert.ok(agent.system_instruction.includes('PERMA+H'), 'System prompt must mandate PERMA+H');
     assert.ok(agent.system_instruction.includes('Respite'), 'System prompt must mandate Respite');
     assert.ok(agent.tools.some((t) => t.type === 'code_execution'), 'Must include code execution');
@@ -72,9 +72,9 @@ describe('Google GenAI Custom Managed Agents Suite', () => {
 
   test('Lateral Provocateur agent configuration conforms to platform schema', () => {
     const agent = AGENTS_REGISTRY['insightspark-lateral-provocateur'];
-    assert.strictEqual(agent.base_agent, 'antigravity-preview-05-2026');
+    assert.strictEqual(agent.base_agent, 'antigravity-preview-09-2026');
     assert.strictEqual(agent.agent_config.type, 'antigravity');
-    assert.strictEqual(agent.agent_config.model, 'gemini-3.8-flash');
+    assert.strictEqual(agent.agent_config.model, 'gemini-4-hydrogen');
     assert.ok(agent.system_instruction.includes('PO'), 'System prompt must reference PO');
     assert.ok(agent.system_instruction.includes('Grounding Shelf'), 'System prompt must reference Grounding Shelf');
     assert.ok(agent.tools.some((t) => t.type === 'code_execution'), 'Must include code execution');

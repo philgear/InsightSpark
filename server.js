@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { GoogleGenAI, Type } from '@google/genai';
+import { GoogleGenAI } from '@google/genai';
 import fs from 'fs';
 import compression from 'compression';
 import { body, validationResult } from 'express-validator';
@@ -38,7 +38,18 @@ try {
 }
 
 const app = express();
-app.use(compression());
+app.use(compression({
+  filter: (req, res) => {
+    if (
+      req.path === '/api/insights' ||
+      req.path === '/api/agent/pipeline' ||
+      res.getHeader('Content-Type') === 'text/event-stream'
+    ) {
+      return false;
+    }
+    return compression.filter(req, res);
+  }
+}));
 app.set('trust proxy', 1);
 const port = process.env.PORT || 8080;
 
@@ -52,11 +63,20 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'"],
+      scriptSrc: ["'self'", "'wasm-unsafe-eval'"],
+      workerSrc: ["'self'", "blob:"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
       imgSrc: ["'self'", "data:"],
-      connectSrc: ["'self'", "https://fonts.gstatic.com", "https://fonts.googleapis.com"],
+      connectSrc: [
+        "'self'",
+        "https://fonts.gstatic.com",
+        "https://fonts.googleapis.com",
+        "https://huggingface.co",
+        "https://*.huggingface.co",
+        "https://*.hf.co",
+        "https://*.xethub.hf.co"
+      ],
       frameSrc: ["'self'"],
       frameAncestors: [
         "'self'",
@@ -84,7 +104,20 @@ app.use((req, res, next) => {
   res.removeHeader('X-Frame-Options');
   next();
 });
-app.use(cors());
+const ALLOWED_CORS_ORIGINS = [
+  /^https:\/\/([a-z0-9-]+\.)?philgear\.dev$/i,
+  /^https:\/\/([a-z0-9-]+\.)?pocketgull\.app$/i,
+  /^http:\/\/(localhost|127\.0\.0\.1)(:\d{1,5})?$/i,
+];
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || ALLOWED_CORS_ORIGINS.some((pattern) => pattern.test(origin))) {
+      return callback(null, true);
+    }
+    return callback(null, false);
+  },
+  exposedHeaders: ['X-Token-Usage'],
+}));
 app.use(express.json());
 app.use(morgan('combined')); // Enable HTTP request logging
 
@@ -105,11 +138,39 @@ app.use('/api/', apiLimiter);
 
 // Initialize Gemini API
 const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
-const DEFAULT_MODEL = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+const DEFAULT_MODEL = process.env.GEMINI_MODEL || 'gemini-4-hydrogen';
+const HOSTED_MODEL_ALLOWLIST = new Set(['gemini-4-hydrogen', 'gemini-3.5-flash-lite', 'gemma-4-31b-it', 'gemma-4-26b-a4b-it']);
+const NON_SERVER_MODEL_SENTINELS = new Set(['on-device-nano', 'window.ai', 'webgpu', 'demo']);
+const DEPRECATED_MODEL_PREFIXES = ['gemini-2.5-', 'gemini-2.0-', 'gemini-1.5-', 'gemma-2-'];
+const VALID_THINKING_LEVELS = new Set(['minimal', 'low', 'medium', 'high', 'xhigh']);
 
+function hasCustomApiKey(req) {
+  const headerKey = String(req?.headers?.['x-gemini-api-key'] || '').trim();
+  if (headerKey) return true;
+  const reqPath = String(req?.originalUrl || req?.path || '');
+  if (reqPath.startsWith('/api/agent')) {
+    const bearer = String(req?.headers?.authorization || '').replace(/^Bearer\s+/i, '').trim();
+    return Boolean(bearer);
+  }
+  return false;
+}
 
 function getModel(req) {
-  return req?.headers?.['x-gemini-model'] || req?.body?.model || DEFAULT_MODEL;
+  const requested = String(req?.headers?.['x-gemini-model'] || req?.body?.model || '').trim();
+  const lower = requested.toLowerCase();
+  if (!requested || NON_SERVER_MODEL_SENTINELS.has(lower) || lower.startsWith('webgpu:') || lower.startsWith('hf:')) {
+    return DEFAULT_MODEL;
+  }
+  if (DEPRECATED_MODEL_PREFIXES.some(prefix => lower.startsWith(prefix))) {
+    return DEFAULT_MODEL;
+  }
+  if (isLocalModel(requested)) {
+    return requested;
+  }
+  if (!hasCustomApiKey(req) && !HOSTED_MODEL_ALLOWLIST.has(lower)) {
+    return DEFAULT_MODEL;
+  }
+  return requested;
 }
 
 function getTemperature(req, defaultTemp = 0.7) {
@@ -121,17 +182,315 @@ function getTemperature(req, defaultTemp = 0.7) {
   return defaultTemp;
 }
 
-function getThinkingConfig(req) {
-  const thinkingBudget = req?.headers?.['x-gemini-thinking-budget'] || req?.body?.thinkingBudget;
-  if (thinkingBudget !== undefined && thinkingBudget !== null && !isNaN(Number(thinkingBudget))) {
-    const budget = Number(thinkingBudget);
-    if (budget > 0) {
-      return { thinkingConfig: { thinkingBudget: budget } };
-    } else if (budget === 0) {
-      return { thinkingConfig: { thinkingBudget: 0 } };
+function getGenerationConfig(req, model = DEFAULT_MODEL, options = {}) {
+  const rawLevel = String(req?.headers?.['x-gemini-thinking-level'] || req?.body?.thinkingLevel || '').trim().toLowerCase();
+  let level = VALID_THINKING_LEVELS.has(rawLevel) ? rawLevel : '';
+
+  if (!level) {
+    const thinkingBudget = req?.headers?.['x-gemini-thinking-budget'] || req?.body?.thinkingBudget;
+    if (thinkingBudget !== undefined && thinkingBudget !== null && thinkingBudget !== '' && !isNaN(Number(thinkingBudget))) {
+      const budget = Number(thinkingBudget);
+      if (budget > 0 && budget <= 1024) level = 'low';
+      else if (budget > 1024 && budget <= 2048) level = 'medium';
+      else if (budget > 2048) level = 'high';
     }
   }
-  return {};
+
+  if (!level) return undefined;
+
+  const lowerModel = String(model || '').toLowerCase();
+  if (lowerModel.startsWith('gemma-')) {
+    return undefined;
+  }
+  if (lowerModel.startsWith('gemini-4-') && level === 'minimal') {
+    level = 'low';
+  }
+  if (level === 'xhigh' && !lowerModel.includes('hydrogen') && !lowerModel.includes('neon')) {
+    level = 'high';
+  }
+  if (!hasCustomApiKey(req) && !isLocalModel(model)) {
+    if (options.isPipeline && ['medium', 'high', 'xhigh'].includes(level)) {
+      level = 'low';
+    } else if (['high', 'xhigh'].includes(level)) {
+      level = 'medium';
+    }
+  }
+
+  return { thinking_level: level };
+}
+
+const MODEL_PRICING_CATALOG = Object.freeze({
+  'gemini-4-hydrogen': {
+    id: 'gemini-4-hydrogen',
+    label: 'Gemini 4 Hydrogen',
+    inputPer1M: 1.50,
+    outputPer1M: 7.50,
+    cachedInputPer1M: 0.075,
+    freeTierAvailable: true,
+    billingTier: 'cloud-default',
+    notes: 'Default cloud reasoning model via Interactions API; free tier & paid tier.',
+  },
+  'gemini-4-argon': {
+    id: 'gemini-4-argon',
+    label: 'Gemini 4 Argon',
+    inputPer1M: 2.00,
+    outputPer1M: 10.00,
+    cachedInputPer1M: 0.20,
+    freeTierAvailable: false,
+    billingTier: 'cloud-paid-only',
+    scheduledRateChange: {
+      effectiveDate: '2026-12-01',
+      inputPer1M: 4.00,
+      outputPer1M: 20.00,
+      cachedInputPer1M: 0.40,
+    },
+    notes: 'Paid tier only; scheduled 2x rate increase on 2026-12-01 ($4/$20 per 1M).',
+  },
+  'gemini-3.5-flash-lite': {
+    id: 'gemini-3.5-flash-lite',
+    label: 'Gemini 3.5 Flash-Lite',
+    inputPer1M: 0.30,
+    outputPer1M: 2.50,
+    cachedInputPer1M: 0.03,
+    freeTierAvailable: true,
+    billingTier: 'cloud-budget',
+    notes: 'Budget high-throughput cloud model for rapid structured synthesis.',
+  },
+  'gemma-4-31b-it': {
+    id: 'gemma-4-31b-it',
+    label: 'Gemma 4 31B',
+    inputPer1M: 0.00,
+    outputPer1M: 0.00,
+    cachedInputPer1M: 0.00,
+    freeTierAvailable: true,
+    billingTier: 'cloud-open-free',
+    notes: 'Hosted open-weight model via Gemini API with $0 token charges.',
+  },
+  'gemma-4-26b-a4b-it': {
+    id: 'gemma-4-26b-a4b-it',
+    label: 'Gemma 4 26B A4B (MoE)',
+    inputPer1M: 0.00,
+    outputPer1M: 0.00,
+    cachedInputPer1M: 0.00,
+    freeTierAvailable: true,
+    billingTier: 'cloud-open-free',
+    notes: '26B Mixture-of-Experts (3.8B active params) hosted via Gemini API with $0 token charges.',
+  },
+  'on-device-nano': {
+    id: 'on-device-nano',
+    label: 'In-Browser RAM (window.ai)',
+    inputPer1M: 0.00,
+    outputPer1M: 0.00,
+    cachedInputPer1M: 0.00,
+    freeTierAvailable: true,
+    billingTier: 'on-device-ram',
+    notes: 'Runs locally inside browser RAM/NPU via Prompt API or WebGPU; 0 bytes egress.',
+  },
+  ollama: {
+    id: 'ollama',
+    label: 'Workstation Ollama (Local VRAM)',
+    inputPer1M: 0.00,
+    outputPer1M: 0.00,
+    cachedInputPer1M: 0.00,
+    freeTierAvailable: true,
+    billingTier: 'local-vram',
+    notes: 'Runs locally via Ollama daemon (e.g. pivotpulse / Gemma 4); $0 cloud cost.',
+  },
+  demo: {
+    id: 'demo',
+    label: 'Offline Demo Mode',
+    inputPer1M: 0.00,
+    outputPer1M: 0.00,
+    cachedInputPer1M: 0.00,
+    freeTierAvailable: true,
+    billingTier: 'offline-demo',
+    notes: 'Deterministic local preview with zero network or token charges.',
+  },
+});
+
+function resolveModelPricing(modelId, referenceDateIso) {
+  const raw = String(modelId || '').trim();
+  const lower = raw.toLowerCase();
+
+  let spec;
+  if (
+    lower.startsWith('ollama:') ||
+    lower.startsWith('local:') ||
+    lower === 'ollama' ||
+    lower === 'pivotpulse'
+  ) {
+    spec = MODEL_PRICING_CATALOG.ollama;
+  } else if (
+    lower === 'on-device-nano' ||
+    lower === 'window.ai' ||
+    lower === 'webgpu' ||
+    lower === 'chrome-on-device-builtin' ||
+    lower === 'webgpu-active' ||
+    lower.startsWith('webgpu:') ||
+    lower.startsWith('hf:')
+  ) {
+    spec = MODEL_PRICING_CATALOG['on-device-nano'];
+  } else if (lower === 'demo' || lower === 'demo-key-active') {
+    spec = MODEL_PRICING_CATALOG.demo;
+  } else if (MODEL_PRICING_CATALOG[raw]) {
+    spec = MODEL_PRICING_CATALOG[raw];
+  } else if (MODEL_PRICING_CATALOG[lower]) {
+    spec = MODEL_PRICING_CATALOG[lower];
+  } else {
+    spec = MODEL_PRICING_CATALOG['gemini-4-hydrogen'];
+  }
+
+  const refDate = (referenceDateIso || new Date().toISOString()).slice(0, 10);
+  const scheduled = spec.scheduledRateChange;
+  const isScheduledRateActive = Boolean(scheduled && refDate >= scheduled.effectiveDate);
+
+  return {
+    ...spec,
+    effectiveInputPer1M: isScheduledRateActive && scheduled ? scheduled.inputPer1M : spec.inputPer1M,
+    effectiveOutputPer1M: isScheduledRateActive && scheduled ? scheduled.outputPer1M : spec.outputPer1M,
+    effectiveCachedInputPer1M:
+      isScheduledRateActive && scheduled ? scheduled.cachedInputPer1M : spec.cachedInputPer1M,
+    isScheduledRateActive,
+  };
+}
+
+function estimateUsageCostUsd(modelId, usage, referenceDateIso) {
+  const rate = resolveModelPricing(modelId, referenceDateIso);
+  const inputTokens = Math.max(0, Number(usage?.inputTokens) || 0);
+  const outputTokens = Math.max(0, Number(usage?.outputTokens) || 0);
+  const thoughtTokens = Math.max(0, Number(usage?.thoughtTokens) || 0);
+  const cachedTokens = Math.max(0, Math.min(inputTokens, Number(usage?.cachedTokens) || 0));
+
+  const uncachedInput = Math.max(0, inputTokens - cachedTokens);
+  const billableOutput = outputTokens + thoughtTokens;
+
+  const cost =
+    (uncachedInput * rate.effectiveInputPer1M +
+      cachedTokens * rate.effectiveCachedInputPer1M +
+      billableOutput * rate.effectiveOutputPer1M) /
+    1_000_000;
+
+  return Math.round(cost * 1e8) / 1e8;
+}
+
+function extractGeminiUsage(interactionOrUsage, fallbackInputChars = 0, fallbackOutputChars = 0) {
+  const rawUsage = interactionOrUsage?.usage || interactionOrUsage;
+  if (
+    rawUsage &&
+    typeof rawUsage === 'object' &&
+    (rawUsage.total_input_tokens !== undefined ||
+      rawUsage.total_output_tokens !== undefined ||
+      rawUsage.total_tokens !== undefined ||
+      rawUsage.promptTokenCount !== undefined)
+  ) {
+    const inputTokens = Math.max(0, Number(rawUsage.total_input_tokens ?? rawUsage.promptTokenCount ?? 0));
+    const outputTokens = Math.max(0, Number(rawUsage.total_output_tokens ?? rawUsage.responseTokenCount ?? 0));
+    const thoughtTokens = Math.max(0, Number(rawUsage.total_thought_tokens ?? rawUsage.thoughtsTokenCount ?? 0));
+    const cachedTokens = Math.max(0, Number(rawUsage.total_cached_tokens ?? rawUsage.cachedContentTokenCount ?? 0));
+    const totalTokens = Math.max(
+      0,
+      Number(rawUsage.total_tokens ?? rawUsage.totalTokenCount ?? (inputTokens + outputTokens + thoughtTokens))
+    );
+    return {
+      inputTokens,
+      outputTokens,
+      thoughtTokens,
+      cachedTokens,
+      totalTokens,
+      estimated: false,
+    };
+  }
+
+  const inputTokens = Math.max(0, Math.ceil((Number(fallbackInputChars) || 0) / 4));
+  const outputTokens = Math.max(0, Math.ceil((Number(fallbackOutputChars) || 0) / 4));
+  return {
+    inputTokens,
+    outputTokens,
+    thoughtTokens: 0,
+    cachedTokens: 0,
+    totalTokens: inputTokens + outputTokens,
+    estimated: true,
+  };
+}
+
+function extractOllamaUsage(data, fallbackInputChars = 0, fallbackOutputChars = 0) {
+  if (
+    data &&
+    typeof data === 'object' &&
+    (typeof data.prompt_eval_count === 'number' || typeof data.eval_count === 'number')
+  ) {
+    const inputTokens = Math.max(0, Number(data.prompt_eval_count) || 0);
+    const outputTokens = Math.max(0, Number(data.eval_count) || 0);
+    return {
+      inputTokens,
+      outputTokens,
+      thoughtTokens: 0,
+      cachedTokens: 0,
+      totalTokens: inputTokens + outputTokens,
+      estimated: false,
+    };
+  }
+
+  const inputTokens = Math.max(0, Math.ceil((Number(fallbackInputChars) || 0) / 4));
+  const outputTokens = Math.max(0, Math.ceil((Number(fallbackOutputChars) || 0) / 4));
+  return {
+    inputTokens,
+    outputTokens,
+    thoughtTokens: 0,
+    cachedTokens: 0,
+    totalTokens: inputTokens + outputTokens,
+    estimated: true,
+  };
+}
+
+function buildUsageReceipt({
+  endpoint,
+  model,
+  req = null,
+  usage,
+  thinkingLevel = undefined,
+  callCount = 1,
+  phases = undefined,
+}) {
+  const rate = resolveModelPricing(model);
+  const billingSource = isLocalModel(model)
+    ? 'local-ollama'
+    : (hasCustomApiKey(req) ? 'byok' : 'hosted');
+  const resolvedThinking = thinkingLevel ?? getGenerationConfig(req, model)?.thinking_level;
+  const inputTokens = Math.max(0, Number(usage?.inputTokens) || 0);
+  const outputTokens = Math.max(0, Number(usage?.outputTokens) || 0);
+  const thoughtTokens = Math.max(0, Number(usage?.thoughtTokens) || 0);
+  const cachedTokens = Math.max(0, Number(usage?.cachedTokens) || 0);
+  const totalTokens = Math.max(0, Number(usage?.totalTokens) || (inputTokens + outputTokens + thoughtTokens));
+
+  return {
+    endpoint,
+    model,
+    billingSource,
+    billingTier: rate.billingTier,
+    ...(resolvedThinking ? { thinkingLevel: resolvedThinking } : {}),
+    inputTokens,
+    outputTokens,
+    thoughtTokens,
+    cachedTokens,
+    totalTokens,
+    estimatedCostUsd: estimateUsageCostUsd(model, {
+      inputTokens,
+      outputTokens,
+      thoughtTokens,
+      cachedTokens,
+    }),
+    estimated: Boolean(usage?.estimated),
+    callCount: Math.max(1, Number(callCount) || 1),
+    timestamp: new Date().toISOString(),
+    ...(Array.isArray(phases) ? { phases } : {}),
+  };
+}
+
+function attachUsageHeader(res, receipt) {
+  if (!res || !receipt || res.headersSent) return;
+  const serialized = JSON.stringify(receipt).replace(/[^\x20-\x7E]/g, '');
+  res.setHeader('X-Token-Usage', serialized);
 }
 
 function formatContents(prompt, image) {
@@ -140,13 +499,36 @@ function formatContents(prompt, image) {
   }
   return [
     {
-      inlineData: {
-        mimeType: image.mimeType,
-        data: image.data,
-      },
+      type: 'image',
+      data: image.data,
+      mime_type: image.mimeType,
     },
-    prompt,
+    {
+      type: 'text',
+      text: prompt,
+    },
   ];
+}
+
+function extractInteractionText(interaction) {
+  if (!interaction) return '';
+  if (typeof interaction.output_text === 'string' && interaction.output_text.trim()) {
+    return interaction.output_text;
+  }
+  if (Array.isArray(interaction.steps)) {
+    const parts = [];
+    for (const step of interaction.steps) {
+      if (step?.type === 'model_output' && Array.isArray(step.content)) {
+        for (const block of step.content) {
+          if (block?.type === 'text' && typeof block.text === 'string') {
+            parts.push(block.text);
+          }
+        }
+      }
+    }
+    return parts.join('');
+  }
+  return '';
 }
 
 const SUPPORTED_LANGUAGES = {
@@ -347,29 +729,6 @@ function checkPreFlightSafety(text, req = null) {
   return null;
 }
 
-const SAFETY_SETTINGS = [
-  {
-    category: 'HARM_CATEGORY_HARASSMENT',
-    threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-  },
-  {
-    category: 'HARM_CATEGORY_HATE_SPEECH',
-    threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-  },
-  {
-    category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
-    threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-  },
-  {
-    category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
-    threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-  },
-  {
-    category: 'HARM_CATEGORY_CIVIC_INTEGRITY',
-    threshold: 'BLOCK_MEDIUM_AND_ABOVE'
-  }
-];
-
 function isLocalModel(model) {
   return typeof model === 'string' && (model.startsWith('ollama:') || model.startsWith('local:'));
 }
@@ -445,21 +804,83 @@ async function prewarmLocalModel(modelName = 'pivotpulse', req = null) {
   }
 }
 
-async function generateJsonFromLocalOllama(modelName, prompt, systemInstruction, req = null) {
+function convertGenAiSchemaNode(schema, options = {}, isNestedProperty = false) {
+  if (!schema || typeof schema !== 'object') return schema;
+  const typeMap = {
+    OBJECT: 'object',
+    ARRAY: 'array',
+    STRING: 'string',
+    NUMBER: 'number',
+    INTEGER: 'integer',
+    BOOLEAN: 'boolean',
+  };
+  const rawType = schema.type;
+  const normalizedType = typeMap[rawType] || (typeof rawType === 'string' ? rawType.toLowerCase() : undefined);
+
+  const out = {};
+  if (normalizedType) out.type = normalizedType;
+  if (schema.description) out.description = schema.description;
+  if (Array.isArray(schema.enum)) out.enum = schema.enum;
+  if (Array.isArray(schema.required)) out.required = schema.required;
+
+  if (schema.properties && typeof schema.properties === 'object') {
+    out.properties = {};
+    for (const [key, val] of Object.entries(schema.properties)) {
+      out.properties[key] = convertGenAiSchemaNode(val, options, true);
+    }
+  }
+
+  if (schema.items) {
+    out.items = convertGenAiSchemaNode(schema.items, options, false);
+  }
+
+  if (normalizedType === 'array' && isNestedProperty && options.itemArrayMinItems) {
+    out.minItems = options.itemArrayMinItems;
+  }
+
+  return out;
+}
+
+function convertGenAiSchemaToJsonSchema(schema, options = {}) {
+  if (!schema) return 'json';
+  const converted = convertGenAiSchemaNode(schema, options, false);
+  if (converted && converted.type === 'array') {
+    return {
+      type: 'object',
+      properties: {
+        results: {
+          ...converted,
+          ...(options.minItems ? { minItems: options.minItems } : {}),
+        },
+      },
+      required: ['results'],
+    };
+  }
+  return converted;
+}
+
+async function generateTextFromLocalOllamaWithUsage(modelName, prompt, systemInstruction, req = null, format = undefined, defaultTemp = 0.55) {
   const localModel = modelName.replace(/^(ollama:|local:)/, '');
   const url = `${getOllamaUrl(req)}/api/generate`;
+
+  const payload = {
+    model: localModel,
+    prompt,
+    stream: false,
+    keep_alive: -1,
+    options: { temperature: getTemperature(req, defaultTemp) }
+  };
+  if (systemInstruction) {
+    payload.system = systemInstruction;
+  }
+  if (format !== undefined) {
+    payload.format = format;
+  }
 
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: localModel,
-      prompt: `${systemInstruction ? systemInstruction + '\n\n' : ''}${prompt}`,
-      format: 'json',
-      stream: false,
-      keep_alive: -1,
-      options: { temperature: getTemperature(req, 0.55) }
-    })
+    body: JSON.stringify(payload)
   });
 
   if (!response.ok) {
@@ -467,28 +888,108 @@ async function generateJsonFromLocalOllama(modelName, prompt, systemInstruction,
   }
 
   const data = await response.json();
-  try {
-    return JSON.parse(data.response);
-  } catch (err) {
-    const cleaned = cleanJsonString(data.response);
-    return JSON.parse(cleaned);
-  }
+  const text = data.response || '';
+  const usage = extractOllamaUsage(
+    data,
+    (prompt?.length || 0) + (systemInstruction?.length || 0),
+    text.length
+  );
+  return { text, usage };
 }
 
-async function streamFromLocalOllama(modelName, prompt, systemInstruction, res, req = null) {
+async function generateTextFromLocalOllama(modelName, prompt, systemInstruction, req = null, format = undefined, defaultTemp = 0.55) {
+  const { text } = await generateTextFromLocalOllamaWithUsage(modelName, prompt, systemInstruction, req, format, defaultTemp);
+  return text;
+}
+
+async function generateJsonFromLocalOllamaWithUsage(modelName, prompt, systemInstruction, req = null, schema = null, schemaOptions = {}) {
+  const format = schema ? convertGenAiSchemaToJsonSchema(schema, schemaOptions) : 'json';
+  const wasTopLevelArray = Boolean(schema && String(schema.type).toLowerCase() === 'array');
+  const { text: rawResponse, usage } = await generateTextFromLocalOllamaWithUsage(modelName, prompt, systemInstruction, req, format, 0.55);
+
+  let parsed;
+  try {
+    parsed = JSON.parse(rawResponse);
+  } catch {
+    const cleaned = cleanJsonString(rawResponse);
+    parsed = JSON.parse(cleaned);
+  }
+
+  if (wasTopLevelArray && parsed && !Array.isArray(parsed) && Array.isArray(parsed.results)) {
+    return { data: parsed.results, usage };
+  }
+  return { data: parsed, usage };
+}
+
+async function generateJsonFromLocalOllama(modelName, prompt, systemInstruction, req = null, schema = null, schemaOptions = {}) {
+  const { data } = await generateJsonFromLocalOllamaWithUsage(modelName, prompt, systemInstruction, req, schema, schemaOptions);
+  return data;
+}
+
+async function generateJsonWithUsage({
+  targetModel,
+  genAI,
+  prompt,
+  contents = prompt,
+  systemInstruction = undefined,
+  schema,
+  req = null,
+  schemaOptions = {},
+  isPipeline = false,
+}) {
+  if (isLocalModel(targetModel)) {
+    const ollamaPrompt = (schema && String(schema.type).toLowerCase() === 'array')
+      ? `${prompt}\n\nNote: Wrap the output array under a top-level "results" JSON object property: {"results": [...]}.`
+      : prompt;
+    return await generateJsonFromLocalOllamaWithUsage(targetModel, ollamaPrompt, systemInstruction, req, schema, schemaOptions);
+  }
+
+  const generationConfig = getGenerationConfig(req, targetModel, { isPipeline });
+  const interaction = await genAI.interactions.create({
+    model: targetModel,
+    input: contents,
+    ...(systemInstruction ? { system_instruction: systemInstruction } : {}),
+    response_format: {
+      type: 'text',
+      mime_type: 'application/json',
+      schema,
+    },
+    store: false,
+    ...(generationConfig ? { generation_config: generationConfig } : {}),
+  });
+  const rawText = extractInteractionText(interaction);
+  const data = JSON.parse(cleanJsonString(rawText));
+  const fallbackInputChars = (typeof contents === 'string' ? contents.length : (prompt?.length || 0)) + (systemInstruction?.length || 0);
+  const usage = extractGeminiUsage(interaction, fallbackInputChars, rawText.length);
+  return { data, usage };
+}
+
+async function generateJsonResponse(params) {
+  const { data } = await generateJsonWithUsage(params);
+  return data;
+}
+
+async function streamFromLocalOllama(modelName, prompt, systemInstruction, res, req = null, schema = null, schemaOptions = {}, endpoint = '/api/insights') {
   const localModel = modelName.replace(/^(ollama:|local:)/, '');
   const ollamaUrl = getOllamaUrl(req);
-  
+  const format = schema ? convertGenAiSchemaToJsonSchema(schema, schemaOptions) : 'json';
+
+  const payload = {
+    model: localModel,
+    prompt,
+    format,
+    stream: true,
+    keep_alive: -1,
+    options: { temperature: getTemperature(req, 0.55) }
+  };
+  if (systemInstruction) {
+    payload.system = systemInstruction;
+  }
+
   const response = await fetch(`${ollamaUrl}/api/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: localModel,
-      prompt: `${systemInstruction ? systemInstruction + '\n\n' : ''}${prompt}`,
-      format: 'json',
-      stream: true,
-      keep_alive: -1
-    })
+    body: JSON.stringify(payload)
   });
 
   if (!response.ok) {
@@ -497,23 +998,58 @@ async function streamFromLocalOllama(modelName, prompt, systemInstruction, res, 
 
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
+  let ndjsonBuffer = '';
+  let streamedChars = 0;
+  let finalOllamaStats = null;
+
+  const processLine = (line) => {
+    const trimmed = line.trim();
+    if (!trimmed) return;
+    let parsed;
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch {
+      return;
+    }
+    if (parsed.error) {
+      throw new Error(parsed.error);
+    }
+    if (parsed.response) {
+      streamedChars += parsed.response.length;
+      res.write(`data: ${JSON.stringify({ text: parsed.response })}\n\n`);
+    }
+    if (parsed.done) {
+      finalOllamaStats = parsed;
+    }
+  };
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
-    const chunk = decoder.decode(value, { stream: true });
-    const lines = chunk.split('\n').filter(Boolean);
+    ndjsonBuffer += decoder.decode(value, { stream: true });
+    const lines = ndjsonBuffer.split(/\r?\n/);
+    ndjsonBuffer = lines.pop() ?? '';
     for (const line of lines) {
-      try {
-        const parsed = JSON.parse(line);
-        if (parsed.response) {
-          res.write(`data: ${JSON.stringify({ text: parsed.response })}\n\n`);
-        }
-      } catch (e) {
-        // ignore incomplete JSON fragment
-      }
+      processLine(line);
     }
   }
+  ndjsonBuffer += decoder.decode();
+  if (ndjsonBuffer.trim()) {
+    processLine(ndjsonBuffer);
+  }
+
+  const usage = extractOllamaUsage(
+    finalOllamaStats,
+    (prompt?.length || 0) + (systemInstruction?.length || 0),
+    streamedChars
+  );
+  const receipt = buildUsageReceipt({
+    endpoint,
+    model: modelName,
+    req,
+    usage,
+  });
+  res.write(`data: ${JSON.stringify({ usage: receipt })}\n\n`);
 }
 
 function getCleanErrorMessage(error) {
@@ -549,6 +1085,28 @@ function getCleanErrorMessage(error) {
 app.get('/api/config', (req, res) => {
   res.json({
     googleClientId: process.env.GOOGLE_CLIENT_ID || null
+  });
+});
+
+// Read-only cost & compute transparency catalog
+app.get('/api/transparency/pricing', (req, res) => {
+  res.json({
+    updatedAt: '2026-11-23',
+    currency: 'USD',
+    unit: 'per_1m_tokens',
+    defaultModel: DEFAULT_MODEL,
+    hostedKeyPolicy: {
+      allowedModels: [...HOSTED_MODEL_ALLOWLIST],
+      maxThinkingLevel: 'medium',
+      pipelineMaxThinkingLevel: 'low',
+      byokUnlocksAllTiers: true,
+    },
+    infrastructure: {
+      architecture: 'Static CDN + Stateless Scale-to-Zero Serverless Proxy',
+      storageRetention: 'zero-disk-stateless',
+      rateLimiting: 'enforced',
+    },
+    models: MODEL_PRICING_CATALOG,
   });
 });
 
@@ -589,7 +1147,7 @@ app.get('/api/export/parquet', (req, res) => {
 
 // API Endpoints
 app.post('/api/structure', [
-  body('problem').isString().trim().escape().notEmpty(),
+  body('problem').isString().trim().notEmpty(),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -614,43 +1172,43 @@ app.post('/api/structure', [
     }
     
     const schema = {
-        type: Type.OBJECT,
+        type: 'object',
         properties: {
           title: { 
-            type: Type.STRING, 
+            type: 'string', 
             description: 'A concise, 3-5 word title for this health goal. Example: "Managing Post-Op Knee Pain".'
           },
           condition: {
-            type: Type.STRING,
+            type: 'string',
             description: "The primary health condition being addressed, stated in simple terms. Example: 'Post-operative recovery from knee surgery'."
           },
           goal: {
-            type: Type.STRING,
+            type: 'string',
             description: "The main desired outcome or goal for the person. Example: 'To achieve 90 degrees of knee flexion and walk 100 feet without assistance within 2 weeks'."
           },
           barriers: {
-            type: Type.ARRAY,
-            items: { type: Type.STRING },
+            type: 'array',
+            items: { type: 'string' },
             description: "A list of 2-3 potential barriers or challenges to achieving the goal, as identified from the input. Example: ['Fear of movement', 'Limited access to physical therapy', 'History of slow healing']."
           },
           dsrp: {
-            type: Type.OBJECT,
+            type: 'object',
             description: "DSRP 4-Quadrant Systems Thinking breakdown of the health goal.",
             properties: {
               identityDistinctions: {
-                type: Type.STRING,
+                type: 'string',
                 description: "Distinctions (D): 'The Patient is Not the Pathology'. Unaffected human identity, lifelong passions, and core assets separate from the symptom (e.g. musician, avid gardener, grandparent) to fuel recovery."
               },
               systemicEcosystem: {
-                type: Type.STRING,
+                type: 'string',
                 description: "Systems (S): 'The Ecosystem of Recovery'. Map whole-person physiology: sleep architecture, autonomic pacing (vagal tone), circadian rhythms, and living room floor dynamics."
               },
               relationalBridge: {
-                type: Type.STRING,
+                type: 'string',
                 description: "Relationships (R): 'The Relational Care Bridge'. How spouse, children, chosen family, and caregiver respite partners break the pain-fear-immobility loop through shared micro-interventions."
               },
               triadPerspectives: {
-                type: Type.STRING,
+                type: 'string',
                 description: "Perspectives (P): 'The Triad Perspective Shift'. Triangulate 3 lenses: 1) Clinician (biomechanics & safe tissue remodeling), 2) Patient (pain fatigue & morning anxiety), 3) Future Self (walking joy 6 months out)."
               }
             },
@@ -680,25 +1238,23 @@ app.post('/api/structure', [
         ${getLanguageInstruction(req)}
     `;
 
-    if (isLocalModel(targetModel)) {
-      const result = await generateJsonFromLocalOllama(targetModel, prompt, HIPAA_SYSTEM_INSTRUCTION, req);
-      return res.json(result);
-    }
-
-    const response = await genAI.models.generateContent({
-        model: getModel(req),
-        contents: formatContents(prompt, req.body.image),
-        config: {
-          systemInstruction: HIPAA_SYSTEM_INSTRUCTION,
-          responseMimeType: 'application/json',
-          responseSchema: schema,
-          temperature: getTemperature(req, 0.2),
-          safetySettings: SAFETY_SETTINGS,
-          ...getThinkingConfig(req)
-        }
+    const { data: result, usage } = await generateJsonWithUsage({
+      targetModel,
+      genAI,
+      prompt,
+      contents: formatContents(prompt, req.body.image),
+      systemInstruction: HIPAA_SYSTEM_INSTRUCTION,
+      schema,
+      req,
     });
 
-    res.json(JSON.parse(response.text));
+    attachUsageHeader(res, buildUsageReceipt({
+      endpoint: '/api/structure',
+      model: targetModel,
+      req,
+      usage,
+    }));
+    res.json(result);
   } catch (error) {
     console.error('Error in /api/structure:', error);
     res.status(500).json({ error: getCleanErrorMessage(error) });
@@ -706,11 +1262,11 @@ app.post('/api/structure', [
 });
 
 app.post('/api/insights', [
-  body('problem').isString().trim().escape().notEmpty(),
+  body('problem').isString().trim().notEmpty(),
   body('strategies').isArray().notEmpty(),
-  body('mode').optional().isString().trim().escape(),
-  body('gist').optional().isString().trim().escape(),
-  body('healthSnapshot').optional().isString().trim().escape(),
+  body('mode').optional().isString().trim(),
+  body('gist').optional().isString().trim(),
+  body('healthSnapshot').optional().isString().trim(),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -739,23 +1295,23 @@ app.post('/api/insights', [
     }
     
     const insightsSchema = {
-      type: Type.ARRAY,
+      type: 'array',
       items: {
-        type: Type.OBJECT,
+        type: 'object',
         properties: {
-          strategyName: { type: Type.STRING },
+          strategyName: { type: 'string' },
           insights: {
-            type: Type.ARRAY,
+            type: 'array',
             items: {
-              type: Type.OBJECT,
+              type: 'object',
               properties: {
                 text: {
-                  type: Type.STRING,
+                  type: 'string',
                   description: 'The creative insight or idea.'
                 },
                 ...(mode === 'care' && {
                   influence: {
-                    type: Type.STRING,
+                    type: 'string',
                     description: "A brief summary of the insight's supportive impact on the person's well-being or key health indicators."
                   }
                 })
@@ -809,7 +1365,9 @@ app.post('/api/insights', [
       ` : ''}
       ${req.headers['x-brand-steering'] ? `\n      **6-Axis Calibrator Steering Directive:**\n      ${String(req.headers['x-brand-steering']).slice(0, 400)}\n` : ''}
       ${req.headers['x-synergy-bridge'] ? `\n      **Smart Synergy Triad Bridge:**\n      ${String(req.headers['x-synergy-bridge']).slice(0, 400)}\n` : ''}
-      Return the output strictly as a JSON array of objects, with one object for each strategy, matching the schema.
+      Return the output strictly as a JSON array matching this shape (one entry for every strategy above):
+      [{"strategyName": "<exact strategy name>", "insights": [{"text": "..."${mode === 'care' ? ', "influence": "..."' : ''}}]}]
+      ${isLocalModel(targetModel) ? `Populate the "results" array with one entry per strategy (${strategies.length} total), each with 2-3 specific, practical insights.` : ''}
       ${getLanguageInstruction(req)}
     `;
 
@@ -820,26 +1378,50 @@ app.post('/api/insights', [
     const systemInstruction = mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : CIVIC_NEUTRALITY_INSTRUCTION;
 
     if (isLocalModel(targetModel)) {
-      await streamFromLocalOllama(targetModel, prompt, systemInstruction, res, req);
+      await streamFromLocalOllama(targetModel, prompt, systemInstruction, res, req, insightsSchema, {
+        minItems: strategies.length,
+        itemArrayMinItems: 2
+      }, '/api/insights');
     } else {
-      const responseStream = await genAI.models.generateContentStream({
-          model: targetModel,
-          contents: formatContents(prompt, req.body.image),
-          config: {
-            systemInstruction,
-            responseMimeType: 'application/json',
-            responseSchema: insightsSchema,
-            temperature: getTemperature(req, 0.65),
-            safetySettings: SAFETY_SETTINGS,
-            ...getThinkingConfig(req)
-          }
+      const generationConfig = getGenerationConfig(req, targetModel);
+      const responseStream = await genAI.interactions.create({
+        model: targetModel,
+        input: formatContents(prompt, req.body.image),
+        system_instruction: systemInstruction,
+        response_format: {
+          type: 'text',
+          mime_type: 'application/json',
+          schema: insightsSchema,
+        },
+        store: false,
+        stream: true,
+        ...(generationConfig ? { generation_config: generationConfig } : {}),
       });
 
-      for await (const chunk of responseStream) {
-        if (chunk.text) {
-          res.write(`data: ${JSON.stringify({ text: chunk.text })}\n\n`);
+      let geminiUsageRaw = null;
+      let streamedChars = 0;
+
+      for await (const event of responseStream) {
+        if (event.event_type === 'step.delta' && event.delta?.type === 'text' && event.delta.text) {
+          streamedChars += event.delta.text.length;
+          res.write(`data: ${JSON.stringify({ text: event.delta.text })}\n\n`);
+        } else if (event.event_type === 'interaction.completed' && event.interaction?.usage) {
+          geminiUsageRaw = event.interaction.usage;
         }
       }
+
+      const usage = extractGeminiUsage(
+        geminiUsageRaw,
+        prompt.length + (systemInstruction?.length || 0),
+        streamedChars
+      );
+      const receipt = buildUsageReceipt({
+        endpoint: '/api/insights',
+        model: targetModel,
+        req,
+        usage,
+      });
+      res.write(`data: ${JSON.stringify({ usage: receipt })}\n\n`);
     }
 
     res.write('data: [DONE]\n\n');
@@ -856,7 +1438,7 @@ app.post('/api/insights', [
 });
 
 app.post('/api/care-plan', [
-  body('problem').isString().trim().escape().notEmpty(),
+  body('problem').isString().trim().notEmpty(),
   body('insights').isArray().notEmpty(),
 ], async (req, res) => {
   try {
@@ -885,16 +1467,16 @@ app.post('/api/care-plan', [
     }
     
     const carePlanSchema = {
-      type: Type.OBJECT,
+      type: 'object',
       properties: {
-          personGoal: { type: Type.STRING, description: "A concise summary of the primary person's goal, stated in a positive and empowering way." },
-          keyInterventions: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of 2-3 key interventions or actions for the support plan." },
-          monitoringPlan: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of 2-3 items for the person or supporter to monitor." },
-          guidanceAndEducation: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of 2-3 educational points for the person, explained simply." },
-          positiveAchievements: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of 2-3 encouraging achievements or potential milestones to celebrate and motivate the person." },
-          recommendations: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of 2-3 next-step recommendations for the supporter or person, framed positively." },
-          transitionChecklist: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of 2-3 critical transition closure checks (e.g. 72h post-acute/stage-change handoffs, medication reconciliation, hazard checks)." },
-          respiteClosureChecklist: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of 2-3 weekly caregiver respite safeguards and handoff checkpoints to ensure primary caregiver relief." }
+          personGoal: { type: 'string', description: "A concise summary of the primary person's goal, stated in a positive and empowering way." },
+          keyInterventions: { type: 'array', items: { type: 'string' }, description: "List of 2-3 key interventions or actions for the support plan." },
+          monitoringPlan: { type: 'array', items: { type: 'string' }, description: "List of 2-3 items for the person or supporter to monitor." },
+          guidanceAndEducation: { type: 'array', items: { type: 'string' }, description: "List of 2-3 educational points for the person, explained simply." },
+          positiveAchievements: { type: 'array', items: { type: 'string' }, description: "List of 2-3 encouraging achievements or potential milestones to celebrate and motivate the person." },
+          recommendations: { type: 'array', items: { type: 'string' }, description: "List of 2-3 next-step recommendations for the supporter or person, framed positively." },
+          transitionChecklist: { type: 'array', items: { type: 'string' }, description: "List of 2-3 critical transition closure checks (e.g. 72h post-acute/stage-change handoffs, medication reconciliation, hazard checks)." },
+          respiteClosureChecklist: { type: 'array', items: { type: 'string' }, description: "List of 2-3 weekly caregiver respite safeguards and handoff checkpoints to ensure primary caregiver relief." }
       },
       required: ["personGoal", "keyInterventions", "monitoringPlan", "guidanceAndEducation", "positiveAchievements", "recommendations", "transitionChecklist", "respiteClosureChecklist"]
     };
@@ -921,25 +1503,22 @@ app.post('/api/care-plan', [
         ${getLanguageInstruction(req)}
       `;
 
-    if (isLocalModel(targetModel)) {
-      const result = await generateJsonFromLocalOllama(targetModel, prompt, HIPAA_SYSTEM_INSTRUCTION, req);
-      return res.json(result);
-    }
-
-    const response = await genAI.models.generateContent({
-        model: getModel(req),
-        contents: prompt,
-        config: {
-          systemInstruction: HIPAA_SYSTEM_INSTRUCTION,
-          responseMimeType: 'application/json',
-          responseSchema: carePlanSchema,
-          temperature: getTemperature(req, 0.6),
-          safetySettings: SAFETY_SETTINGS,
-          ...getThinkingConfig(req)
-        }
+    const { data: result, usage } = await generateJsonWithUsage({
+      targetModel,
+      genAI,
+      prompt,
+      systemInstruction: HIPAA_SYSTEM_INSTRUCTION,
+      schema: carePlanSchema,
+      req,
     });
 
-    res.json(JSON.parse(response.text));
+    attachUsageHeader(res, buildUsageReceipt({
+      endpoint: '/api/care-plan',
+      model: targetModel,
+      req,
+      usage,
+    }));
+    res.json(result);
   } catch (error) {
     console.error('Error in /api/care-plan:', error);
     res.status(500).json({ error: getCleanErrorMessage(error) });
@@ -947,7 +1526,7 @@ app.post('/api/care-plan', [
 });
 
 app.post('/api/creative-plan', [
-  body('problem').isString().trim().escape().notEmpty(),
+  body('problem').isString().trim().notEmpty(),
   body('insights').isArray().notEmpty(),
 ], async (req, res) => {
   try {
@@ -976,14 +1555,14 @@ app.post('/api/creative-plan', [
     }
     
     const creativePlanSchema = {
-      type: Type.OBJECT,
+      type: 'object',
       properties: {
-          conceptualGoal: { type: Type.STRING, description: "A concise summary of the primary conceptual goal of this action plan." },
-          criticalPath: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Sequential, numbered steps representing the critical implementation path." },
-          riskAssessment: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of key failure modes, bottlenecks, or constraints to look out for." },
-          requiredResources: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Essential tools, skills, team members, or other dependencies needed." },
-          milestones: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Key milestones or measurable checkpoints to track progress." },
-          nextSteps: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Immediate logical next steps or actions to execute right away." }
+          conceptualGoal: { type: 'string', description: "A concise summary of the primary conceptual goal of this action plan." },
+          criticalPath: { type: 'array', items: { type: 'string' }, description: "Sequential, numbered steps representing the critical implementation path." },
+          riskAssessment: { type: 'array', items: { type: 'string' }, description: "List of key failure modes, bottlenecks, or constraints to look out for." },
+          requiredResources: { type: 'array', items: { type: 'string' }, description: "Essential tools, skills, team members, or other dependencies needed." },
+          milestones: { type: 'array', items: { type: 'string' }, description: "Key milestones or measurable checkpoints to track progress." },
+          nextSteps: { type: 'array', items: { type: 'string' }, description: "Immediate logical next steps or actions to execute right away." }
       },
       required: ["conceptualGoal", "criticalPath", "riskAssessment", "requiredResources", "milestones", "nextSteps"]
     };
@@ -1007,25 +1586,22 @@ app.post('/api/creative-plan', [
         ${getLanguageInstruction(req)}
       `;
 
-    if (isLocalModel(targetModel)) {
-      const result = await generateJsonFromLocalOllama(targetModel, prompt, CIVIC_NEUTRALITY_INSTRUCTION, req);
-      return res.json(result);
-    }
-
-    const response = await genAI.models.generateContent({
-        model: getModel(req),
-        contents: prompt,
-        config: {
-          systemInstruction: CIVIC_NEUTRALITY_INSTRUCTION,
-          responseMimeType: 'application/json',
-          responseSchema: creativePlanSchema,
-          temperature: getTemperature(req, 0.5),
-          safetySettings: SAFETY_SETTINGS,
-          ...getThinkingConfig(req)
-        }
+    const { data: result, usage } = await generateJsonWithUsage({
+      targetModel,
+      genAI,
+      prompt,
+      systemInstruction: CIVIC_NEUTRALITY_INSTRUCTION,
+      schema: creativePlanSchema,
+      req,
     });
 
-    res.json(JSON.parse(response.text));
+    attachUsageHeader(res, buildUsageReceipt({
+      endpoint: '/api/creative-plan',
+      model: targetModel,
+      req,
+      usage,
+    }));
+    res.json(result);
   } catch (error) {
     console.error('Error in /api/creative-plan:', error);
     res.status(500).json({ error: getCleanErrorMessage(error) });
@@ -1044,10 +1620,11 @@ app.post('/api/translate', [
       return res.status(400).json({ errors: errors.array() });
     }
 
+    const targetModel = getModel(req);
     const customApiKey = req.headers['x-gemini-api-key'];
     const genAI = customApiKey ? new GoogleGenAI({ apiKey: customApiKey }) : ai;
-    if (!genAI) {
-      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or contact the administrator.' });
+    if (!genAI && !isLocalModel(targetModel)) {
+      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or switch to a local model.' });
     }
 
     const { content, targetLanguage, contentType } = req.body;
@@ -1070,28 +1647,41 @@ app.post('/api/translate', [
       ${contentStr}
     `;
 
-    const config = {
-      temperature: 0.2,
-      safetySettings: SAFETY_SETTINGS,
-      ...(isJson ? { responseMimeType: 'application/json' } : {}),
-      ...getThinkingConfig(req)
-    };
+    let rawText = '';
+    let usage;
+    if (isLocalModel(targetModel)) {
+      const localRes = await generateTextFromLocalOllamaWithUsage(targetModel, prompt, '', req, isJson ? 'json' : undefined, 0.2);
+      rawText = localRes.text;
+      usage = localRes.usage;
+    } else {
+      const generationConfig = getGenerationConfig(req, targetModel);
+      const interaction = await genAI.interactions.create({
+        model: targetModel,
+        input: prompt,
+        store: false,
+        ...(isJson ? { response_format: { type: 'text', mime_type: 'application/json' } } : {}),
+        ...(generationConfig ? { generation_config: generationConfig } : {}),
+      });
+      rawText = extractInteractionText(interaction);
+      usage = extractGeminiUsage(interaction, prompt.length, rawText.length);
+    }
 
-    const response = await genAI.models.generateContent({
-      model: getModel(req),
-      contents: prompt,
-      config
-    });
+    attachUsageHeader(res, buildUsageReceipt({
+      endpoint: '/api/translate',
+      model: targetModel,
+      req,
+      usage,
+    }));
 
     if (isJson) {
       try {
-        return res.json({ translated: JSON.parse(response.text) });
+        return res.json({ translated: JSON.parse(cleanJsonString(rawText)) });
       } catch {
-        return res.json({ translatedText: response.text });
+        return res.json({ translatedText: rawText });
       }
     }
 
-    res.json({ translatedText: response.text.trim() });
+    res.json({ translatedText: rawText.trim() });
   } catch (error) {
     console.error('Error in /api/translate:', error);
     res.status(500).json({ error: getCleanErrorMessage(error) });
@@ -1155,15 +1745,18 @@ app.get('/api/agents', (req, res) => {
 
 // POST /api/agent/select — Meta-agent auto-strategy selection
 app.post('/api/agent/select', [
-  body('problem').isString().trim().escape().notEmpty(),
-  body('mode').optional().isString().trim().escape(),
+  body('problem').isString().trim().notEmpty(),
+  body('mode').optional().isString().trim(),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
+    const targetModel = getModel(req);
     const genAI = getAgentGenAI(req);
-    if (!genAI) return res.status(500).json({ error: 'Gemini API is not configured.' });
+    if (!genAI && !isLocalModel(targetModel)) {
+      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or switch to a local model.' });
+    }
 
     const { problem, mode } = req.body;
     const safetyCheck = checkPreFlightSafety(problem, req);
@@ -1177,11 +1770,11 @@ app.post('/api/agent/select', [
       .join('\n');
 
     const schema = {
-      type: Type.OBJECT,
+      type: 'object',
       properties: {
-        selectedIds: { type: Type.ARRAY, items: { type: Type.STRING }, description: 'Array of 3-5 strategy IDs that are most relevant to this problem.' },
-        reasoning: { type: Type.STRING, description: 'A 2-3 sentence explanation of why these strategies were chosen together.' },
-        problemCategory: { type: Type.STRING, description: 'A short category label for this problem type (e.g., "systems design", "interpersonal", "clinical", "creative").' },
+        selectedIds: { type: 'array', items: { type: 'string' }, description: 'Array of 3-5 strategy IDs that are most relevant to this problem.' },
+        reasoning: { type: 'string', description: 'A 2-3 sentence explanation of why these strategies were chosen together.' },
+        problemCategory: { type: 'string', description: 'A short category label for this problem type (e.g., "systems design", "interpersonal", "clinical", "creative").' },
       },
       required: ['selectedIds', 'reasoning', 'problemCategory'],
     };
@@ -1198,20 +1791,22 @@ app.post('/api/agent/select', [
       Select strategies that complement each other — avoid redundancy. Prefer a mix of divergent (creative) and convergent (analytical) approaches.
     `;
 
-    const response = await genAI.models.generateContent({
-      model: getModel(req),
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: schema,
-        temperature: 0.4,
-        safetySettings: SAFETY_SETTINGS,
-      },
+    const { data: result, usage } = await generateJsonWithUsage({
+      targetModel,
+      genAI,
+      prompt,
+      schema,
+      req,
     });
-
-    const result = JSON.parse(response.text);
     // Validate that returned IDs are real
-    result.selectedIds = result.selectedIds.filter(id => STRATEGY_MAP[id]);
+    const validIds = Array.isArray(result?.selectedIds) ? result.selectedIds.filter(id => STRATEGY_MAP[id]) : [];
+    result.selectedIds = validIds.length > 0 ? validIds : ['what-if', 'fmea', 'critical-path'];
+    attachUsageHeader(res, buildUsageReceipt({
+      endpoint: '/api/agent/select',
+      model: targetModel,
+      req,
+      usage,
+    }));
     res.json(result);
   } catch (error) {
     console.error('Error in /api/agent/select:', error);
@@ -1221,7 +1816,7 @@ app.post('/api/agent/select', [
 
 // POST /api/agent/debate — Cross-strategy debate round
 app.post('/api/agent/debate', [
-  body('problem').isString().trim().escape().notEmpty(),
+  body('problem').isString().trim().notEmpty(),
   body('insights').isArray().notEmpty(),
   body('strategies').isArray().notEmpty(),
 ], async (req, res) => {
@@ -1229,8 +1824,11 @@ app.post('/api/agent/debate', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
+    const targetModel = getModel(req);
     const genAI = getAgentGenAI(req);
-    if (!genAI) return res.status(500).json({ error: 'Gemini API is not configured.' });
+    if (!genAI && !isLocalModel(targetModel)) {
+      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or switch to a local model.' });
+    }
 
     const { problem, insights, strategies } = req.body;
 
@@ -1243,16 +1841,16 @@ app.post('/api/agent/debate', [
       .join('\n');
 
     const schema = {
-      type: Type.ARRAY,
+      type: 'array',
       items: {
-        type: Type.OBJECT,
+        type: 'object',
         properties: {
-          agentId: { type: Type.STRING, description: 'The strategy ID of the agent providing the critique.' },
-          agentName: { type: Type.STRING, description: 'The name of the critiquing agent.' },
-          targetInsight: { type: Type.STRING, description: 'The exact insight text being critiqued.' },
-          critique: { type: Type.STRING, description: 'The critique, question, or observation from this agent\'s perspective.' },
-          strengthens: { type: Type.BOOLEAN, description: 'True if this critique supports/strengthens the insight, false if it challenges it.' },
-          suggestedRefinement: { type: Type.STRING, description: 'An optional improved version of the insight incorporating this critique.' },
+          agentId: { type: 'string', description: 'The strategy ID of the agent providing the critique.' },
+          agentName: { type: 'string', description: 'The name of the critiquing agent.' },
+          targetInsight: { type: 'string', description: 'The exact insight text being critiqued.' },
+          critique: { type: 'string', description: 'The critique, question, or observation from this agent\'s perspective.' },
+          strengthens: { type: 'boolean', description: 'True if this critique supports/strengthens the insight, false if it challenges it.' },
+          suggestedRefinement: { type: 'string', description: 'An optional improved version of the insight incorporating this critique.' },
         },
         required: ['agentId', 'agentName', 'targetInsight', 'critique', 'strengthens'],
       },
@@ -1277,18 +1875,22 @@ app.post('/api/agent/debate', [
       Generate 4-8 total debate entries across the agents.
     `;
 
-    const response = await genAI.models.generateContent({
-      model: getModel(req),
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: schema,
-        temperature: 0.7,
-        safetySettings: SAFETY_SETTINGS,
-      },
+    const { data: result, usage } = await generateJsonWithUsage({
+      targetModel,
+      genAI,
+      prompt,
+      schema,
+      req,
+      schemaOptions: { minItems: 2 },
     });
 
-    res.json(JSON.parse(response.text));
+    attachUsageHeader(res, buildUsageReceipt({
+      endpoint: '/api/agent/debate',
+      model: targetModel,
+      req,
+      usage,
+    }));
+    res.json(result);
   } catch (error) {
     console.error('Error in /api/agent/debate:', error);
     res.status(500).json({ error: getCleanErrorMessage(error) });
@@ -1297,7 +1899,7 @@ app.post('/api/agent/debate', [
 
 // POST /api/agent/refine — Refinement and consensus synthesis
 app.post('/api/agent/refine', [
-  body('problem').isString().trim().escape().notEmpty(),
+  body('problem').isString().trim().notEmpty(),
   body('insights').isArray().notEmpty(),
   body('debates').isArray().notEmpty(),
 ], async (req, res) => {
@@ -1305,8 +1907,11 @@ app.post('/api/agent/refine', [
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
+    const targetModel = getModel(req);
     const genAI = getAgentGenAI(req);
-    if (!genAI) return res.status(500).json({ error: 'Gemini API is not configured.' });
+    if (!genAI && !isLocalModel(targetModel)) {
+      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or switch to a local model.' });
+    }
 
     const { problem, insights, debates } = req.body;
 
@@ -1315,33 +1920,33 @@ app.post('/api/agent/refine', [
     ).join('\n');
 
     const debateText = debates.map(d =>
-      `- [${d.agentName}] ${d.strengthens ? 'SUPPORTS' : 'CHALLENGES'} "${d.targetInsight.substring(0, 80)}...": ${d.critique}`
+      `- [${d.agentName}] ${d.strengthens ? 'SUPPORTS' : 'CHALLENGES'} "${(d.targetInsight || '').substring(0, 80)}...": ${d.critique}`
     ).join('\n');
 
     const schema = {
-      type: Type.OBJECT,
+      type: 'object',
       properties: {
         refinedInsights: {
-          type: Type.ARRAY,
+          type: 'array',
           items: {
-            type: Type.OBJECT,
+            type: 'object',
             properties: {
-              original: { type: Type.STRING, description: 'The original insight text.' },
-              refined: { type: Type.STRING, description: 'The improved insight incorporating debate feedback.' },
-              debateInfluences: { type: Type.ARRAY, items: { type: Type.STRING }, description: 'Which critiques influenced this refinement.' },
-              confidence: { type: Type.NUMBER, description: 'Confidence score 0.0-1.0 based on agent agreement.' },
+              original: { type: 'string', description: 'The original insight text.' },
+              refined: { type: 'string', description: 'The improved insight incorporating debate feedback.' },
+              debateInfluences: { type: 'array', items: { type: 'string' }, description: 'Which critiques influenced this refinement.' },
+              confidence: { type: 'number', description: 'Confidence score 0.0-1.0 based on agent agreement.' },
             },
             required: ['original', 'refined', 'debateInfluences', 'confidence'],
           },
         },
-        consensus: { type: Type.STRING, description: 'A 2-4 sentence synthesis statement capturing the strongest path forward, acknowledging remaining tensions.' },
+        consensus: { type: 'string', description: 'A 2-4 sentence synthesis statement capturing the strongest path forward, acknowledging remaining tensions.' },
         synthesisActionBridge: {
-          type: Type.OBJECT,
+          type: 'object',
           description: 'A concrete closed-loop bridge reconciling the divergent provocations with grounding constraints.',
           properties: {
-            divergentLeap: { type: Type.STRING, description: 'The primary lateral breakthrough idea.' },
-            groundingGuardrail: { type: Type.STRING, description: 'The non-negotiable risk or dependency constraint that grounds the breakthrough.' },
-            immediateTractionStep: { type: Type.STRING, description: 'The immediate low-friction first action.' },
+            divergentLeap: { type: 'string', description: 'The primary lateral breakthrough idea.' },
+            groundingGuardrail: { type: 'string', description: 'The non-negotiable risk or dependency constraint that grounds the breakthrough.' },
+            immediateTractionStep: { type: 'string', description: 'The immediate low-friction first action.' },
           },
           required: ['divergentLeap', 'groundingGuardrail', 'immediateTractionStep'],
         },
@@ -1368,19 +1973,21 @@ app.post('/api/agent/refine', [
       5. Provide a 'synthesisActionBridge' object that directly pairs the primary divergent leap with a grounding guardrail and an immediate first traction step.
     `;
 
-    const response = await genAI.models.generateContent({
-      model: getModel(req),
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: schema,
-        temperature: 0.5,
-        safetySettings: SAFETY_SETTINGS,
-        ...getThinkingConfig(req)
-      },
+    const { data: result, usage } = await generateJsonWithUsage({
+      targetModel,
+      genAI,
+      prompt,
+      schema,
+      req,
     });
 
-    res.json(JSON.parse(response.text));
+    attachUsageHeader(res, buildUsageReceipt({
+      endpoint: '/api/agent/refine',
+      model: targetModel,
+      req,
+      usage,
+    }));
+    res.json(result);
   } catch (error) {
     console.error('Error in /api/agent/refine:', error);
     res.status(500).json({ error: getCleanErrorMessage(error) });
@@ -1389,16 +1996,19 @@ app.post('/api/agent/refine', [
 
 // POST /api/agent/pipeline — Full agentic pipeline (SSE-streamed phases)
 app.post('/api/agent/pipeline', [
-  body('problem').isString().trim().escape().notEmpty(),
-  body('mode').optional().isString().trim().escape(),
-  body('gist').optional().isString().trim().escape(),
+  body('problem').isString().trim().notEmpty(),
+  body('mode').optional().isString().trim(),
+  body('gist').optional().isString().trim(),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
+    const targetModel = getModel(req);
     const genAI = getAgentGenAI(req);
-    if (!genAI) return res.status(500).json({ error: 'Gemini API is not configured.' });
+    if (!genAI && !isLocalModel(targetModel)) {
+      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or switch to a local model.' });
+    }
 
     const { problem, mode, gist } = req.body;
     const safetyCheck = checkPreFlightSafety(problem, req) || checkPreFlightSafety(gist, req);
@@ -1423,27 +2033,29 @@ app.post('/api/agent/pipeline', [
       .map(([id, s]) => `- ${id}: "${s.name}"`)
       .join('\n');
 
-    const selectResponse = await genAI.models.generateContent({
-      model: getModel(req),
-      contents: `Analyze this problem and select 3-5 optimal strategies:\n"${problem}"\n\nAvailable:\n${strategyList}`,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            selectedIds: { type: Type.ARRAY, items: { type: Type.STRING } },
-            reasoning: { type: Type.STRING },
-            problemCategory: { type: Type.STRING },
-          },
-          required: ['selectedIds', 'reasoning', 'problemCategory'],
-        },
-        temperature: 0.4,
-        safetySettings: SAFETY_SETTINGS,
+    const selectionSchema = {
+      type: 'object',
+      properties: {
+        selectedIds: { type: 'array', items: { type: 'string' } },
+        reasoning: { type: 'string' },
+        problemCategory: { type: 'string' },
       },
-    });
+      required: ['selectedIds', 'reasoning', 'problemCategory'],
+    };
 
-    const selection = JSON.parse(selectResponse.text);
-    selection.selectedIds = selection.selectedIds.filter(id => STRATEGY_MAP[id]);
+    const selectionRes = await generateJsonWithUsage({
+      targetModel,
+      genAI,
+      prompt: `Analyze this problem and select 3-5 optimal strategies:\n"${problem}"\n\nAvailable:\n${strategyList}`,
+      schema: selectionSchema,
+      req,
+      isPipeline: true,
+    });
+    const selection = selectionRes.data;
+    const validSelectedIds = Array.isArray(selection?.selectedIds)
+      ? selection.selectedIds.filter(id => STRATEGY_MAP[id])
+      : [];
+    selection.selectedIds = validSelectedIds.length > 0 ? validSelectedIds : ['what-if', 'fmea', 'critical-path'];
     sendPhase('selecting', { result: selection });
 
     // Phase 2: Generate insights with selected strategies
@@ -1460,16 +2072,16 @@ app.post('/api/agent/pipeline', [
     ).join('\n\n');
 
     const insightsSchema = {
-      type: Type.ARRAY,
+      type: 'array',
       items: {
-        type: Type.OBJECT,
+        type: 'object',
         properties: {
-          strategyName: { type: Type.STRING },
+          strategyName: { type: 'string' },
           insights: {
-            type: Type.ARRAY,
+            type: 'array',
             items: {
-              type: Type.OBJECT,
-              properties: { text: { type: Type.STRING } },
+              type: 'object',
+              properties: { text: { type: 'string' } },
               required: ['text'],
             },
           },
@@ -1478,106 +2090,139 @@ app.post('/api/agent/pipeline', [
       },
     };
 
-    const insightsResponse = await genAI.models.generateContent({
-      model: getModel(req),
-      contents: `${gist ? `Guiding principle: "${gist}"\n\n` : ''}Problem: "${problem}"\n\nApply each strategy:\n${strategyText}\n\nFor each, provide 2-3 specific, practical, and realistic insights that are genuinely doable without sci-fi or over-the-top gimmicks.`,
-      config: {
-        systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : CIVIC_NEUTRALITY_INSTRUCTION,
-        responseMimeType: 'application/json',
-        responseSchema: insightsSchema,
-        temperature: 0.65,
-        safetySettings: SAFETY_SETTINGS,
-      },
+    const initialInsightsRes = await generateJsonWithUsage({
+      targetModel,
+      genAI,
+      prompt: `${gist ? `Guiding principle: "${gist}"\n\n` : ''}Problem: "${problem}"\n\nApply each strategy:\n${strategyText}\n\nFor each, provide 2-3 specific, practical, and realistic insights that are genuinely doable without sci-fi or over-the-top gimmicks.`,
+      systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : CIVIC_NEUTRALITY_INSTRUCTION,
+      schema: insightsSchema,
+      req,
+      schemaOptions: { minItems: selectedStrategies.length, itemArrayMinItems: 2 },
+      isPipeline: true,
     });
-
-    const initialInsights = JSON.parse(insightsResponse.text);
+    const initialInsights = initialInsightsRes.data;
     sendPhase('generating', { result: initialInsights });
 
     // Phase 3: Debate
     sendPhase('debating', { message: 'Strategy agents are debating insights...' });
 
-    const insightTextForDebate = initialInsights.flatMap(r =>
+    const insightTextForDebate = (Array.isArray(initialInsights) ? initialInsights : []).flatMap(r =>
       (r.insights || []).map(i => `[${r.strategyName}]: ${i.text}`)
     ).join('\n');
 
-    const debateResponse = await genAI.models.generateContent({
-      model: getModel(req),
-      contents: `Problem: "${problem}"\n\nAgents:\n${selectedStrategies.map(s => `- "${s.name}": ${s.persona}`).join('\n')}\n\nInsights:\n${insightTextForDebate}\n\nEach agent critiques 1-2 insights from OTHER agents. Generate 4-8 debate entries.`,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              agentId: { type: Type.STRING },
-              agentName: { type: Type.STRING },
-              targetInsight: { type: Type.STRING },
-              critique: { type: Type.STRING },
-              strengthens: { type: Type.BOOLEAN },
-              suggestedRefinement: { type: Type.STRING },
-            },
-            required: ['agentId', 'agentName', 'targetInsight', 'critique', 'strengthens'],
-          },
+    const debateSchema = {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          agentId: { type: 'string' },
+          agentName: { type: 'string' },
+          targetInsight: { type: 'string' },
+          critique: { type: 'string' },
+          strengthens: { type: 'boolean' },
+          suggestedRefinement: { type: 'string' },
         },
-        temperature: 0.7,
-        safetySettings: SAFETY_SETTINGS,
+        required: ['agentId', 'agentName', 'targetInsight', 'critique', 'strengthens'],
       },
-    });
+    };
 
-    const debates = JSON.parse(debateResponse.text);
+    const debatesRes = await generateJsonWithUsage({
+      targetModel,
+      genAI,
+      prompt: `Problem: "${problem}"\n\nAgents:\n${selectedStrategies.map(s => `- "${s.name}": ${s.persona}`).join('\n')}\n\nInsights:\n${insightTextForDebate}\n\nEach agent critiques 1-2 insights from OTHER agents. Generate 4-8 debate entries.`,
+      schema: debateSchema,
+      req,
+      schemaOptions: { minItems: 2 },
+      isPipeline: true,
+    });
+    const debates = debatesRes.data;
     sendPhase('debating', { result: debates });
 
     // Phase 4: Refine
     sendPhase('refining', { message: 'Synthesizing refined insights...' });
 
-    const debateTextForRefine = debates.map(d =>
+    const debateTextForRefine = (Array.isArray(debates) ? debates : []).map(d =>
       `[${d.agentName}] ${d.strengthens ? 'SUPPORTS' : 'CHALLENGES'}: ${d.critique}`
     ).join('\n');
 
-    const refineResponse = await genAI.models.generateContent({
-      model: getModel(req),
-      contents: `Problem: "${problem}"\n\nOriginal Insights:\n${insightTextForDebate}\n\nDebate:\n${debateTextForRefine}\n\nProduce 3-5 refined insights with confidence scores, a consensus statement, and a synthesisActionBridge connecting the divergent leap to a grounding guardrail and immediate first traction step.`,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            refinedInsights: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  original: { type: Type.STRING },
-                  refined: { type: Type.STRING },
-                  debateInfluences: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  confidence: { type: Type.NUMBER },
-                },
-                required: ['original', 'refined', 'debateInfluences', 'confidence'],
-              },
+    const refineSchema = {
+      type: 'object',
+      properties: {
+        refinedInsights: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              original: { type: 'string' },
+              refined: { type: 'string' },
+              debateInfluences: { type: 'array', items: { type: 'string' } },
+              confidence: { type: 'number' },
             },
-            consensus: { type: Type.STRING },
-            synthesisActionBridge: {
-              type: Type.OBJECT,
-              description: 'A concrete closed-loop bridge reconciling the divergent provocations with grounding constraints.',
-              properties: {
-                divergentLeap: { type: Type.STRING },
-                groundingGuardrail: { type: Type.STRING },
-                immediateTractionStep: { type: Type.STRING },
-              },
-              required: ['divergentLeap', 'groundingGuardrail', 'immediateTractionStep'],
-            },
+            required: ['original', 'refined', 'debateInfluences', 'confidence'],
           },
-          required: ['refinedInsights', 'consensus', 'synthesisActionBridge'],
         },
-        temperature: 0.5,
-        safetySettings: SAFETY_SETTINGS,
-        ...getThinkingConfig(req)
+        consensus: { type: 'string' },
+        synthesisActionBridge: {
+          type: 'object',
+          description: 'A concrete closed-loop bridge reconciling the divergent provocations with grounding constraints.',
+          properties: {
+            divergentLeap: { type: 'string' },
+            groundingGuardrail: { type: 'string' },
+            immediateTractionStep: { type: 'string' },
+          },
+          required: ['divergentLeap', 'groundingGuardrail', 'immediateTractionStep'],
+        },
       },
-    });
+      required: ['refinedInsights', 'consensus', 'synthesisActionBridge'],
+    };
 
-    const refinement = JSON.parse(refineResponse.text);
+    const refinementRes = await generateJsonWithUsage({
+      targetModel,
+      genAI,
+      prompt: `Problem: "${problem}"\n\nOriginal Insights:\n${insightTextForDebate}\n\nDebate:\n${debateTextForRefine}\n\nProduce 3-5 refined insights with confidence scores, a consensus statement, and a synthesisActionBridge connecting the divergent leap to a grounding guardrail and immediate first traction step.`,
+      schema: refineSchema,
+      req,
+      isPipeline: true,
+    });
+    const refinement = refinementRes.data;
     sendPhase('refining', { result: refinement });
+
+    const toPhaseUsage = (phase, u) => ({
+      phase,
+      inputTokens: u.inputTokens,
+      outputTokens: u.outputTokens,
+      thoughtTokens: u.thoughtTokens,
+      cachedTokens: u.cachedTokens,
+      totalTokens: u.totalTokens,
+      estimatedCostUsd: estimateUsageCostUsd(targetModel, u),
+      estimated: u.estimated,
+    });
+    const phases = [
+      toPhaseUsage('selecting', selectionRes.usage),
+      toPhaseUsage('generating', initialInsightsRes.usage),
+      toPhaseUsage('debating', debatesRes.usage),
+      toPhaseUsage('refining', refinementRes.usage),
+    ];
+    const rolledUpUsage = phases.reduce(
+      (acc, p) => ({
+        inputTokens: acc.inputTokens + p.inputTokens,
+        outputTokens: acc.outputTokens + p.outputTokens,
+        thoughtTokens: acc.thoughtTokens + p.thoughtTokens,
+        cachedTokens: acc.cachedTokens + p.cachedTokens,
+        totalTokens: acc.totalTokens + p.totalTokens,
+        estimated: acc.estimated || p.estimated,
+      }),
+      { inputTokens: 0, outputTokens: 0, thoughtTokens: 0, cachedTokens: 0, totalTokens: 0, estimated: false }
+    );
+    const pipelineReceipt = buildUsageReceipt({
+      endpoint: '/api/agent/pipeline',
+      model: targetModel,
+      req,
+      usage: rolledUpUsage,
+      thinkingLevel: getGenerationConfig(req, targetModel, { isPipeline: true })?.thinking_level,
+      callCount: 4,
+      phases,
+    });
 
     // Phase 5: Complete
     sendPhase('complete', {
@@ -1589,8 +2234,10 @@ app.post('/api/agent/pipeline', [
         consensus: refinement.consensus,
         synthesisActionBridge: refinement.synthesisActionBridge,
       },
+      usage: pipelineReceipt,
     });
 
+    res.write(`data: ${JSON.stringify({ usage: pipelineReceipt })}\n\n`);
     res.write('data: [DONE]\n\n');
     res.end();
   } catch (error) {
@@ -1606,8 +2253,8 @@ app.post('/api/agent/pipeline', [
 
 // POST /api/agent/:strategyId — Standalone single-agent endpoint
 app.post('/api/agent/:strategyId', [
-  body('problem').isString().trim().escape().notEmpty(),
-  body('mode').optional().isString().trim().escape(),
+  body('problem').isString().trim().notEmpty(),
+  body('mode').optional().isString().trim(),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -1617,8 +2264,11 @@ app.post('/api/agent/:strategyId', [
     const strategy = STRATEGY_MAP[strategyId];
     if (!strategy) return res.status(404).json({ error: `Unknown strategy: ${strategyId}` });
 
+    const targetModel = getModel(req);
     const genAI = getAgentGenAI(req);
-    if (!genAI) return res.status(500).json({ error: 'Gemini API is not configured.' });
+    if (!genAI && !isLocalModel(targetModel)) {
+      return res.status(500).json({ error: 'Gemini API is not configured. Please set your own API key in Settings or switch to a local model.' });
+    }
 
     const { problem, mode } = req.body;
     const safetyCheck = checkPreFlightSafety(problem, req);
@@ -1628,16 +2278,16 @@ app.post('/api/agent/:strategyId', [
     if (piiFound.length > 0) return res.status(400).json({ error: `Privacy Note: Identified personal details (${piiFound.join(', ')}). Please tidy details before proceeding.` });
 
     const schema = {
-      type: Type.OBJECT,
+      type: 'object',
       properties: {
-        strategyName: { type: Type.STRING },
-        agentPersona: { type: Type.STRING },
+        strategyName: { type: 'string' },
+        agentPersona: { type: 'string' },
         insights: {
-          type: Type.ARRAY,
+          type: 'array',
           items: {
-            type: Type.OBJECT,
+            type: 'object',
             properties: {
-              text: { type: Type.STRING, description: 'A distinct, actionable insight.' },
+              text: { type: 'string', description: 'A distinct, actionable insight.' },
             },
             required: ['text'],
           },
@@ -1656,19 +2306,22 @@ app.post('/api/agent/:strategyId', [
       Provide 2-3 specific, practical, and realistic insights. Keep your ideas grounded in real-world feasibility—avoid sci-fi or over-the-top gimmicks, and translate your perspective into sensible steps someone can actually do.
     `;
 
-    const response = await genAI.models.generateContent({
-      model: getModel(req),
-      contents: prompt,
-      config: {
-        systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : CIVIC_NEUTRALITY_INSTRUCTION,
-        responseMimeType: 'application/json',
-        responseSchema: schema,
-        temperature: 0.65,
-        safetySettings: SAFETY_SETTINGS,
-      },
+    const { data: result, usage } = await generateJsonWithUsage({
+      targetModel,
+      genAI,
+      prompt,
+      systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : CIVIC_NEUTRALITY_INSTRUCTION,
+      schema,
+      req,
     });
 
-    res.json(JSON.parse(response.text));
+    attachUsageHeader(res, buildUsageReceipt({
+      endpoint: `/api/agent/${strategyId}`,
+      model: targetModel,
+      req,
+      usage,
+    }));
+    res.json(result);
   } catch (error) {
     console.error('Error in /api/agent/%s:', req.params.strategyId, error);
     res.status(500).json({ error: getCleanErrorMessage(error) });
@@ -1729,6 +2382,9 @@ app.get(['/terms', '/terms.html'], (req, res) => {
 });
 app.get(['/privacy', '/privacy.html'], (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'privacy.html'));
+});
+app.get(['/transparency', '/transparency.html'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'transparency.html'));
 });
 
 // Route all other requests to index.html to support Angular routing

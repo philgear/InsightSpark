@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
 InsightSpark (Pivot & Pulse) — Unified Multi-Task DPO Trainer
-Trains a single foundation model (Llama-3.2-3B or Gemma-2-9B) across all 48 tasks
-(24 strategies x 2 modes) using Direct Preference Optimization (DPO) and DoRA
-(Weight-Decomposed Low-Rank Adaptation).
+Trains a single foundation model (e.g. google/gemma-4-E4B-it, google/gemma-4-E2B-it,
+or HuggingFaceTB/SmolLM3-3B) across all 58 tasks (29 strategies x 2 modes) using Direct
+Preference Optimization (DPO) and DoRA (Weight-Decomposed Low-Rank Adaptation).
 
 Usage:
-  python scripts/train_dpo_unified.py --data datasets/multitask-dpo.parquet --model unsloth/Llama-3.2-3B-Instruct --output models/pivotpulse-dora
+  python scripts/train_dpo_unified.py --data datasets/multitask-dpo.parquet --model google/gemma-4-E4B-it --output models/pivotpulse-dora
 """
 
 import os
@@ -57,7 +57,7 @@ def print_training_recipe(model_name: str, dataset_path: str, output_dir: str):
     print(" INSIGHTSPARK UNIFIED MULTI-TASK DPO TRAINING RECIPE")
     print("=" * 75)
     print(f"Base Foundation Model : {model_name}")
-    print(f"Training Dataset      : {dataset_path} (48 Multi-Task Pairs)")
+    print(f"Training Dataset      : {dataset_path} (58 Multi-Task Pairs — 29 Strategies x 2 Modes)")
     print(f"Task Prefix Token     : [MODE: <CARE|CREATIVE>] [STRATEGY: <ID>]")
     print(f"Target Adaptation     : DoRA (Weight-Decomposed Low-Rank Adaptation, r=16, alpha=32)")
     print(f"DPO Beta              : 0.1")
@@ -114,6 +114,8 @@ dpo_config = DPOConfig(
     gradient_accumulation_steps=8,
     num_train_epochs=3,
     beta=0.1,
+    max_length=1024,
+    max_prompt_length=512,
     fp16=not torch.cuda.is_bf16_supported(),
     bf16=torch.cuda.is_bf16_supported(),
     logging_steps=5,
@@ -122,14 +124,13 @@ dpo_config = DPOConfig(
     seed=3407,
 )
 
+# Pass AutoProcessor instead of tokenizer when training multimodal Gemma 4 E4B/E2B checkpoints
 # dpo_trainer = DPOTrainer(
 #     model=model,
 #     ref_model=None,
 #     args=dpo_config,
 #     train_dataset=dataset["train"],
-#     tokenizer=tokenizer,
-#     max_length=1024,
-#     max_prompt_length=512,
+#     processing_class=tokenizer,
 # )
 # dpo_trainer.train()
 # model.save_pretrained_merged("{output_dir}_merged", tokenizer, save_method="merged_16bit")
@@ -175,23 +176,23 @@ training_args = DPOConfig(
     gradient_accumulation_steps=8,
     num_train_epochs=3,
     beta=0.1,
+    max_length=1024,
+    max_prompt_length=512,
     fp16=True,
     logging_steps=5,
     save_strategy="epoch",
-    evaluation_strategy="no",
+    eval_strategy="no",
     report_to="none"
 )
 
-# Initialize DPO Trainer
+# Initialize DPO Trainer (pass AutoProcessor for multimodal Gemma 4 E4B/E2B checkpoints)
 # dpo_trainer = DPOTrainer(
 #     model=model,
 #     ref_model=None, # Implicit reference model via LoRA
 #     args=training_args,
 #     train_dataset=dataset["train"],
-#     tokenizer=tokenizer,
+#     processing_class=tokenizer,
 #     peft_config=peft_config,
-#     max_length=1024,
-#     max_prompt_length=512,
 # )
 # dpo_trainer.train()
 # dpo_trainer.save_model("{output_dir}")
@@ -202,7 +203,11 @@ training_args = DPOConfig(
 def main():
     parser = argparse.ArgumentParser(description="InsightSpark Unified Multi-Task DPO Trainer")
     parser.add_argument("--data", default="datasets/multitask-dpo.parquet", help="Parquet dataset path")
-    parser.add_argument("--model", default="unsloth/Llama-3.2-3B-Instruct", help="Base model identifier")
+    parser.add_argument(
+        "--model",
+        default="google/gemma-4-E4B-it",
+        help="Base Hugging Face model ID (e.g., google/gemma-4-E4B-it, google/gemma-4-E2B-it, HuggingFaceTB/SmolLM3-3B)",
+    )
     parser.add_argument("--output", default="models/pivotpulse-dora", help="Output directory")
     parser.add_argument("--unsloth", action="store_true", default=True, help="Generate Unsloth optimized pipeline (default: True)")
 

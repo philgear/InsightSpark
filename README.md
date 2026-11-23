@@ -16,15 +16,15 @@
 [![Express](https://img.shields.io/badge/Express-v5.2.1-000000?logo=express&logoColor=white)](https://expressjs.com/)
 [![Tests](https://img.shields.io/badge/Tests-73_Passing-brightgreen)](tests/)
 [![D3.js](https://img.shields.io/badge/D3.js-v7.9.0-F9A03F?logo=d3.js&logoColor=white)](https://d3js.org/)
-[![Google Gemini](https://img.shields.io/badge/Google_Gemini-v2.8.0-8E75C2?logo=google-gemini&logoColor=white)](https://deepmind.google/technologies/gemini/)
-[![Gemma](https://img.shields.io/badge/Gemma_2-On--Device_%26_Local-4285F4?logo=google&logoColor=white)](https://ai.google.dev/gemma)
+[![Google Gemini](https://img.shields.io/badge/Google_Gemini_4-@google/genai_v3.6+-8E75C2?logo=google-gemini&logoColor=white)](https://deepmind.google/technologies/gemini/)
+[![Gemma](https://img.shields.io/badge/Gemma_4-On--Device,_WebGPU_%26_Local-4285F4?logo=google&logoColor=white)](https://huggingface.co/google)
 [![FHIR R4](https://img.shields.io/badge/HL7_FHIR-R4_Bundle-E11D48?logo=hl7&logoColor=white)](https://hl7.org/fhir/R4/)
 [![DPO Parquet](https://img.shields.io/badge/Dataset-Apache_Parquet-008080?logo=apache&logoColor=white)](datasets/kinship-care-dpo.parquet)
 [![DPO JSONL](https://img.shields.io/badge/DPO_Export-HuggingFace_TRL-F59E0B)](https://huggingface.co/docs/trl)
 
-An interactive lateral thinking workbench, positive psychology companion, and intergenerational care planner. **Pivot & Pulse** synthesizes [Edward de Bono's](https://en.wikipedia.org/wiki/Edward_de_Bono) lateral thinking provocations with [Dr. Martin Seligman's](https://en.wikipedia.org/wiki/Martin_Seligman) PERMA+H framework (as taught in the UPenn [Foundations of Positive Psychology Specialization on Coursera](https://www.coursera.org/specializations/positivepsychology)), multi-generational family kinship dynamics, on-device Gemini Nano/Gemma intelligence, and HIPAA/COPPA-compliant clinical workflows.
+An interactive lateral thinking workbench, positive psychology companion, and intergenerational care planner. **Pivot & Pulse** synthesizes [Edward de Bono's](https://en.wikipedia.org/wiki/Edward_de_Bono) lateral thinking provocations with [Dr. Martin Seligman's](https://en.wikipedia.org/wiki/Martin_Seligman) PERMA+H framework (as taught in the UPenn [Foundations of Positive Psychology Specialization on Coursera](https://www.coursera.org/specializations/positivepsychology)), multi-generational family kinship dynamics, on-device Gemini Nano/Gemma 4 intelligence, and HIPAA/COPPA-compliant clinical workflows.
 
-[🚀 Launch Live App: spark.philgear.dev](https://spark.philgear.dev/) &bull; [View in Google AI Studio](https://ai.studio/apps/3eeb2b40-7093-4e40-b5a5-e1d2fbb75de7)
+[🚀 Launch Live App: spark.philgear.dev](https://spark.philgear.dev/) &bull; [📊 Cost & Compute Transparency Ledger](docs/cost_transparency_ledger.md) &bull; [View in Google AI Studio](https://ai.studio/apps/3eeb2b40-7093-4e40-b5a5-e1d2fbb75de7)
 
 </div>
 
@@ -37,9 +37,9 @@ An interactive lateral thinking workbench, positive psychology companion, and in
 *   **🏥 Care Mode:** Design asset-based, person-centered health strategies anchored in positive psychology (PERMA+H), character strengths, and caregiver respite.
 
 ### 2. Multi-Engine Intelligence: Cloud, Local & On-Device
-*   **⚡ Chrome Built-in AI (Gemini Nano):** Runs 100% locally on the user's device via `window.ai` Prompt API with **zero network requests and zero API keys**.
-*   **🦙 Local Gemma (Ollama):** Seamless local LLM execution via `localhost:11434` for complete offline data privacy.
-*   **☁️ Google Gemini Cloud:** Advanced reasoning powered by Gemini 2.5 Pro, Flash, and Gemma 2 27B.
+*   **⚡ Chrome Built-in AI (`window.ai`) & WebGPU ONNX:** Runs 100% locally inside the visitor's browser via Chrome Prompt API (Gemini Nano) or **Transformers.js WebGPU (`HuggingFaceTB/SmolLM3-3B-ONNX`, `onnx-community/gemma-4-E2B-it-ONNX`)** at **$0 cloud cost** and zero prompt egress.
+*   **🦙 Local Gemma 4 (Ollama):** Seamless local GPU/VRAM execution (`pivotpulse` / `gemma4:e4b`) via `localhost:11434` for complete offline data privacy.
+*   **☁️ Google Gemini 4 & Hosted Open-Weight Gemma 4:** Frontier reasoning via Gemini 4 (`gemini-4-hydrogen`, `gemini-4-argon`, `gemini-3.5-flash-lite`) alongside **$0 hosted open-weight** `gemma-4-31b-it` and `gemma-4-26b-a4b-it` (3.8B active MoE) via the Gemini Interactions API.
 *   **🚀 Interactive Demo Mode:** Immediate offline preview with simulated streaming insights.
 
 ### 3. Two-Tier Ideation: Provocations & Grounding Counterbalances
@@ -100,12 +100,14 @@ graph TD
     
     subgraph "Execution Pathways"
         Nano["Chrome Built-in AI<br>(Gemini Nano via window.ai)"]
-        Local["Local Gemma<br>(Ollama on localhost:11434)"]
+        WebGPU["WebGPU ONNX (Transformers.js)<br>(SmolLM3-3B / Gemma 4 E2B)"]
+        Local["Local Gemma 4<br>(Ollama on localhost:11434)"]
         Proxy["Express.js Stateless Proxy<br>(Helmet, SSE Stream, PII Sanitizer)"]
-        Cloud["Google Gemini Cloud<br>(2.5 Pro / Flash / Gemma 27B)"]
+        Cloud["Gemini 4 & Gemma 4 Cloud<br>(Hydrogen / Flash-Lite / Gemma 4 31B & 26B-A4B)"]
     end
 
     Client -->|"Zero-Network On-Device"| Nano
+    Client -->|"In-Browser WebGPU RAM"| WebGPU
     Client -->|"Localhost API"| Local
     Client -->|"Stateless SSE Stream"| Proxy
     Proxy -->|"Ephemeral RAM Only"| Cloud

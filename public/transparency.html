@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cost &amp; Compute Transparency | Pivot &amp; Pulse</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Outfit:wght@100..900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-color: #161513;
+        --card-bg: rgba(255, 255, 255, 0.03);
+        --border-color: rgba(255, 255, 255, 0.08);
+        --text-color: #eae7e2;
+        --text-muted: #a39f98;
+        --accent-color: #d4af37;
+        --emerald: #34d399;
+        --amber: #fbbf24;
+        --font-serif: 'DM Serif Display', serif;
+        --font-sans: 'Outfit', sans-serif;
+      }
+
+      body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+        font-family: var(--font-sans);
+        margin: 0;
+        padding: 0;
+        line-height: 1.6;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 100vh;
+      }
+
+      .glow {
+        position: fixed;
+        top: -10%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 840px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+        pointer-events: none;
+        z-index: 1;
+      }
+
+      .container {
+        width: 92%;
+        max-width: 880px;
+        margin: 72px auto;
+        z-index: 2;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 44px;
+      }
+
+      .logo {
+        height: 60px;
+        width: 60px;
+        margin-bottom: 20px;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+      }
+
+      h1 {
+        font-family: var(--font-serif);
+        font-size: 2.6rem;
+        margin: 0 0 10px 0;
+        letter-spacing: -0.03em;
+        background: linear-gradient(135deg, var(--text-color) 0%, var(--accent-color) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .meta {
+        font-size: 0.88rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .card {
+        background: var(--card-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        padding: 36px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      }
+
+      h2 {
+        font-family: var(--font-serif);
+        font-size: 1.65rem;
+        color: var(--accent-color);
+        margin-top: 34px;
+        margin-bottom: 14px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 8px;
+      }
+
+      h2:first-of-type {
+        margin-top: 0;
+      }
+
+      p {
+        margin-bottom: 18px;
+        color: var(--text-color);
+        opacity: 0.92;
+      }
+
+      ul {
+        margin-bottom: 22px;
+        padding-left: 20px;
+      }
+
+      li {
+        margin-bottom: 10px;
+        color: var(--text-color);
+        opacity: 0.92;
+      }
+
+      .callout {
+        background: rgba(251, 191, 36, 0.07);
+        border: 1px solid rgba(251, 191, 36, 0.28);
+        border-radius: 14px;
+        padding: 14px 18px;
+        margin: 16px 0 22px;
+        font-size: 0.92rem;
+      }
+
+      .table-wrap {
+        width: 100%;
+        overflow-x: auto;
+        margin: 16px 0 24px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+
+      th,
+      td {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border-color);
+        text-align: left;
+      }
+
+      th {
+        color: var(--accent-color);
+        font-weight: 600;
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+
+      .num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .free {
+        color: var(--emerald);
+        font-weight: 600;
+      }
+
+      .warn {
+        color: var(--amber);
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.85em;
+        background: rgba(255, 255, 255, 0.06);
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
+
+      a {
+        color: var(--accent-color);
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      a:hover {
+        text-decoration: underline;
+      }
+
+      .footer {
+        text-align: center;
+        margin-top: 36px;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="glow"></div>
+    <div class="container">
+      <header class="header">
+        <img src="/assets/logo-dark.svg" alt="Pivot &amp; Pulse Logo" class="logo" />
+        <h1>Cost &amp; Compute Transparency</h1>
+        <div class="meta">Open Ledger &bull; Last Verified: November 23, 2026</div>
+      </header>
+
+      <main class="card">
+        <h2>1. Who Pays What (Sovereign Compute Tiers)</h2>
+        <p>
+          Pivot &amp; Pulse (InsightSpark) separates personal well-being and ideation from mandatory
+          cloud billing. Every user and self-hoster can choose between zero-cost local execution,
+          zero-charge open-weight cloud execution, Bring-Your-Own-Key (BYOK), or maintainer-hosted
+          defaults:
+        </p>
+        <ul>
+          <li>
+            <strong>On-Device Browser RAM (<code>window.ai</code> / WebGPU):</strong>
+            <span class="free">$0.00 cloud cost</span>. Runs directly in visitor browser memory with
+            zero network egress and zero server API charges.
+          </li>
+          <li>
+            <strong>Local Workstation GPU (Ollama <code>pivotpulse</code>):</strong>
+            <span class="free">$0.00 cloud cost</span>. Streams from your own
+            <code>localhost:11434</code> daemon with permanent VRAM keep-alive and zero cloud quota.
+          </li>
+          <li>
+            <strong>Hosted Open-Weight (<code>gemma-4-31b-it</code>):</strong>
+            <span class="free">$0.00 per 1M tokens</span>. Hosted through the Gemini API with zero
+            per-token billing even when executed inside a billing-enabled project.
+          </li>
+          <li>
+            <strong>Bring Your Own Key (BYOK):</strong> You supply your own Gemini API key (stored
+            only in your browser's <code>localStorage</code>) and pay Google directly at published
+            per-token rates—or stay within Google's free tier on eligible models.
+          </li>
+          <li>
+            <strong>Maintainer-Hosted Cloud Tier:</strong> Subsidized by the project maintainer
+            within rate-limited budgets (<code>20 req / 15 min</code> per IP on <code>/api/*</code>),
+            passing zero prompts or PII to disk.
+          </li>
+        </ul>
+
+        <h2>2. Model Rate Card &amp; Per-Action Footprint</h2>
+        <p>
+          Verified November 2026 Gemini API rates (USD per 1M tokens). Thinking
+          (<code>thoughtTokens</code>) is billed at each model's output rate:
+          <code>Low</code> (&asymp;1&times;), <code>Medium</code> (&asymp;1.6&times;),
+          <code>High</code> (&asymp;2.5&times;, UI default), and <code>xHigh</code> (&asymp;4&times;).
+        </p>
+
+        <div class="callout warn">
+          <strong>Scheduled Rate Notice (2026-12-01):</strong> <code>gemini-4-argon</code> has no
+          free tier and increases 2&times; on <strong>December 1, 2026</strong> from
+          <code>$2.00 / $10.00</code> to <code>$4.00 / $20.00</code> per 1M input/output tokens.
+          The default <code>gemini-4-hydrogen</code> (<code>$1.50 / $7.50</code>) and
+          <code>gemini-3.5-flash-lite</code> (<code>$0.30 / $2.50</code>) remain far lower-cost
+          options.
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Model / Engine</th>
+                <th scope="col">Billing Tier</th>
+                <th scope="col" class="num">Input / 1M</th>
+                <th scope="col" class="num">Output / 1M</th>
+                <th scope="col" class="num">Cached / 1M</th>
+                <th scope="col">Free Tier</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>gemini-4-hydrogen</code></td>
+                <td>Cloud Default</td>
+                <td class="num">$1.50</td>
+                <td class="num">$7.50</td>
+                <td class="num">$0.075</td>
+                <td>Yes (rate-limited)</td>
+              </tr>
+              <tr>
+                <td><code>gemini-4-argon</code></td>
+                <td>Cloud Fast (Paid Only)</td>
+                <td class="num">$2.00 &rarr; $4.00 Dec 1</td>
+                <td class="num">$10.00 &rarr; $20.00 Dec 1</td>
+                <td class="num">$0.20 &rarr; $0.40</td>
+                <td>No</td>
+              </tr>
+              <tr>
+                <td><code>gemini-3.5-flash-lite</code></td>
+                <td>Cloud Budget</td>
+                <td class="num">$0.30</td>
+                <td class="num">$2.50</td>
+                <td class="num">$0.030</td>
+                <td>Yes (high RPM)</td>
+              </tr>
+              <tr>
+                <td><code>gemma-4-31b-it</code></td>
+                <td>Cloud Open-Weight</td>
+                <td class="num free">$0.00</td>
+                <td class="num free">$0.00</td>
+                <td class="num free">$0.000</td>
+                <td>Yes ($0 Open-Weight)</td>
+              </tr>
+              <tr>
+                <td><code>gemma-4-26b-a4b-it</code></td>
+                <td>Cloud Open-Weight MoE (3.8B Active)</td>
+                <td class="num free">$0.00</td>
+                <td class="num free">$0.00</td>
+                <td class="num free">$0.000</td>
+                <td>Yes ($0 Open-Weight)</td>
+              </tr>
+              <tr>
+                <td><code>on-device-nano</code> / <code>ollama:pivotpulse</code></td>
+                <td>Local RAM / VRAM</td>
+                <td class="num free">$0.00</td>
+                <td class="num free">$0.00</td>
+                <td class="num free">$0.000</td>
+                <td>Yes (0 cloud egress)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Endpoint</th>
+                <th scope="col">Action</th>
+                <th scope="col" class="num">Calls</th>
+                <th scope="col" class="num">Hydrogen (High)</th>
+                <th scope="col" class="num">Flash-Lite (Low)</th>
+                <th scope="col" class="num">Gemma 4 31B / Local</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>/api/structure</code></td>
+                <td>Structure Goal + DSRP</td>
+                <td class="num">1</td>
+                <td class="num">0.824&cent;</td>
+                <td class="num">0.169&cent;</td>
+                <td class="num free">$0.00</td>
+              </tr>
+              <tr>
+                <td><code>/api/insights</code></td>
+                <td>Stream Insights (3 strategies)</td>
+                <td class="num">1</td>
+                <td class="num">1.474&cent;</td>
+                <td class="num">0.328&cent;</td>
+                <td class="num free">$0.00</td>
+              </tr>
+              <tr>
+                <td><code>/api/care-plan</code></td>
+                <td>Synthesize Care Plan</td>
+                <td class="num">1</td>
+                <td class="num">1.379&cent;</td>
+                <td class="num">0.301&cent;</td>
+                <td class="num free">$0.00</td>
+              </tr>
+              <tr>
+                <td><code>/api/creative-plan</code></td>
+                <td>Synthesize Creative Plan</td>
+                <td class="num">1</td>
+                <td class="num">1.105&cent;</td>
+                <td class="num">0.240&cent;</td>
+                <td class="num free">$0.00</td>
+              </tr>
+              <tr>
+                <td><code>/api/translate</code></td>
+                <td>Translate Plan / Card</td>
+                <td class="num">1</td>
+                <td class="num">0.717&cent;</td>
+                <td class="num">0.182&cent;</td>
+                <td class="num free">$0.00</td>
+              </tr>
+              <tr>
+                <td><code>/api/agent/pipeline</code></td>
+                <td>4-Phase Agentic Debate</td>
+                <td class="num">4</td>
+                <td class="num">4.120&cent;</td>
+                <td class="num">0.919&cent;</td>
+                <td class="num free">$0.00</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>3. Stateless Cloud Infrastructure &amp; Abuse Guardrails</h2>
+        <ul>
+          <li>
+            <strong>Scale-to-Zero Serverless Hosting:</strong> Static Angular bundles are delivered
+            through global CDN caching, while dynamic API endpoints run behind a stateless
+            serverless Express proxy that scales down to zero idle instances
+            (<strong>$0.00 idle compute</strong>).
+          </li>
+          <li>
+            <strong>Cross-Site &amp; Quota Guardrails:</strong> API routes enforce strict
+            domain-allowlisted CORS, active IP rate limiting, and hosted-key cost caps (default
+            cloud calls restrict models to the cost-bounded allowlist and cap reasoning at
+            <code>medium</code>, or <code>low</code> for 4-phase debates).
+          </li>
+          <li>
+            <strong>BYOK &amp; Zero Disk Retention:</strong> Supplying your own API key or selecting
+            <code>window.ai</code> / WebGPU / local Ollama unlocks full model tiers. All Gemini
+            Interactions requests specify <code>store: false</code>, and session cost receipts
+            remain strictly in client memory with zero prompt or PII persistence.
+          </li>
+        </ul>
+
+        <h2>4. Open-Source Engineering Effort (COCOMO II)</h2>
+        <p>
+          Measured across the active Angular 22 client and Express 5 backend proxy using
+          <code>scripts/estimate-effort-detailed.js</code> (COCOMO II Post-Architecture Model):
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Metric</th>
+                <th scope="col" class="num">Measured Value</th>
+                <th scope="col">Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Total Source Lines of Code (SLOC)</td>
+                <td class="num">11,758</td>
+                <td>11.758 KSLOC excluding comments and blank lines</td>
+              </tr>
+              <tr>
+                <td>COCOMO II Effort Estimate</td>
+                <td class="num">17.35 PM / 2,637 hrs</td>
+                <td>Exponent B = 1.0887, EAF = 0.4033 (152 hrs/PM)</td>
+              </tr>
+              <tr>
+                <td>Recommended Calendar Schedule</td>
+                <td class="num">8.59 months</td>
+                <td>Standard team velocity (TDEV)</td>
+              </tr>
+              <tr>
+                <td>License &amp; Provenance</td>
+                <td class="num">Apache-2.0</td>
+                <td>
+                  ORCID
+                  <a href="https://orcid.org/0009-0008-1372-5381" target="_blank" rel="noopener noreferrer"
+                    >0009-0008-1372-5381</a
+                  >
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+
+      <footer class="footer">
+        <p>
+          &copy; 2026 Pivot &amp; Pulse &bull;
+          <a href="/">Return to App</a> &bull;
+          <a href="/privacy">Privacy Policy</a> &bull;
+          <a href="/terms">Terms &amp; Conditions</a>
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -1,7 +1,21 @@
-import { Injectable } from '@angular/core';
-import { CreativeStrategy, InsightResult, SavedInsight, CarePlan, StructuredProblem, CreativePlan, SavedItem } from '../models/creative-types';
-import { STARTER_SCENARIOS } from '../models/starter-scenarios';
+import { Injectable, signal, computed } from '@angular/core';
+import { CreativeStrategy, InsightItem, InsightResult, SavedInsight, CarePlan, StructuredProblem, CreativePlan, SavedItem } from '../models/creative-types';
+import { STARTER_SCENARIOS, StarterScenario } from '../models/starter-scenarios';
 import { StrategySelection, DebateEntry, RefinedInsight, AgenticResult, AgenticPhase } from '../models/agent-types';
+import {
+  TokenUsageReceipt,
+  SessionCostSummary,
+  summarizeSessionUsage,
+  estimateTokensFromText,
+  estimateUsageCostUsd,
+  resolveModelPricing,
+} from '../utils/cost-model';
+import {
+  BrowserWebGpuEngine,
+  WebGpuLoadProgress,
+  WebGpuModelKey,
+  WEBGPU_MODEL_CATALOG,
+} from '../utils/webgpu-engine';
 import { parse } from 'partial-json';
 
 function getStoredApiKey(): string {
@@ -64,6 +78,10 @@ export class GeminiService {
     if (userTemp !== null && userTemp !== undefined && userTemp !== '') {
       authHeaders['x-gemini-temperature'] = userTemp;
     }
+    const userThinkingLevel = localStorage.getItem('spark_thinking_level');
+    if (userThinkingLevel) {
+      authHeaders['x-gemini-thinking-level'] = userThinkingLevel;
+    }
     const userThinking = localStorage.getItem('spark_thinking_budget');
     if (userThinking !== null && userThinking !== undefined && userThinking !== '') {
       authHeaders['x-gemini-thinking-budget'] = userThinking;
@@ -97,6 +115,119 @@ export class GeminiService {
   // Chaos Simulation Configuration
   public simulatedFailureType: '429' | '500' | 'drop' | null = null;
   public simulatedFailureBehavior: 'transient' | 'permanent' = 'transient';
+  public readonly fallbackNotice = signal<string | null>(null);
+
+  // Stateless In-Memory Session Token & Cost Telemetry (zero disk/cloud retention)
+  public readonly sessionUsageEntries = signal<TokenUsageReceipt[]>([]);
+  public readonly sessionCostSummary = computed<SessionCostSummary>(() =>
+    summarizeSessionUsage(this.sessionUsageEntries())
+  );
+
+  // Lazy In-Browser WebGPU Engine (Transformers.js ONNX runtime; zero initial bundle weight)
+  private readonly webGpuEngine = new BrowserWebGpuEngine();
+  public readonly webGpuProgress = signal<WebGpuLoadProgress | null>(null);
+  public readonly webGpuReadyModel = signal<WebGpuModelKey | null>(null);
+
+  public getSelectedWebGpuModelKey(): WebGpuModelKey {
+    try {
+      if (typeof localStorage === 'undefined') return 'smollm3-3b';
+      const explicit = localStorage.getItem('spark_webgpu_model');
+      if (explicit && explicit in WEBGPU_MODEL_CATALOG) {
+        return explicit as WebGpuModelKey;
+      }
+      const selectedModel = localStorage.getItem('spark_model_val') || '';
+      if (selectedModel.startsWith('webgpu:')) {
+        const key = selectedModel.slice('webgpu:'.length);
+        if (key in WEBGPU_MODEL_CATALOG) {
+          return key as WebGpuModelKey;
+        }
+      }
+    } catch {
+      // Ignore storage access restrictions
+    }
+    return 'smollm3-3b';
+  }
+
+  public setSelectedWebGpuModelKey(key: WebGpuModelKey): void {
+    if (!(key in WEBGPU_MODEL_CATALOG)) return;
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('spark_webgpu_model', key);
+      }
+    } catch {
+      // Ignore storage access restrictions
+    }
+  }
+
+  public async preloadWebGpuModel(key?: WebGpuModelKey): Promise<boolean> {
+    const targetKey = key ?? this.getSelectedWebGpuModelKey();
+    this.setSelectedWebGpuModelKey(targetKey);
+    try {
+      await this.webGpuEngine.loadModel(targetKey, (progress) => {
+        this.webGpuProgress.set(progress);
+      });
+      this.webGpuReadyModel.set(targetKey);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  public recordUsageReceipt(entry: TokenUsageReceipt): void {
+    if (!entry || typeof entry !== 'object') return;
+    this.sessionUsageEntries.update((prev) => {
+      const next = [...prev, entry];
+      return next.length > 100 ? next.slice(-100) : next;
+    });
+  }
+
+  public clearSessionUsage(): void {
+    this.sessionUsageEntries.set([]);
+  }
+
+  private recordUsageFromHeaders(response: Response, fallbackEndpoint: string): void {
+    try {
+      const raw = response?.headers?.get?.('x-token-usage');
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as TokenUsageReceipt;
+      if (parsed && typeof parsed === 'object') {
+        this.recordUsageReceipt({
+          ...parsed,
+          endpoint: parsed.endpoint || fallbackEndpoint,
+        });
+      }
+    } catch {
+      // Ignore malformed usage header
+    }
+  }
+
+  private recordLocalUsage(
+    endpoint: string,
+    model: string,
+    billingSource: 'on-device' | 'demo',
+    inputText: string,
+    outputText: string,
+    callCount = 1
+  ): void {
+    const inputTokens = estimateTokensFromText(inputText);
+    const outputTokens = estimateTokensFromText(outputText);
+    const pricing = resolveModelPricing(model);
+    this.recordUsageReceipt({
+      endpoint,
+      model,
+      billingSource,
+      billingTier: pricing.billingTier,
+      inputTokens,
+      outputTokens,
+      thoughtTokens: 0,
+      cachedTokens: 0,
+      totalTokens: inputTokens + outputTokens,
+      estimatedCostUsd: estimateUsageCostUsd(model, { inputTokens, outputTokens }),
+      estimated: true,
+      callCount,
+      timestamp: new Date().toISOString(),
+    });
+  }
 
   /**
    * Clears all caches. Called when starting a new session.
@@ -106,6 +237,21 @@ export class GeminiService {
     this.structureCache.clear();
     this.carePlanCache.clear();
     this.creativePlanCache.clear();
+    this.fallbackNotice.set(null);
+  }
+
+  private setEdgeFallbackNotice(): void {
+    this.fallbackNotice.set(
+      'Cloud API is currently unavailable (503) — displaying local offline fallback synthesis. Switch to Local Ollama or check Cloud Run billing.'
+    );
+  }
+
+  private matchesScenario(problem: string, sc: StarterScenario): boolean {
+    if (sc.prompt === problem) return true;
+    const pLower = problem.toLowerCase();
+    if (pLower.includes(sc.title.toLowerCase())) return true;
+    const escapedCat = sc.category.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(`\\b${escapedCat}\\b`, 'i').test(problem);
   }
 
   /**
@@ -133,7 +279,7 @@ export class GeminiService {
       } catch (error) {
         const errMessage = (error as Error).message || '';
         
-        // Fail fast on specific API key, billing cap, or static-edge 502/503/504 issues
+        // Fail fast on specific API key, billing cap, validation, or static-edge 502/503/504 issues
         if (
           errMessage.includes('monthly spending cap') ||
           errMessage.includes('API key') ||
@@ -141,7 +287,13 @@ export class GeminiService {
           errMessage.includes('Billing') ||
           errMessage.includes('Server returned 503') ||
           errMessage.includes('Server returned 502') ||
-          errMessage.includes('Server returned 504')
+          errMessage.includes('Server returned 504') ||
+          errMessage.includes('Server returned 404') ||
+          errMessage.includes('not found') ||
+          errMessage.includes('Privacy Note') ||
+          errMessage.includes('Safety Note') ||
+          errMessage.includes('Civic Neutrality') ||
+          errMessage.includes('Local Ollama error')
         ) {
           throw new ApiRetryError(errMessage);
         }
@@ -173,12 +325,7 @@ export class GeminiService {
   }
 
   private getDemoStructuredProblem(problem: string): StructuredProblem {
-    const pLower = problem.toLowerCase();
-    const matched = STARTER_SCENARIOS.find(s => 
-      s.prompt === problem ||
-      pLower.includes(s.category) ||
-      pLower.includes(s.title.toLowerCase())
-    );
+    const matched = STARTER_SCENARIOS.find(s => this.matchesScenario(problem, s));
     if (matched && matched.domainContext) {
       return {
         title: matched.title,
@@ -217,8 +364,11 @@ export class GeminiService {
 
   async structureHealthGoal(problem: string, image?: { mimeType: string; data: string }): Promise<StructuredProblem> {
     if (this.isDemoMode()) {
-      return this.getDemoStructuredProblem(problem);
+      const demoStructured = this.getDemoStructuredProblem(problem);
+      this.recordLocalUsage('/api/structure', 'demo', 'demo', problem, JSON.stringify(demoStructured));
+      return demoStructured;
     }
+    this.fallbackNotice.set(null);
     const cacheKey = problem.trim() + (image ? `|img:${image.data.substring(0, 32)}` : '');
     if (this.structureCache.has(cacheKey)) {
         return this.structureCache.get(cacheKey)!;
@@ -251,11 +401,13 @@ export class GeminiService {
           throw new Error(errorMsg);
         }
 
+        this.recordUsageFromHeaders(response, '/api/structure');
         return response.json();
       });
     } catch (error) {
       if (this.isEdgeUnavailableError(error)) {
         console.warn('Cloud API returned 502/503/504; falling back to local client-side structured synthesis.');
+        this.setEdgeFallbackNotice();
         return this.getDemoStructuredProblem(problem);
       }
       throw error;
@@ -278,12 +430,15 @@ export class GeminiService {
   ): Promise<InsightResult[]> {
     if (!problem.trim()) return [];
     if (this.isDemoMode()) {
+      this.fallbackNotice.set(null);
       const mockData = this.getMockInsights(problem, strategies, mode);
+      this.recordLocalUsage('/api/insights', 'demo', 'demo', problem, JSON.stringify(mockData));
       if (onUpdate) {
         setTimeout(() => onUpdate(mockData), 600);
       }
       return mockData;
     }
+    this.fallbackNotice.set(null);
     
     const cacheKey = this.generateInsightCacheKey(problem, strategies, mode, gist, healthSnapshot, image);
     if (this.insightCache.has(cacheKey)) {
@@ -307,37 +462,81 @@ export class GeminiService {
     try {
       const results = await this._withRetries(async () => {
         const selectedModel = localStorage.getItem('spark_model_val') || localStorage.getItem('user_gemini_model');
-        
-        // On-device execution branch: Chrome Built-in AI (Gemini Nano via window.ai)
-        const win = (typeof window !== 'undefined' ? window : undefined) as unknown as { ai?: { languageModel?: { create: (opts: { systemPrompt: string }) => Promise<{ prompt: (p: string) => Promise<string>; destroy?: () => void }> } } } | undefined;
-        if ((selectedModel === 'on-device-nano' || selectedModel === 'window.ai') && typeof win?.ai?.languageModel?.create === 'function') {
-          try {
-            const systemPrompt = mode === 'care'
-              ? 'You are a compassionate, HIPAA-compliant care support partner grounded in PERMA+H positive psychology. Provide specific, practical, everyday insights (not generic clichés and not unrealistic gimmicks) in valid JSON format matching schema: [{"strategyName": string, "insights": [{"text": string, "influence": string}]}].'
-              : 'You are a practical lateral thinking partner. Provide specific, realistic, doable insights (avoiding vague clichés and avoiding crazy sci-fi gimmicks) matching JSON schema: [{"strategyName": string, "insights": [{"text": string}]}].';
-            
-            const session = await win.ai.languageModel.create({ systemPrompt });
-            const strategyList = strategies.map(s => {
+        const storedCfg = getStoredApiKey();
+        const isWebGpuSelected = Boolean(
+          selectedModel?.startsWith('webgpu:') ||
+          ((selectedModel === 'on-device-nano' || selectedModel === 'window.ai') && storedCfg === 'webgpu-active')
+        );
+        const isLocalBrowserModel =
+          isWebGpuSelected || selectedModel === 'on-device-nano' || selectedModel === 'window.ai';
+
+        const buildLocalPromptText = () => {
+          const strategyList = strategies
+            .map(s => {
               const sName = mode === 'care' ? (s.careModeName || s.name) : s.name;
               const sDesc = mode === 'care' ? (s.careModeDescription || s.description) : s.description;
               return `- Strategy: "${sName}" — ${sDesc}`;
-            }).join('\n');
-            const gistContext = gist ? `Guiding Perspective: "${gist}"\n\n` : '';
-            const snapshotContext = healthSnapshot ? `Health Snapshot: ${healthSnapshot}\n\n` : '';
-            const promptText = `${gistContext}${snapshotContext}Problem: "${problem}"\n\nStrategies:\n${strategyList}\n\nProvide 2 specific, practical, real-world insights per strategy that someone can realistically do this week. Output valid JSON array only.`;
-            
+            })
+            .join('\n');
+          const gistContext = gist ? `Guiding Perspective: "${gist}"\n\n` : '';
+          const snapshotContext = healthSnapshot ? `Health Snapshot: ${healthSnapshot}\n\n` : '';
+          return `${gistContext}${snapshotContext}Problem: "${problem}"\n\nStrategies:\n${strategyList}\n\nProvide 2 specific, practical, real-world insights per strategy that someone can realistically do this week. Output valid JSON array only.`;
+        };
+        const localSystemPrompt =
+          mode === 'care'
+            ? 'You are a compassionate, HIPAA-compliant care support partner grounded in PERMA+H positive psychology. Provide specific, practical, everyday insights (not generic clichés and not unrealistic gimmicks) in valid JSON array format matching schema: [{"strategyName": string, "insights": [{"text": string, "influence": string}]}].'
+            : 'You are a practical lateral thinking partner. Provide specific, realistic, doable insights (avoiding vague clichés and avoiding sci-fi gimmicks) in valid JSON array format matching schema: [{"strategyName": string, "insights": [{"text": string}]}].';
+
+        // On-device execution branch 1: Chrome Built-in AI (Gemini Nano via window.ai)
+        const win = (typeof window !== 'undefined' ? window : undefined) as unknown as { ai?: { languageModel?: { create: (opts: { systemPrompt: string }) => Promise<{ prompt: (p: string) => Promise<string>; destroy?: () => void }> } } } | undefined;
+        if (
+          !isWebGpuSelected &&
+          isLocalBrowserModel &&
+          typeof win?.ai?.languageModel?.create === 'function'
+        ) {
+          try {
+            const promptText = buildLocalPromptText();
+            const session = await win.ai.languageModel.create({ systemPrompt: localSystemPrompt });
             const fullResponse = await session.prompt(promptText);
             session.destroy?.();
-            
+
             const cleaned = this.cleanJsonBuffer(fullResponse);
             const parsed = parse(cleaned);
             const extracted = this.extractInsightResults(parsed, strategies, mode);
             if (extracted.length > 0) {
+              this.recordLocalUsage('/api/insights', 'on-device-nano', 'on-device', promptText, fullResponse);
               if (onUpdate) onUpdate(extracted);
               return extracted;
             }
           } catch (nanoErr) {
-            console.warn('Chrome Built-in AI execution error, falling back to server pipeline:', nanoErr);
+            console.warn('Chrome Built-in AI execution error, falling back:', nanoErr);
+          }
+        }
+
+        // On-device execution branch 2: Lazy Transformers.js WebGPU Runtime (SmolLM3 / Gemma 4 E2B / MedGemma)
+        if (isLocalBrowserModel) {
+          try {
+            const gpuCheck = await this.webGpuEngine.checkWebGpuSupport();
+            if (gpuCheck.supported) {
+              const webGpuKey = this.getSelectedWebGpuModelKey();
+              const spec = WEBGPU_MODEL_CATALOG[webGpuKey];
+              const promptText = buildLocalPromptText();
+              const fullResponse = await this.webGpuEngine.generateText(localSystemPrompt, promptText, {
+                modelKey: webGpuKey,
+                onProgress: (progress) => this.webGpuProgress.set(progress),
+              });
+              const cleaned = this.cleanJsonBuffer(fullResponse);
+              const parsed = parse(cleaned);
+              const extracted = this.extractInsightResults(parsed, strategies, mode);
+              if (extracted.length > 0) {
+                this.webGpuReadyModel.set(webGpuKey);
+                this.recordLocalUsage('/api/insights', `webgpu:${spec.hfModelId}`, 'on-device', promptText, fullResponse);
+                if (onUpdate) onUpdate(extracted);
+                return extracted;
+              }
+            }
+          } catch (webGpuErr) {
+            console.warn('Transformers.js WebGPU execution error, falling back to server pipeline:', webGpuErr);
           }
         }
 
@@ -371,49 +570,66 @@ export class GeminiService {
         if (!reader) throw new Error("Response body is not readable");
 
         const decoder = new TextDecoder();
+        let sseBuffer = '';
         let buffer = '';
         let finalResults: InsightResult[] = [];
+
+        const processSseLine = (rawLine: string) => {
+          const line = rawLine.trim();
+          if (!line.startsWith('data:')) return;
+          const dataStr = line.slice(5).trim();
+          if (!dataStr || dataStr === '[DONE]') return;
+
+          let data: { text?: string; error?: string; usage?: TokenUsageReceipt };
+          try {
+            data = JSON.parse(dataStr);
+          } catch {
+            return;
+          }
+
+          if (data?.error) {
+            throw new Error(data.error);
+          }
+
+          if (data?.usage) {
+            this.recordUsageReceipt(data.usage);
+          }
+
+          if (data?.text) {
+            buffer += data.text;
+            if (onUpdate) {
+              try {
+                const cleaned = this.cleanJsonBuffer(buffer);
+                const partial = parse(cleaned);
+                const normalizedResults = this.extractInsightResults(partial, strategies, mode);
+                if (normalizedResults.length > 0) {
+                  finalResults = normalizedResults;
+                  onUpdate(normalizedResults);
+                }
+              } catch {
+                // Ignore partial parse errors, wait for next chunk
+              }
+            }
+          }
+        };
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
-          
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
-          
+
+          sseBuffer += decoder.decode(value, { stream: true });
+          const lines = sseBuffer.split(/\r?\n/);
+          sseBuffer = lines.pop() ?? '';
+
           for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const dataStr = line.slice(6).trim();
-              if (dataStr === '[DONE]') break;
-              if (dataStr) {
-                try {
-                  const data = JSON.parse(dataStr);
-                  if (data.text) {
-                    buffer += data.text;
-                    if (onUpdate) {
-                      try {
-                        const cleaned = this.cleanJsonBuffer(buffer);
-                        const partial = parse(cleaned);
-                        const normalizedResults = this.extractInsightResults(partial, strategies, mode);
-                        if (normalizedResults.length > 0) {
-                          finalResults = normalizedResults;
-                          onUpdate(normalizedResults);
-                        }
-                      } catch {
-                         // Ignore partial parse errors, just wait for next chunk
-                      }
-                    }
-                  } else if (data.error) {
-                    throw new Error(data.error);
-                  }
-                } catch {
-                  // ignore JSON parse error for SSE message wrapper
-                }
-              }
-            }
+            processSseLine(line);
           }
         }
-        
+        sseBuffer += decoder.decode();
+        if (sseBuffer.trim()) {
+          processSseLine(sseBuffer);
+        }
+
         // Final parsing attempt to ensure we get everything if onUpdate wasn't called on the last chunk
         try {
            const cleaned = this.cleanJsonBuffer(buffer);
@@ -427,17 +643,28 @@ export class GeminiService {
         }
 
         if (finalResults.length === 0 && buffer.trim().length > 0) {
-          const lines = buffer.split('\n').map(l => l.trim().replace(/^[-*•\d.]+\s*/, '')).filter(l => l.length > 10);
-          if (lines.length > 0) {
-            const fallbackStrategyName = strategies[0] 
-              ? (mode === 'care' ? strategies[0].careModeName || strategies[0].name : strategies[0].name)
-              : 'Synthesized Insight';
-            finalResults = [{
-              strategyName: fallbackStrategyName,
-              insights: lines.slice(0, 3).map(text => ({ text }))
-            }];
-            if (onUpdate) onUpdate(finalResults);
+          const trimmedBuf = buffer.trim();
+          const looksLikeJson = /^([{[]|```)/.test(trimmedBuf);
+          if (!looksLikeJson) {
+            const lines = trimmedBuf
+              .split('\n')
+              .map(l => l.trim().replace(/^[-*•\d.]+\s*/, ''))
+              .filter(l => l.length > 10 && !/^[[\]{},]+$/.test(l) && !/^"[^"]+"\s*:/.test(l));
+            if (lines.length > 0) {
+              const fallbackStrategyName = strategies[0]
+                ? (mode === 'care' ? strategies[0].careModeName || strategies[0].name : strategies[0].name)
+                : 'Synthesized Insight';
+              finalResults = [{
+                strategyName: fallbackStrategyName,
+                insights: lines.slice(0, 3).map(text => ({ text }))
+              }];
+              if (onUpdate) onUpdate(finalResults);
+            }
           }
+        }
+
+        if (finalResults.length === 0) {
+          throw new Error('The AI returned an empty or unreadable response. Please retry or switch AI engine.');
         }
 
         return finalResults;
@@ -446,6 +673,7 @@ export class GeminiService {
     } catch (error) {
       if (this.isEdgeUnavailableError(error)) {
         console.warn('Cloud API returned 502/503/504; falling back to local client-side insight synthesis.');
+        this.setEdgeFallbackNotice();
         const fallbackData = this.getMockInsights(problem, strategies, mode);
         if (onUpdate) {
           onUpdate(fallbackData);
@@ -488,7 +716,17 @@ export class GeminiService {
       if (obj['strategyName'] && Array.isArray(obj['insights'])) {
         rawList = [obj];
       } else if (Array.isArray(obj['insights'])) {
-        rawList = obj['insights'];
+        const looksLikeStrategyGroups = obj['insights'].some(
+          (item: unknown) => item && typeof item === 'object' && ('strategyName' in item || 'insights' in item)
+        );
+        if (looksLikeStrategyGroups) {
+          rawList = obj['insights'];
+        } else {
+          const defaultStrategyName = strategies[0]
+            ? (mode === 'care' ? strategies[0].careModeName || strategies[0].name : strategies[0].name)
+            : 'Insight';
+          rawList = [{ strategyName: defaultStrategyName, insights: obj['insights'] }];
+        }
       } else if (Array.isArray(obj['strategies'])) {
         rawList = obj['strategies'];
       } else if (Array.isArray(obj['results'])) {
@@ -500,11 +738,18 @@ export class GeminiService {
         const extractedFromEntries: any[] = [];
         for (const [key, val] of Object.entries(obj)) {
           if (Array.isArray(val)) {
-            for (const item of val) {
-              if (item && typeof item === 'object') {
-                if (!item.strategyName) item.strategyName = key;
-                extractedFromEntries.push(item);
+            const hasStrategyGroups = val.some(
+              (item) => item && typeof item === 'object' && ('strategyName' in item || 'insights' in item)
+            );
+            if (hasStrategyGroups) {
+              for (const item of val) {
+                if (item && typeof item === 'object') {
+                  if (!item.strategyName) item.strategyName = key;
+                  extractedFromEntries.push(item);
+                }
               }
+            } else if (val.length > 0) {
+              extractedFromEntries.push({ strategyName: key, insights: val });
             }
           } else if (val && typeof val === 'object') {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -521,6 +766,26 @@ export class GeminiService {
 
     if (!Array.isArray(rawList)) return [];
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const normalizeInsightItem = (ins: any): InsightItem | null => {
+      if (typeof ins === 'string') {
+        const trimmed = ins.trim();
+        return trimmed ? { text: trimmed } : null;
+      }
+      if (ins && typeof ins === 'object') {
+        const rawText = ins.text ?? ins.insight ?? ins.idea ?? ins.description;
+        if (typeof rawText === 'string' && rawText.trim().length > 0) {
+          return {
+            text: rawText.trim(),
+            ...(typeof ins.influence === 'string' && ins.influence.trim()
+              ? { influence: ins.influence.trim() }
+              : {}),
+          };
+        }
+      }
+      return null;
+    };
+
     return rawList
       .filter(item => item && typeof item === 'object')
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -533,23 +798,25 @@ export class GeminiService {
           ? (mode === 'care' ? (originalStrategy.careModeName || originalStrategy.name) : originalStrategy.name)
           : (result.strategyName || (strategies[0] ? (mode === 'care' ? strategies[0].careModeName || strategies[0].name : strategies[0].name) : 'Insight'));
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let normalizedInsights: any[] = [];
+        let normalizedInsights: InsightItem[] = [];
         if (Array.isArray(result.insights)) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          normalizedInsights = result.insights.map((ins: any) => {
-            if (typeof ins === 'string') return { text: ins };
-            return ins;
-          });
+          normalizedInsights = result.insights
+            .map(normalizeInsightItem)
+            .filter((item: InsightItem | null): item is InsightItem => item !== null);
         } else if (typeof result.insights === 'string') {
-          normalizedInsights = [{ text: result.insights }];
+          const item = normalizeInsightItem(result.insights);
+          if (item) normalizedInsights = [item];
+        } else {
+          const directItem = normalizeInsightItem(result);
+          if (directItem) normalizedInsights = [directItem];
         }
 
         return {
           strategyName: finalStrategyName,
           insights: normalizedInsights
         } as InsightResult;
-      });
+      })
+      .filter(group => group.insights.length > 0);
   }
 
   private generateCarePlanCacheKey(problem: string, insights: SavedInsight[]): string {
@@ -558,12 +825,7 @@ export class GeminiService {
   }
 
   private getDemoCarePlan(problem: string): CarePlan {
-    const pLower = problem.toLowerCase();
-    const matched = STARTER_SCENARIOS.find(s => 
-      s.prompt === problem ||
-      pLower.includes(s.category) ||
-      pLower.includes(s.title.toLowerCase())
-    );
+    const matched = STARTER_SCENARIOS.find(s => this.matchesScenario(problem, s));
     if (matched && matched.domainContext) {
       return {
         personGoal: matched.gist,
@@ -644,8 +906,11 @@ export class GeminiService {
       throw new Error("No insights provided to generate a care plan.");
     }
     if (this.isDemoMode()) {
-      return this.getDemoCarePlan(problem);
+      const demoCarePlan = this.getDemoCarePlan(problem);
+      this.recordLocalUsage('/api/care-plan', 'demo', 'demo', problem, JSON.stringify(demoCarePlan));
+      return demoCarePlan;
     }
+    this.fallbackNotice.set(null);
     
     const cacheKey = this.generateCarePlanCacheKey(problem, insights);
     if (this.carePlanCache.has(cacheKey)) {
@@ -682,11 +947,13 @@ export class GeminiService {
           throw new Error(errorMsg);
         }
 
+        this.recordUsageFromHeaders(response, '/api/care-plan');
         return response.json();
       });
     } catch (error) {
       if (this.isEdgeUnavailableError(error)) {
         console.warn('Cloud API returned 502/503/504; falling back to local client-side care plan synthesis.');
+        this.setEdgeFallbackNotice();
         return this.getDemoCarePlan(problem);
       }
       throw error;
@@ -699,13 +966,8 @@ export class GeminiService {
   }
 
   private getDemoCreativePlan(problem: string, insights: SavedInsight[]): CreativePlan {
-    const pLower = problem.toLowerCase();
     const matched = STARTER_SCENARIOS.find(s =>
-      s.mode === 'creative' && (
-        s.prompt === problem ||
-        pLower.includes(s.title.toLowerCase()) ||
-        pLower.includes(s.category)
-      )
+      s.mode === 'creative' && this.matchesScenario(problem, s)
     );
     if (matched && matched.id !== 'creative-civic') {
       const insightSteps = insights.slice(0, 4).map((ins, idx) => `${idx + 1}. ${ins.text}`);
@@ -773,8 +1035,11 @@ export class GeminiService {
       throw new Error("No insights provided to generate a creative plan.");
     }
     if (this.isDemoMode()) {
-      return this.getDemoCreativePlan(problem, insights);
+      const demoCreativePlan = this.getDemoCreativePlan(problem, insights);
+      this.recordLocalUsage('/api/creative-plan', 'demo', 'demo', problem, JSON.stringify(demoCreativePlan));
+      return demoCreativePlan;
     }
+    this.fallbackNotice.set(null);
     
     const cacheKey = this.generateCreativePlanCacheKey(problem, insights);
     if (this.creativePlanCache.has(cacheKey)) {
@@ -811,11 +1076,13 @@ export class GeminiService {
           throw new Error(errorMsg);
         }
 
+        this.recordUsageFromHeaders(response, '/api/creative-plan');
         return response.json();
       });
     } catch (error) {
       if (this.isEdgeUnavailableError(error)) {
         console.warn('Cloud API returned 502/503/504; falling back to local client-side creative plan synthesis.');
+        this.setEdgeFallbackNotice();
         return this.getDemoCreativePlan(problem, insights);
       }
       throw error;
@@ -835,6 +1102,7 @@ export class GeminiService {
         const errData = await response.json().catch(() => null);
         throw new Error(errData?.error || `Server returned ${response.status}`);
       }
+      this.recordUsageFromHeaders(response, '/api/agent/select');
       return response.json();
     });
   }
@@ -850,6 +1118,7 @@ export class GeminiService {
         const errData = await response.json().catch(() => null);
         throw new Error(errData?.error || `Server returned ${response.status}`);
       }
+      this.recordUsageFromHeaders(response, '/api/agent/debate');
       return response.json();
     });
   }
@@ -869,6 +1138,7 @@ export class GeminiService {
         const errData = await response.json().catch(() => null);
         throw new Error(errData?.error || `Server returned ${response.status}`);
       }
+      this.recordUsageFromHeaders(response, '/api/agent/refine');
       return response.json();
     });
   }
@@ -951,8 +1221,12 @@ export class GeminiService {
     gist?: string
   ): Promise<AgenticResult> {
     if (this.isDemoMode()) {
-      return this.getDemoAgenticResult(problem, mode, onPhaseChange, onUpdate);
+      this.fallbackNotice.set(null);
+      const demoAgentic = this.getDemoAgenticResult(problem, mode, onPhaseChange, onUpdate);
+      this.recordLocalUsage('/api/agent/pipeline', 'demo', 'demo', problem, JSON.stringify(demoAgentic), 4);
+      return demoAgentic;
     }
+    this.fallbackNotice.set(null);
 
     try {
       return await this._withRetries(async () => {
@@ -971,59 +1245,81 @@ export class GeminiService {
         if (!reader) throw new Error('Response body is not readable');
 
         const decoder = new TextDecoder();
+        let sseBuffer = '';
         let result: Partial<AgenticResult> = {};
+        let usageRecorded = false;
+
+        const processAgenticLine = (rawLine: string) => {
+          const line = rawLine.trim();
+          if (!line.startsWith('data:')) return;
+          const dataStr = line.slice(5).trim();
+          if (!dataStr || dataStr === '[DONE]') return;
+
+          let data: Record<string, unknown>;
+          try {
+            data = JSON.parse(dataStr);
+          } catch {
+            return;
+          }
+
+          if (data?.['error']) {
+            throw new Error(String(data['error']));
+          }
+
+          if (data?.['usage'] && !usageRecorded) {
+            usageRecorded = true;
+            this.recordUsageReceipt(data['usage'] as TokenUsageReceipt);
+          }
+
+          if (data?.['phase']) {
+            onPhaseChange(data['phase'] as AgenticPhase);
+
+            if (data['result']) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const phaseResult = data['result'] as any;
+              switch (data['phase']) {
+                case 'selecting':
+                  result.selection = phaseResult;
+                  break;
+                case 'generating':
+                  result.initialInsights = phaseResult;
+                  break;
+                case 'debating':
+                  result.debate = phaseResult;
+                  break;
+                case 'refining':
+                  result.refinedInsights = phaseResult.refinedInsights;
+                  result.consensus = phaseResult.consensus;
+                  result.synthesisActionBridge = phaseResult.synthesisActionBridge;
+                  break;
+                case 'complete':
+                  result = phaseResult;
+                  break;
+              }
+              onUpdate({ ...result });
+            }
+          }
+        };
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split('\n');
+          sseBuffer += decoder.decode(value, { stream: true });
+          const lines = sseBuffer.split(/\r?\n/);
+          sseBuffer = lines.pop() ?? '';
 
           for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const dataStr = line.slice(6).trim();
-              if (dataStr === '[DONE]') break;
-              if (dataStr) {
-                try {
-                  const data = JSON.parse(dataStr);
-                  if (data.error) throw new Error(data.error);
-
-                  if (data.phase) {
-                    onPhaseChange(data.phase as AgenticPhase);
-
-                    if (data.result) {
-                      switch (data.phase) {
-                        case 'selecting':
-                          result.selection = data.result;
-                          break;
-                        case 'generating':
-                          result.initialInsights = data.result;
-                          break;
-                        case 'debating':
-                          result.debate = data.result;
-                          break;
-                        case 'refining':
-                          result.refinedInsights = data.result.refinedInsights;
-                          result.consensus = data.result.consensus;
-                          result.synthesisActionBridge = data.result.synthesisActionBridge;
-                          break;
-                        case 'complete':
-                          result = data.result;
-                          break;
-                      }
-                      onUpdate({ ...result });
-                    }
-                  }
-                } catch (e) {
-                  if ((e as Error).message?.includes('PII') || (e as Error).message?.includes('API')) {
-                    throw e;
-                  }
-                  // Ignore partial parse errors
-                }
-              }
-            }
+            processAgenticLine(line);
           }
+        }
+        sseBuffer += decoder.decode();
+        if (sseBuffer.trim()) {
+          processAgenticLine(sseBuffer);
+        }
+
+        if (!result.initialInsights?.length && !result.refinedInsights?.length) {
+          throw new Error('The multi-agent pipeline returned an empty response. Please retry or switch AI engine.');
         }
 
         return result as AgenticResult;
@@ -1031,6 +1327,7 @@ export class GeminiService {
     } catch (error) {
       if (this.isEdgeUnavailableError(error)) {
         console.warn('Cloud API returned 502/503/504; falling back to local client-side agentic synthesis.');
+        this.setEdgeFallbackNotice();
         return this.getDemoAgenticResult(problem, mode, onPhaseChange, onUpdate);
       }
       throw error;
@@ -1042,9 +1339,20 @@ export class GeminiService {
   }
 
   private getMockInsights(problem: string, strategies: CreativeStrategy[], mode: 'creative' | 'care'): InsightResult[] {
-    const textLower = problem.toLowerCase();
-    const isDefaultCreativeQuery = textLower.includes('municipal') || textLower.includes('flood') || textLower.includes('park');
-    const isDefaultCareQuery = textLower.includes('grandmother') || textLower.includes('fracture') || textLower.includes('garden');
+    const isDefaultCreativeQuery =
+      /\b(?:municipal|flood(?:ing|water|s)?|rain\s*garden|wetland)\b/i.test(problem) ||
+      (/\bpark\b/i.test(problem) && /\b(?:flood|rain|garden|edible|water|storm)\b/i.test(problem));
+    const isDefaultCareQuery =
+      /\b(?:hip|fracture)\b/i.test(problem) ||
+      (/\bgrandmother\b/i.test(problem) && /\bgarden(?:ing)?\b/i.test(problem));
+    const matchedCareScenario =
+      mode === 'care' && !isDefaultCareQuery
+        ? STARTER_SCENARIOS.find(sc => sc.mode === 'care' && this.matchesScenario(problem, sc))
+        : undefined;
+    const matchedCreativeScenario =
+      mode === 'creative' && !isDefaultCreativeQuery
+        ? STARTER_SCENARIOS.find(sc => sc.mode === 'creative' && this.matchesScenario(problem, sc))
+        : undefined;
 
     return strategies.map(s => {
       const sId = s.id;
@@ -1148,8 +1456,8 @@ export class GeminiService {
             { text: "Step 2: Plant hardy cover crops and deep-rooted native grasses in Season 1 to hold the soil in place before planting fruit trees in Season 2." }
           ];
         }
-      } else if (mode === 'care' && STARTER_SCENARIOS.some(sc => sc.prompt === problem || textLower.includes(sc.category) || textLower.includes(sc.title.toLowerCase())) && !isDefaultCareQuery) {
-        const matched = STARTER_SCENARIOS.find(sc => sc.prompt === problem || textLower.includes(sc.category) || textLower.includes(sc.title.toLowerCase()))!;
+      } else if (matchedCareScenario) {
+        const matched = matchedCareScenario;
         const ctx = matched.domainContext;
         if (sId === 'what-if') {
           insights = [
@@ -1192,8 +1500,8 @@ export class GeminiService {
             { text: ctx ? ctx.perspectives : "Harmonizes safety guidelines, lived experience, and flourishing.", influence: "Perspectives (P): Triad alignment." }
           ];
         }
-      } else if (mode === 'creative' && STARTER_SCENARIOS.some(sc => sc.mode === 'creative' && (sc.prompt === problem || textLower.includes(sc.title.toLowerCase()))) && !isDefaultCreativeQuery) {
-        const matched = STARTER_SCENARIOS.find(sc => sc.mode === 'creative' && (sc.prompt === problem || textLower.includes(sc.title.toLowerCase())))!;
+      } else if (matchedCreativeScenario) {
+        const matched = matchedCreativeScenario;
         if (matched.id === 'creative-eco') {
           insights = [
             { text: `Use scalloped leading-edge blades (modeled on whale fins) so small rooftop wind rotors spin smoothly in gusty city breezes without loud whistling.` },
@@ -1399,6 +1707,7 @@ export class GeminiService {
         throw new Error(errorMsg);
       }
 
+      this.recordUsageFromHeaders(response, '/api/translate');
       return response.json();
     });
   }

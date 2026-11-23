@@ -12,17 +12,17 @@ describe('Unified Multi-Task DPO Preference Suite (Option B)', () => {
   const jsonlPath = path.join(ROOT_DIR, 'datasets', 'multitask-dpo.jsonl');
   const parquetPath = path.join(ROOT_DIR, 'datasets', 'multitask-dpo.parquet');
 
-  test('multitask-dpo.jsonl exists and contains exactly 48 paired tasks + 1 metadata header', () => {
+  test('multitask-dpo.jsonl exists and contains exactly 58 paired tasks + 1 metadata header', () => {
     assert.ok(fs.existsSync(jsonlPath), 'multitask-dpo.jsonl must exist');
     const lines = fs.readFileSync(jsonlPath, 'utf8').trim().split('\n');
-    assert.strictEqual(lines.length, 49, 'Must have 49 lines (1 metadata + 48 task pairs)');
+    assert.strictEqual(lines.length, 59, 'Must have 59 lines (1 metadata + 58 task pairs)');
 
     const metadata = JSON.parse(lines[0]);
     assert.strictEqual(metadata._metadata.format, 'DPO_JSONL_PAIRWISE_PREFERENCES');
     assert.strictEqual(metadata._metadata.curator, 'Phil Gear');
   });
 
-  test('All 48 tasks have valid task prefix tokens, chosen yw, and rejected yl', () => {
+  test('All 58 tasks have valid task prefix tokens, chosen yw, and rejected yl', () => {
     const lines = fs.readFileSync(jsonlPath, 'utf8').trim().split('\n').slice(1);
     let careCount = 0;
     let creativeCount = 0;
@@ -45,8 +45,8 @@ describe('Unified Multi-Task DPO Preference Suite (Option B)', () => {
       }
     });
 
-    assert.strictEqual(careCount, 24, 'Must have exactly 24 Care Mode tasks');
-    assert.strictEqual(creativeCount, 24, 'Must have exactly 24 Creative Mode tasks');
+    assert.strictEqual(careCount, 29, 'Must have exactly 29 Care Mode tasks');
+    assert.strictEqual(creativeCount, 29, 'Must have exactly 29 Creative Mode tasks');
   });
 
   test('multitask-dpo.parquet exists with high-compression binary encoding', () => {

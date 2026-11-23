@@ -336,6 +336,36 @@ describe('Translation & Internationalization Suite', () => {
     assert.strictEqual(scalerType, 0x00010000, 'Must have valid TrueType 1.0 scaler header (0x00010000)');
   });
 
+  test('PocketGull v4.000 Sovereign Editorial Pairing: all 8 WOFF2 masters & optical typography rules exist', async () => {
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const woff2Masters = [
+      'PocketGull-Regular.woff2',
+      'PocketGull-Italic.woff2',
+      'PocketGull-Bold.woff2',
+      'PocketGull-Slab-Regular.woff2',
+      'PocketGull-Slab-Bold.woff2',
+      'PocketGull-Soft-Regular.woff2',
+      'PocketGull-Soft-Bold.woff2',
+      'PocketGullMono-Regular.woff2',
+    ];
+
+    for (const fileName of woff2Masters) {
+      const fontPath = path.resolve(`public/fonts/${fileName}`);
+      assert.ok(fs.existsSync(fontPath), `${fileName} must exist in public/fonts/`);
+      const buf = fs.readFileSync(fontPath);
+      assert.ok(buf.length > 300000, `${fileName} must be full foundry master (>300KB), got ${buf.length}`);
+      assert.strictEqual(buf.readUInt32BE(0), 0x774F4632, `${fileName} must begin with wOF2 signature`);
+    }
+
+    const stylesCss = fs.readFileSync(path.resolve('styles.css'), 'utf8');
+    assert.ok(stylesCss.includes("font-family: 'PocketGull';"), 'styles.css must declare PocketGull UI sans');
+    assert.ok(stylesCss.includes("font-family: 'PocketGull Slab';"), 'styles.css must declare PocketGull Slab headings');
+    assert.ok(stylesCss.includes("url('/fonts/PocketGullMono-Regular.woff2') format('woff2')"), 'styles.css must prioritize PocketGullMono WOFF2');
+    assert.ok(stylesCss.includes('font-optical-sizing: auto;'), 'styles.css must enable automatic optical sizing');
+    assert.ok(stylesCss.includes('font-kerning: normal;'), 'styles.css must enable OpenType kerning');
+  });
+
   test('Spark DSRP Variable Font: VF binaries exist with valid fvar & gvar variation tables', async () => {
     const fs = await import('node:fs');
     const path = await import('node:path');

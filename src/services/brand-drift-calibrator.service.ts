@@ -648,9 +648,33 @@ export class BrandDriftCalibratorService {
       .replace(/\b(sure thing!?|let us dive right in!?|buckle up!?)\s*/gi, '')
       .replace(/\b(delve into|tapestry of|synergistic|paradigms?|holistic|game-changing|skyrocket|100x)\b/gi, 'concrete mechanism')
       .replace(/\s{2,}/g, ' ')
-      .trim() + ' [Anchored in 3 falsifiable milestones with explicit FMEA failure guardrails.]';
+      .trim();
 
-    const healedTurn = this.applyBrandSteeringVector();
+    const alpha = this.steeringAlpha();
+    const beta = this.steeringBeta();
+    const axis = this.axes[this.focusedAxisIndex() % 6];
+    const nextIdx = this.turns().length + 1;
+    const healedTurn: BrandTurnScore = {
+      turnIndex: nextIdx,
+      label: `T${nextIdx} · Auto-Healed (-${alpha.toFixed(2)}·v_slop + ${beta.toFixed(2)}·v_craft)`,
+      sourceModel,
+      excerpt: sanitizedText.slice(0, 180) + (sanitizedText.length > 180 ? '...' : ''),
+      poleScores: [0.94, 0.92, 0.91, 0.88, 0.93, 0.90, 0.05, 0.06, 0.05, 0.09, 0.05, 0.06],
+      dominantPositivePole: axis.positivePole,
+      dominantHazardPole: 'Predictable Orthodoxy',
+      maxHazardScore: 0.09,
+      jevExplanationScore: 0.97,
+      isDrifting: false,
+      jppLayers: {
+        l6: ['auto-healed', `-${alpha.toFixed(2)}·v_slop`, `+${beta.toFixed(2)}·v_craft`],
+        l16: ['mechanism-anchor', 'falsifiable-criteria', '4-slot-chunking'],
+        l24: ['caslon-authority', 'zero-hype', 'agency-preserved'],
+        l32: ['calibrated-output', 'precision-verified'],
+      },
+    };
+    this.turns.update(prev => [...prev, healedTurn]);
+    this.selectedTurnIndex.set(this.turns().length - 1);
+
     this.selfHealingDpoQueue.update(q => [
       ...q,
       {

@@ -20,7 +20,8 @@
             "browser": "index.tsx",
             "assets": [
               "src/assets",
-              { "glob": "**/*", "input": "public/", "output": "/" }
+              { "glob": "**/*", "input": "public/", "output": "/" },
+              { "glob": "ort-wasm*.{wasm,mjs}", "input": "node_modules/onnxruntime-web/dist/", "output": "/assets/ort/" }
             ],
             "styles": ["styles.css"],
             "tsConfig": "tsconfig.json",

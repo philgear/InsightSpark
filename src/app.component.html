@@ -21,7 +21,7 @@
             </div>
           </div>
           <div class="flex flex-col justify-center">
-            <h1 class="font-serif leading-[0.9] tracking-tighter text-xl bg-clip-text text-transparent bg-linear-to-r from-(--text-color) via-(--text-highlight) to-(--text-accent) py-1">
+            <h1 class="brand-wordmark font-serif leading-none tracking-tighter text-xl bg-clip-text text-transparent bg-linear-to-r from-(--text-color) via-(--text-highlight) to-(--text-accent) py-1">
               Pivot <span class="brand-ampersand">&amp;</span> Pulse
             </h1>
             <p class="text-xs text-(--text-color-muted) hidden sm:block tracking-tight leading-none uppercase opacity-80">A Fluid Thinking Partner</p>
@@ -160,6 +160,16 @@
                   </h2>
                 </div>
                 <div class="flex items-center gap-2 flex-wrap">
+                  @if (sessionCostSummary().callCount > 0) {
+                    <button (click)="setView('help')"
+                            type="button"
+                            class="flex items-center gap-1.5 px-3 py-2 min-h-12 rounded-xl bg-(--button-bg) hover:bg-(--button-bg-hover) border border-(--border-color) text-xs font-mono text-(--text-color-muted) hover:text-(--text-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color) cursor-pointer"
+                            title="Inspect session token usage and cost receipt"
+                            aria-label="Inspect session token usage and cost receipt">
+                      <app-icon name="activity" [size]="14" class="text-(--text-accent)"></app-icon>
+                      <span>{{ sessionCostSummary().totalTokens | number }} tok · {{ formatUsd(sessionCostSummary().totalEstimatedCostUsd) }}</span>
+                    </button>
+                  }
                    <button (click)="editQuery()" class="flex items-center justify-center gap-2 bg-(--button-bg) hover:bg-(--button-bg-hover) text-sm font-medium py-2 px-4 min-h-12 min-w-12 organic-button border border-(--border-color) transition-colors focus:outline-none focus:ring-2 focus:ring-(--ring-color)">
                     <app-icon name="edit" [size]="18"></app-icon>
                     <span>Edit Query</span>
@@ -174,6 +184,26 @@
                   </div>
                 </div>
               </header>
+
+              @if (fallbackNotice(); as notice) {
+                <div role="status" class="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 non-printable">
+                  <div class="flex items-start gap-3">
+                    <app-icon name="zap" class="text-amber-400 shrink-0 mt-0.5" [size]="18"></app-icon>
+                    <div>
+                      <h4 class="text-xs font-bold uppercase tracking-wider text-amber-400">Offline Fallback Active</h4>
+                      <p class="text-xs/relaxed text-(--text-color) mt-0.5">{{ notice }}</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <button (click)="clearApiKey()" type="button" class="px-3 py-1.5 rounded-lg bg-amber-500 text-black text-xs font-bold hover:bg-amber-400 transition-colors cursor-pointer">
+                      Switch AI Engine
+                    </button>
+                    <button (click)="fallbackNotice.set(null)" type="button" class="p-1.5 rounded-lg text-(--text-color-muted) hover:text-(--text-color) hover:bg-(--button-bg-hover) cursor-pointer" aria-label="Dismiss offline fallback notice">
+                      <app-icon name="x" [size]="16"></app-icon>
+                    </button>
+                  </div>
+                </div>
+              }
 
               @if (agenticResult(); as agentic) {
                 <div class="p-6 bg-(--card-bg) border border-(--text-accent)/30 rounded-2xl shadow-xl backdrop-blur-md relative overflow-hidden animate-pop">
@@ -305,7 +335,7 @@
                             </span>
                             <span class="text-xs font-semibold text-(--text-color-muted)">Patient &ne; Pathology</span>
                           </div>
-                          <p class="text-xs/relaxed text-(--text-color)">{{ dsrp.identityDistinctions }}</p>
+                          <p class="text-sm/relaxed text-(--text-color)">{{ dsrp.identityDistinctions }}</p>
                         </div>
 
                         <!-- Quadrant S: Systems -->
@@ -317,7 +347,7 @@
                             </span>
                             <span class="text-xs font-semibold text-(--text-color-muted)">Ecosystem of Recovery</span>
                           </div>
-                          <p class="text-xs/relaxed text-(--text-color)">{{ dsrp.systemicEcosystem }}</p>
+                          <p class="text-sm/relaxed text-(--text-color)">{{ dsrp.systemicEcosystem }}</p>
                         </div>
 
                         <!-- Quadrant R: Relationships -->
@@ -329,7 +359,7 @@
                             </span>
                             <span class="text-xs font-semibold text-(--text-color-muted)">Relational Care Bridge</span>
                           </div>
-                          <p class="text-xs/relaxed text-(--text-color)">{{ dsrp.relationalBridge }}</p>
+                          <p class="text-sm/relaxed text-(--text-color)">{{ dsrp.relationalBridge }}</p>
                         </div>
 
                         <!-- Quadrant P: Perspectives -->
@@ -341,7 +371,7 @@
                             </span>
                             <span class="text-xs font-semibold text-(--text-color-muted)">Triad Alignment</span>
                           </div>
-                          <p class="text-xs/relaxed text-(--text-color)">{{ dsrp.triadPerspectives }}</p>
+                          <p class="text-sm/relaxed text-(--text-color)">{{ dsrp.triadPerspectives }}</p>
                         </div>
                       </div>
                     </div>
@@ -351,7 +381,7 @@
 
               @if (resultsViewMode() === 'list') {
               <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                @for (result of insightResults; track result.strategyName) {
+                @for (result of insightResults; track result.strategyName + '-' + $index) {
                   <div class="p-5 organic-shape flex flex-col" [style.--strategy-color]="'var(--strategy-' + getStrategyId(result.strategyName) + ')'">
                     <header class="flex items-center gap-3 mb-4">
                       <div class="w-10 h-10 rounded-lg bg-(--strategy-color)/20 flex items-center justify-center text-(--strategy-color)">
@@ -360,7 +390,7 @@
                       <h3 class="text-(--strategy-color)">{{ result.strategyName }}</h3>
                     </header>
                     <div class="space-y-4 flex-1">
-                      @for (insight of result.insights; track insight.text; let i = $index) {
+                      @for (insight of result.insights; track i; let i = $index) {
                         @let id = 'insight-' + result.strategyName + '-' + i;
                         @let badge = getInsightBadge(insight.text, result.strategyName, insight.influence);
                         <div class="insight-card-magical group relative">
@@ -509,7 +539,7 @@
                                                     <span class="inline-flex items-center justify-center w-5 h-5 rounded border border-(--text-accent)/40 bg-(--text-accent)/10 text-(--text-accent) text-xs shrink-0 mt-0.5">
                                                       <app-icon name="check" [size]="12"></app-icon>
                                                     </span>
-                                                    <span class="text-sm/relaxed">{{ item }}</span>
+                                                    <span class="text-base/relaxed max-w-[65ch]">{{ item }}</span>
                                                 </li>
                                             }
                                         </ul>
@@ -1414,7 +1444,7 @@
                 Hosted Cloud Speed
               </h3>
               <p class="text-xs text-stone-300/80 mt-1 leading-relaxed">
-                Instant start via our secure HIPAA-compliant edge proxy. Powered by Gemini 3.8 / 2.5 Flash.
+                Instant start via our secure HIPAA-compliant edge proxy. Powered by Gemini 4 Hydrogen (Interactions API).
               </p>
             </div>
             <div class="mt-4 pt-3 border-t border-amber-500/20 flex items-center justify-between text-xs font-semibold text-amber-300">
@@ -1506,6 +1536,8 @@
           <a href="/terms" target="_blank" rel="noopener noreferrer" class="hover:text-(--text-accent) transition-colors">Terms & Conditions</a>
           <span class="text-(--border-color)">•</span>
           <a href="/privacy" target="_blank" rel="noopener noreferrer" class="hover:text-(--text-accent) transition-colors">Privacy Policy</a>
+          <span class="text-(--border-color)">•</span>
+          <a href="/transparency" target="_blank" rel="noopener noreferrer" class="hover:text-(--text-accent) transition-colors">Cost Transparency</a>
           <span class="text-(--border-color)">•</span>
           <span class="text-[11px]">Apache-2.0 Open Source</span>
         </div>

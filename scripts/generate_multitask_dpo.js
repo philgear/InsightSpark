@@ -3,7 +3,7 @@
  * InsightSpark (Pivot & Pulse) — Unified Multi-Task DPO Dataset Generator
  * 
  * Generates canonical Hugging Face TRL pairwise preference datasets (.jsonl)
- * covering all 24 strategies in both [MODE: CREATIVE] and [MODE: CARE] (48 tasks total),
+ * covering all 29 strategies in both [MODE: CREATIVE] and [MODE: CARE] (58 tasks total),
  * using task prefix tokens:
  *   [MODE: CARE] [STRATEGY: <ID>] Problem: ...
  *   [MODE: CREATIVE] [STRATEGY: <ID>] Problem: ...
@@ -23,13 +23,13 @@ const OUTPUT_JSONL = path.join(ROOT_DIR, 'datasets', 'multitask-dpo.jsonl');
 
 const BASE_METADATA = {
   format: 'DPO_JSONL_PAIRWISE_PREFERENCES',
-  version: '2.0.0',
+  version: '2.1.0',
   target_framework: 'Hugging Face TRL (DPOTrainer)',
   license: 'Apache-2.0',
   provenance: 'InsightSpark (Pivot & Pulse)',
   curator: 'Phil Gear',
   orcid: 'https://orcid.org/0009-0008-1372-5381',
-  dataset_type: 'Unified Multi-Task (24 Strategies x 2 Modes = 48 Tasks)',
+  dataset_type: 'Unified Multi-Task (29 Strategies x 2 Modes = 58 Tasks)',
   prefix_token_schema: '[MODE: <CARE|CREATIVE>] [STRATEGY: <ID>]',
   exported_at: new Date().toISOString(),
 };
@@ -72,6 +72,14 @@ function getScenarioForStrategy(strategy, mode) {
         return 'Elder living alone has no biological family nearby; neighbors want to help but do not know how to coordinate.';
       case 'time-dilation':
         return 'Caregiver feels that daily routines are an endless blur of crisis management with zero perspective.';
+      case 'boundary-dissolution':
+        return 'Retired botanical illustrator feels reduced solely to her post-hip-fracture diagnosis during clinical visits.';
+      case 'system-fractal':
+        return 'Physical therapy knee gains stall because nighttime cortisol spikes and fractured sleep prevent tissue recovery.';
+      case 'feedback-loop':
+        return 'Joint pain triggers fear of walking, which causes stiffness and even worse morning pain across the household.';
+      case 'perspective-inversion':
+        return 'Orthopedist hip precautions, elder fatigue, and family weekend hopes feel misaligned during recovery.';
       case 'fmea':
         return 'Elder is being discharged home after a 5-day post-acute stay with a new anticoagulant medication regimen.';
       case 'critical-path':
@@ -86,6 +94,8 @@ function getScenarioForStrategy(strategy, mode) {
         return 'Adult children discussing nursing home placement in front of mother as if she were not in the room.';
       case 'environmental-safety':
         return 'Elder with balance issues lives in an older home with slick wood floors, loose throw rugs, and steep porch steps.';
+      case 'porters-five-forces':
+        return 'Family care plan collapses whenever one primary driver gets sick or local pharmacy runs short on refill stock.';
       default:
         return 'Balancing sustainable daily caregiving with personhood and family harmony.';
     }
@@ -126,6 +136,14 @@ function getScenarioForStrategy(strategy, mode) {
         return 'Creating collaborative alliances between competing indie game studios to share server infrastructure.';
       case 'time-dilation':
         return 'Developing a personal knowledge archiving format designed to remain readable 200 years into the future.';
+      case 'boundary-dissolution':
+        return 'Municipal park fences isolate stormwater basins from adjacent street runoff and neighbor stewardship.';
+      case 'system-fractal':
+        return 'Neighborhood street curbs flood while upstream watershed wetlands sit disconnected from city storm drains.';
+      case 'feedback-loop':
+        return 'Clearing fallen autumn leaves from park paths creates municipal waste while garden beds lack compost.';
+      case 'perspective-inversion':
+        return 'Designing a neighborhood food forest that serves both a 50-year parks groundskeeper and local pollinators.';
       case 'fmea':
         return 'Conducting a pre-mortem failure mode analysis on an open-source medical telemetry device.';
       case 'critical-path':
@@ -140,6 +158,8 @@ function getScenarioForStrategy(strategy, mode) {
         return 'Developing AI data provenance and consent mechanisms that guarantee permanent user data sovereignty.';
       case 'environmental-safety':
         return 'Ergonomic workshop redesign to prevent repetitive strain injuries in collaborative maker spaces.';
+      case 'porters-five-forces':
+        return 'Protecting an open-source community diagnostic tool from proprietary cloud lock-in and commoditization.';
       default:
         return 'Overcoming creative stagnation on a mission-critical project.';
     }
@@ -214,7 +234,7 @@ Anchor this radical divergence with a concrete FMEA pre-mortem check and an imme
 }
 
 function main() {
-  console.log('🚀 Generating Unified Multi-Task DPO Dataset (24 Strategies x 2 Modes = 48 Tasks)...');
+  console.log(`🚀 Generating Unified Multi-Task DPO Dataset (${STRATEGIES.length} Strategies x 2 Modes = ${STRATEGIES.length * 2} Tasks)...`);
 
   const records = [];
   records.push({ _metadata: BASE_METADATA });

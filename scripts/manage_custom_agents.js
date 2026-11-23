@@ -49,7 +49,7 @@ function getClient(apiKeyOverride) {
   if (!apiKey) {
     throw new Error('GEMINI_API_KEY environment variable is not set. Check .env.local or pass an API key.');
   }
-  return new GoogleGenAI({ apiKey });
+  return new GoogleGenAI({ apiKey, apiVersion: 'v1beta' });
 }
 
 // Read markdown files safely to mount into base_environment
@@ -68,10 +68,10 @@ export const AGENTS_REGISTRY = {
   'insightspark-kinship-planner': {
     id: 'insightspark-kinship-planner',
     description: 'Intergenerational Care Planner & Kinship Mesh Synthesizer with PERMA+H & Respite Guardrails',
-    base_agent: 'antigravity-preview-05-2026',
+    base_agent: 'antigravity-preview-09-2026',
     agent_config: {
       type: 'antigravity',
-      model: 'gemini-3.8-flash',
+      model: 'gemini-4-hydrogen',
     },
     system_instruction: `
 You are the InsightSpark Intergenerational Kinship Care Coordinator.
@@ -114,10 +114,10 @@ Core Invariants:
   'insightspark-lateral-provocateur': {
     id: 'insightspark-lateral-provocateur',
     description: 'Lateral Thinking Provocateur & Divergent Brainstorm Engine based on Edward de Bono & Grounding Shelf',
-    base_agent: 'antigravity-preview-05-2026',
+    base_agent: 'antigravity-preview-09-2026',
     agent_config: {
       type: 'antigravity',
-      model: 'gemini-3.8-flash',
+      model: 'gemini-4-hydrogen',
     },
     system_instruction: `
 You are the InsightSpark Lateral Thinking Provocateur.

@@ -16,6 +16,10 @@ test('BrandDriftCalibratorService: computes unit Difference-in-Means vector', ()
 
 test('BrandDriftCalibratorService: autoHealBrandOutput strips AI slop, steers output, and records DPO pair', () => {
   const service = new BrandDriftCalibratorService();
+  let steeringCallbackCount = 0;
+  service.registerSteeringCallback(() => {
+    steeringCallbackCount++;
+  });
   const result = service.autoHealBrandOutput(
     'Sure thing! Let us delve into this game-changing tapestry of synergistic paradigms to skyrocket 100x!',
     'branddesk:latest'
@@ -23,6 +27,8 @@ test('BrandDriftCalibratorService: autoHealBrandOutput strips AI slop, steers ou
   assert.equal(result.healed, true);
   assert.equal(result.turn.isDrifting, false);
   assert.ok(!/delve into|tapestry of/i.test(result.outputText));
+  assert.ok(!result.outputText.includes('[Anchored in 3 falsifiable milestones'));
+  assert.equal(steeringCallbackCount, 0, 'autoHealBrandOutput must not trigger steering callback or overwrite user strategies');
   assert.equal(service.selfHealingDpoQueue().length, 1);
   assert.ok(service.selfHealingDpoQueue()[0].hazardReducedFrom >= 0.55);
   assert.ok(service.selfHealingDpoQueue()[0].hazardReducedTo <= 0.15);

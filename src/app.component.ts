@@ -21,6 +21,7 @@ import { SynergyGraphService } from './services/synergy-graph.service';
 import { SpeechService } from './services/speech.service';
 import { WebMcpDiagnosticService } from './services/webmcp-diagnostic.service';
 import { scanForAcuteTriage, scanForPoliticalAgendas, getClientPiiWarning, autoScrubPII, AcuteTriageAlert, PoliticalNeutralityAlert } from './utils/safety-guards';
+import { formatUsd } from './utils/cost-model';
 
 function getStoredApiKey(): string {
   let value = localStorage.getItem('spark_cfg_val');
@@ -175,6 +176,9 @@ export class AppComponent implements OnDestroy {
   public brandDriftCalibrator = inject(BrandDriftCalibratorService);
   public synergyGraph = inject(SynergyGraphService);
 
+  public sessionCostSummary = this.geminiService.sessionCostSummary;
+  public formatUsd = formatUsd;
+
   t(key: string): string {
     return this.translationService.t(key);
   }
@@ -325,6 +329,7 @@ export class AppComponent implements OnDestroy {
   insights = signal<InsightResult[] | null>(null);
   isLoading = signal(false);
   error = signal<string | null>(null);
+  fallbackNotice = this.geminiService.fallbackNotice;
   structuredProblem = signal<StructuredProblem | null>(null);
   resultsViewMode = signal<'list' | 'graph'>('list');
 
@@ -589,8 +594,18 @@ export class AppComponent implements OnDestroy {
   }
   saveApiKey(key: string) {
     if (key.trim()) {
+      const storedModel = (localStorage.getItem('spark_model_val') || '').toLowerCase();
+      if (
+        storedModel === 'on-device-nano' ||
+        storedModel === 'window.ai' ||
+        storedModel.startsWith('ollama:') ||
+        storedModel.startsWith('local:')
+      ) {
+        localStorage.removeItem('spark_model_val');
+      }
       setStoredApiKey(key.trim());
       this.userApiKey.set(key.trim());
+      this.geminiService.clearCache();
     }
   }
 
@@ -632,7 +647,7 @@ export class AppComponent implements OnDestroy {
   }
 
   useHostedCloud() {
-    localStorage.setItem('spark_model_val', 'gemini-3.8-flash');
+    localStorage.setItem('spark_model_val', 'gemini-4-hydrogen');
     setStoredApiKey('server-hosted-pass');
     this.userApiKey.set('server-hosted-pass');
     this.activateDemoPresetIfEmpty();
@@ -1119,7 +1134,9 @@ export class AppComponent implements OnDestroy {
           this.gistInput() || undefined, 
           this.healthSnapshot() ?? undefined,
           (partialInsights) => {
-            this.insights.set(partialInsights);
+            if (partialInsights.length > 0) {
+              this.insights.set(partialInsights);
+            }
           },
           imgPayload
         )
@@ -1143,7 +1160,8 @@ export class AppComponent implements OnDestroy {
         }));
         this.insights.set(healedResults);
       } else {
-        this.insights.set(results);
+        this.insights.set(null);
+        this.error.set('No insights were returned. Please try again or switch AI engine.');
       }
       
       // Ensure other promises complete (optional, could just let them settle)
@@ -1442,8 +1460,9 @@ export class AppComponent implements OnDestroy {
 
   // --- Helpers ---
   getStrategyId(name: string): string {
-    // Replaces spaces and apostrophes to create a CSS-friendly ID
-    return name.toLowerCase().replace('’', '').replace(/\s+/g, '-');
+    const matched = this.findStrategy(name);
+    if (matched) return matched.id;
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
 
   private findStrategy = (name: string): CreativeStrategy | undefined => 
@@ -1536,9 +1555,10 @@ export class AppComponent implements OnDestroy {
    * @returns A formatted string for use in an aria-label attribute.
    */
   formatAriaLabel(prefix: string, content: string, maxLength = 50): string {
-    const truncatedContent = content.length > maxLength 
-      ? content.substring(0, maxLength - 3) + '...' 
-      : content;
+    const safe = content || '';
+    const truncatedContent = safe.length > maxLength 
+      ? safe.substring(0, maxLength - 3) + '...' 
+      : safe;
     return `${prefix}: "${truncatedContent}"`;
   }
   // --- Custom Persona Builder Actions ---
