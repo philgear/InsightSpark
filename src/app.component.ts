@@ -1261,7 +1261,7 @@ export class AppComponent implements OnDestroy {
 
       const healedRefined = (result.refinedInsights || []).map(r => ({
         ...r,
-        text: this.brandDriftCalibrator.sanitizeDriftingCopy(r.text || ''),
+        refined: this.brandDriftCalibrator.sanitizeDriftingCopy(r.refined || ''),
       }));
 
       const calibratedResult: AgenticResult = {
