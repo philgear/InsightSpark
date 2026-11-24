@@ -573,12 +573,12 @@ function setStoredThinkingLevel(level: ThinkingLevel): void {
             <div>
               <span class="text-[11px] font-semibold text-(--text-color-muted) block mb-1.5">Quick-Select Open Model:</span>
               <div class="flex flex-wrap gap-1.5">
-                @for (m of (ollamaModels().length > 0 ? ollamaModels() : ['pivotpulse', 'gemma4:e4b', 'gemma4:e2b', 'qwen3:4b', 'smollm3:3b']); track m) {
+                @for (m of (ollamaModels().length > 0 ? ollamaModels() : ['pivotpulse:latest', 'pocketgull-clinical:latest', 'branddesk:latest', 'pocketgull-prosody-gemma:latest', 'gemma4:latest']); track m) {
                   <button (click)="selectOpenModel(m)" 
                           type="button"
-                          [class.bg-purple-600]="userModel() === 'ollama:' + m || (m === 'pivotpulse' && userModel().includes('pivotpulse'))"
-                          [class.text-white]="userModel() === 'ollama:' + m || (m === 'pivotpulse' && userModel().includes('pivotpulse'))"
-                          [class.console-subcard]="userModel() !== 'ollama:' + m && !(m === 'pivotpulse' && userModel().includes('pivotpulse'))"
+                          [class.bg-purple-600]="userModel() === 'ollama:' + m || (m.startsWith('pivotpulse') && userModel().includes('pivotpulse'))"
+                          [class.text-white]="userModel() === 'ollama:' + m || (m.startsWith('pivotpulse') && userModel().includes('pivotpulse'))"
+                          [class.console-subcard]="userModel() !== 'ollama:' + m && !(m.startsWith('pivotpulse') && userModel().includes('pivotpulse'))"
                           class="px-2.5 py-1 rounded-lg text-xs font-mono border border-purple-500/30 hover:border-purple-400 transition-all cursor-pointer">
                     {{ m }}
                   </button>

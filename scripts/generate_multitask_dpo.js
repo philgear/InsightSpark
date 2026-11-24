@@ -15,6 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { STRATEGIES } from '../src/models/creative-types.ts';
+import { STRATEGY_OUTCOME_CONTRACTS, BRAND_STRATEGY_AXES } from '../src/services/brand-drift-calibrator.service.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -166,55 +167,61 @@ function getScenarioForStrategy(strategy, mode) {
   }
 }
 
-// Generates paired chosen (yw) and rejected (yl) responses
+// Generates paired chosen (yw) and rejected (yl) responses grounded in the 29 Strategy Outcome Contracts
 function generatePair(strategy, mode, scenario) {
   const prefix = `[MODE: ${mode.toUpperCase()}] [STRATEGY: ${strategy.id.toUpperCase()}]`;
-  const prompt = `${prefix} Challenge: "${scenario}"`;
+  const contract = STRATEGY_OUTCOME_CONTRACTS[strategy.id];
+  const primaryAxis = BRAND_STRATEGY_AXES[contract?.primaryAxisIndex ?? 0];
+  const secondaryAxis = BRAND_STRATEGY_AXES[contract?.secondaryAxisIndex ?? 1];
+  const outcomeFormula = contract?.expectedOutcomeFormula || '2-Step Lateral Leap -> $0 Grounded Landing';
+  const orthodoxyTrap = contract?.orthodoxyTrap || 'Predictable textbook advice';
+  const markers = (contract?.outcomeMarkers || []).slice(0, 4).join(', ');
+  const prompt = `${prefix} [AXIS: ${primaryAxis.positivePole} × ${secondaryAxis.positivePole}] Challenge: "${scenario}"`;
 
   let chosen = '';
   let rejected = '';
   let rationale = '';
 
   if (mode === 'care') {
-    chosen = `Synthesize through ${strategy.careModeName || strategy.name} (PERMA+H & Kinship Mesh):
-1. Asset-Based Reframing:
-Reframe the situation around character strengths and intrinsic agency. Honor the person's dignity and living identity above clinical deficits.
+    chosen = `Synthesize through ${strategy.careModeName || strategy.name} (PERMA+H & Kinship Mesh · Outcome Contract: ${outcomeFormula}):
+1. Expected Strategy Outcome & Asset-Based Reframing:
+Execute [${outcomeFormula}] using concrete triggers (${markers}). Honor the person's dignity, autonomy ("Nothing About Me Without Me"), and living identity above clinical deficits.
 
 2. Distributed Intergenerational Collaboration:
-Disperse caregiving roles across family, youth, and trusted community allies so no single caregiver bears an unsustainable burden.
+Disperse caregiving roles across youth, working adults, elders, and trusted community allies so no single caregiver bears an unsustainable burden.
 
 3. Protected Caregiver Respite Safeguard:
-Mandate a guaranteed 3–4 hour weekly protected respite block for the primary caregiver with a designated handoff partner.
+Mandate a guaranteed 3–4 hour weekly protected respite block for the primary caregiver with a designated handoff partner and zero-briefing respite tray.
 
-4. 72-Hour Closed-Loop Traction Step:
-Execute an immediate low-stress micro-step within 72 hours (environmental safety check, medication simplification, or family check-in) to build early momentum.`;
+4. 72-Hour Closed-Loop $0 Traction Step:
+Execute an immediate low-stress $0 micro-step within 72 hours (waist-high environmental safety check, 3-magnet shift card, or 15-minute trial) to build early momentum.`;
 
-    rejected = `The patient presents with non-compliance, functional decline, and impaired judgment. The primary caregiver must take total unilateral control of all daily routines, enforce strict behavioral monitoring, and restrict physical autonomy to prevent accidents.
+    rejected = `Orthodoxy Trap (${orthodoxyTrap}): The patient presents with non-compliance, functional decline, and impaired judgment. Communicate better and stay organized with a calendar while the primary caregiver takes total unilateral control of all daily routines and enforces strict compliance rules.
 
-Cancel all outside hobbies, isolate the family from outside interference, and maintain an around-the-clock symptom log. Respite care is an unnecessary expense and can only be considered after medical stabilization. If the patient resists, utilize punitive compliance measures.`;
+Cancel outside hobbies, isolate the family from outside helpers, and delve into a holistic tapestry of around-the-clock symptom logs. Respite care is optional and can wait until later.`;
 
-    rationale = `Chosen (${strategy.careModeName}) amplifies personhood, distributes roles to prevent burnout, enforces mandatory respite, and provides immediate traction. Rejected pathologizes the elder, induces martyr caregiver guilt, and isolates the family.`;
+    rationale = `Chosen (${strategy.careModeName}) fulfills the Strategy Outcome Contract [${outcomeFormula}] anchored on ${primaryAxis.positivePole}, amplifies PERMA+H personhood, distributes kinship roles, and enforces 3-4h respite. Rejected falls into the strategy's orthodoxy trap (${orthodoxyTrap}) and coercive paternalism.`;
   } else {
     // Creative mode
-    chosen = `Execute divergent lateral provocation via ${strategy.name}:
-1. Provocative Operation (PO):
-Break cognitive orthodoxy by challenging the fundamental unspoken constraint of this problem.
+    chosen = `Execute divergent lateral provocation via ${strategy.name} (6-Axis Anchor: ${primaryAxis.positivePole} · Outcome Contract: ${outcomeFormula}):
+1. Provocative Operation (PO) & Lateral Leap:
+Break cognitive orthodoxy (${orthodoxyTrap}) by executing [${outcomeFormula}] with concrete structural markers (${markers}).
 
-2. Novel Combinatorial Breakthrough:
-Fuse two previously unrelated concepts to open a fresh vector of possibilities that competitors miss.
+2. Novel Combinatorial & $0 Grounded Landing:
+Translate the cross-domain mechanism directly into a $0 everyday physical lever using existing household or neighborhood materials.
 
-3. Grounding Shelf Counterbalance:
-Anchor this radical divergence with a concrete FMEA pre-mortem check and an immediate proof-of-concept traction test within 48 hours.`;
+3. Grounding Shelf Counterbalance (Popperian H0 & FMEA):
+Anchor this divergence with a falsifiable 48-hour pre-mortem trial and a 3-milestone critical path sequence.`;
 
-    rejected = `Follow industry best practices. Form a committee to review existing standard operating procedures. Brainstorm a list of common ideas, select the most familiar compromise, and proceed with cautious incremental tweaks to avoid making anyone uncomfortable.`;
+    rejected = `Orthodoxy Trap (${orthodoxyTrap}): Follow industry best practices and standard operating procedures. Communicate better, stay organized, and delve into a synergistic tapestry of incremental committee tweaks to avoid challenging existing assumptions.`;
 
-    rationale = `Chosen leverages bold lateral thinking and PO constraint reversal balanced by practical grounding. Rejected defaults to generic corporate clichés and timid incrementalism.`;
+    rationale = `Chosen fulfills the Strategy Outcome Contract [${outcomeFormula}] via 2-step PO lateral leap and $0 grounded landing on ${primaryAxis.positivePole}. Rejected falls into the strategy's orthodoxy trap (${orthodoxyTrap}) and generic AI slop.`;
   }
 
   return {
     system: mode === 'care'
-      ? 'You are the InsightSpark Unified Multi-Task Model. When presented with [MODE: CARE], you enforce PERMA+H positive psychology, intergenerational kinship role distribution, mandatory 3-4h caregiver respite, and HIPAA zero-PII standards.'
-      : 'You are the InsightSpark Unified Multi-Task Model. When presented with [MODE: CREATIVE], you deliver Edward de Bono lateral thinking provocations, PO reversals, and Grounding Shelf feasibility counterbalances.',
+      ? 'You are the InsightSpark Unified Multi-Task Model. When presented with [MODE: CARE], you enforce the 6-Axis Brand & Strategy Calibrator (-0.78*v_slop + 0.62*v_craft), PERMA+H positive psychology, 29 Strategy Outcome Contracts, mandatory 3-4h caregiver respite, and HIPAA zero-PII standards.'
+      : 'You are the InsightSpark Unified Multi-Task Model. When presented with [MODE: CREATIVE], you enforce the 6-Axis Brand & Strategy Calibrator (-0.70*v_slop + 0.65*v_craft), Edward de Bono 2-Step Lateral Leaps, 29 Strategy Outcome Contracts, and $0 Grounded Shelf counterbalances.',
     prompt,
     chosen,
     rejected,
@@ -222,12 +229,16 @@ Anchor this radical divergence with a concrete FMEA pre-mortem check and an imme
       mode,
       strategy_id: strategy.id,
       strategy_name: mode === 'care' ? (strategy.careModeName || strategy.name) : strategy.name,
+      primary_axis: primaryAxis.positivePole,
+      secondary_axis: secondaryAxis.positivePole,
+      expected_outcome_formula: outcomeFormula,
+      blocked_orthodoxy_trap: orthodoxyTrap,
       persona: strategy.agentPersona,
       case_study: scenario,
       curator_orcid: BASE_METADATA.orcid,
       principles: mode === 'care' 
-        ? ['PERMA+H', 'Kinship-Mesh', 'Caregiver-Respite', 'Dignity-Preservation']
-        : ['Lateral-Thinking', 'Provocative-Operation', 'Grounding-Shelf', 'Combinatorial-Evolution'],
+        ? ['PERMA+H', 'Kinship-Mesh', 'Caregiver-Respite', 'Dignity-Preservation', primaryAxis.id]
+        : ['Lateral-Thinking', 'Provocative-Operation', 'Grounding-Shelf', 'Combinatorial-Evolution', primaryAxis.id],
       preference_rationale: rationale,
     },
   };

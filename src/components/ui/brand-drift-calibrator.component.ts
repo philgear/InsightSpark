@@ -27,6 +27,9 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
           <h3 class="mt-1 font-serif text-lg font-bold text-(--text-color)">
             6-Axis Brand &amp; Strategy Drift Calibrator
           </h3>
+          <p class="text-xs text-(--text-color-muted) mt-0.5">
+            Keeps ideas practical, clear, and easy to act on—without clichés or overwhelm.
+          </p>
         </div>
 
         <div class="flex items-center gap-1.5">
@@ -45,7 +48,7 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
               (click)="calibrator.applyBrandSteeringVector()"
               class="rounded-lg bg-(--text-accent) px-2.5 py-1 text-xs font-mono font-bold text-white shadow-xs hover:opacity-90 transition-all cursor-pointer"
             >
-              ⚡ Apply Steering
+              ⚡ Tune Focus
             </button>
           }
           <button
@@ -62,6 +65,19 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
       <!-- Interactive Body -->
       @if (isExpanded()) {
         <div class="mt-4 space-y-4">
+          <!-- 4-Slot Everyday Quality Check (Plain English) -->
+          <div class="grid grid-cols-2 gap-1.5" aria-label="4-Slot Everyday Quality Summary">
+            @for (slot of calibrator.fourSlotMetrics(); track slot.id) {
+              <div
+                class="rounded-xl border border-(--border-color) bg-(--card-bg-subtle) px-2.5 py-1.5 flex items-center justify-between gap-2"
+                [title]="slot.description"
+              >
+                <span class="text-[11px] font-semibold text-(--text-color) truncate">{{ slot.label }}</span>
+                <span class="text-[11px] font-mono font-bold text-emerald-400 shrink-0">{{ (slot.score * 100).toFixed(0) }}%</span>
+              </div>
+            }
+          </div>
+
           <!-- Mode Toggle: 12-Pole Sunburst Wheel vs. 4-Petal Fibonacci Sunflower -->
           <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
             <div class="flex items-center gap-1.5">
@@ -73,7 +89,7 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
                 [class.bg-emerald-500/15]="lensMode() === 'sunburst'"
                 [class.border-(--border-color)]="lensMode() !== 'sunburst'"
               >
-                🎯 12-Pole Axis Wheel
+                🎯 Balance Wheel
               </button>
               <button
                 type="button"
@@ -83,7 +99,7 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
                 [class.bg-amber-500/15]="lensMode() === 'sunflower'"
                 [class.border-(--border-color)]="lensMode() !== 'sunflower'"
               >
-                🌻 4-Petal Sunflower
+                🌻 Calm &amp; Breathe
               </button>
             </div>
 
@@ -109,13 +125,13 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
             <div class="space-y-3">
               @if (calibrator.selectionLockMode() === 'manual') {
                 <div class="flex items-center justify-between gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-[11px] text-amber-300">
-                  <span>🔒 <strong>Wheel Locked to Manual Provocations:</strong> Reflecting your custom picks on the left.</span>
+                  <span>🔒 <strong>Synced to Your Strategy Picks:</strong> Showing the focus of your chosen cards on the left.</span>
                   <button
                     type="button"
                     (click)="calibrator.unlockWheel()"
                     class="shrink-0 rounded-md bg-amber-500/20 px-2 py-0.5 font-mono font-bold text-amber-200 hover:bg-amber-500/30 cursor-pointer"
                   >
-                    Switch to Wheel
+                    Use Wheel Instead
                   </button>
                 </div>
               }
@@ -139,7 +155,7 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
 
                   @for (wedge of sunburstWedges(); track wedge.index) {
                     <g
-                      (click)="calibrator.manipulateWedge(wedge.index)"
+                      (click)="onSelectWedge(wedge.index)"
                       [class.cursor-pointer]="calibrator.selectionLockMode() !== 'manual'"
                       [class.cursor-not-allowed]="calibrator.selectionLockMode() === 'manual'"
                       class="transition-opacity hover:opacity-95"
@@ -166,21 +182,21 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
 
                   <circle cx="140" cy="140" r="23" class="fill-(--card-bg)" stroke="currentColor" stroke-opacity="0.25" />
                   <text x="140" y="137" text-anchor="middle" class="text-[9px] font-mono font-bold fill-current">
-                    {{ calibrator.selectionLockMode() === 'manual' ? 'MANUAL' : (calibrator.currentTurn().isDrifting ? 'DRIFT' : 'LOCKED') }}
+                    {{ calibrator.selectionLockMode() === 'manual' ? 'CUSTOM' : (calibrator.currentTurn().isDrifting ? 'DRIFT' : 'CLEAR') }}
                   </text>
                   <text x="140" y="149" text-anchor="middle" class="text-[8px] font-mono fill-current opacity-75">
-                    {{ (calibrator.currentTurn().maxHazardScore * 100).toFixed(0) }}% haz
+                    {{ ((1 - calibrator.currentTurn().maxHazardScore) * 100).toFixed(0) }}% calm
                   </text>
                 </svg>
 
-                <div class="mt-1 flex flex-wrap items-center justify-center gap-3 text-[10px] font-mono text-(--text-color-muted)">
+                <div class="mt-1 flex flex-wrap items-center justify-center gap-3 text-[10px] text-(--text-color-muted)">
                   <span class="flex items-center gap-1">
                     <span class="h-2 w-2 rounded-xs bg-emerald-500 inline-block"></span>
-                    Click Green (1–6) to Boost &amp; Sync Provocations
+                    Tap Green (1–6) for More of This
                   </span>
                   <span class="flex items-center gap-1">
                     <span class="h-2 w-2 rounded-xs bg-rose-500 inline-block"></span>
-                    Click Red (7–12) to Ban
+                    Tap Red (7–12) to Block Clichés
                   </span>
                 </div>
               </div>
@@ -193,7 +209,7 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
                     <button
                       type="button"
                       [disabled]="calibrator.selectionLockMode() === 'manual'"
-                      (click)="calibrator.manipulateWedge(idx)"
+                      (click)="onSelectWedge(idx)"
                       class="rounded-lg border px-2 py-1 text-left text-[11px] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                       [class.border-amber-400]="calibrator.focusedAxisIndex() === idx"
                       [class.bg-amber-500/10]="calibrator.focusedAxisIndex() === idx"
@@ -201,55 +217,78 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
                       [class.bg-(--card-bg-subtle)]="calibrator.focusedAxisIndex() !== idx"
                     >
                       <div class="font-bold text-emerald-400 leading-tight">✓ {{ idx + 1 }}. {{ poleLabels[idx] }}</div>
-                      <div class="text-[9.5px] font-mono text-rose-400 leading-tight">↔ ✕ {{ idx + 7 }}. {{ poleLabels[idx + 6] }}</div>
+                      <div class="text-[9.5px] text-rose-400 leading-tight">↔ ✕ {{ idx + 7 }}. {{ poleLabels[idx + 6] }}</div>
                     </button>
                   }
                 </div>
 
-                <!-- Connected Pair Card -->
-                <div class="rounded-xl border border-(--border-color) bg-(--card-bg-subtle) p-3 space-y-1.5 text-xs">
-                  <div class="font-bold text-(--text-color)">
-                    Axis {{ calibrator.focusedAxisPair().axisIndex + 1 }}:
-                    <span class="text-emerald-400">{{ calibrator.focusedAxisPair().axis.positivePole }} ({{ (calibrator.focusedAxisPair().posScore * 100).toFixed(0) }}%)</span>
-                    ↔
-                    <span class="text-rose-400">{{ calibrator.focusedAxisPair().axis.negativePole }} ({{ (calibrator.focusedAxisPair().negScore * 100).toFixed(0) }}%)</span>
+                <!-- Connected Pair Card (Everyday Plain-English View) -->
+                <div class="rounded-xl border border-(--border-color) bg-(--card-bg-subtle) p-3 space-y-2 text-xs">
+                  <div class="flex flex-wrap items-center justify-between gap-1.5">
+                    <div class="font-bold text-(--text-color)">
+                      Active Focus:
+                      <span class="text-emerald-400">{{ poleLabels[calibrator.focusedAxisPair().axisIndex] }}</span>
+                      <span class="text-(--text-color-muted) font-normal"> (blocks </span>
+                      <span class="text-rose-400">{{ poleLabels[calibrator.focusedAxisPair().axisIndex + 6] }}</span>
+                      <span class="text-(--text-color-muted) font-normal">)</span>
+                    </div>
+                    @if (calibrator.secondaryAxisIndex() !== null && calibrator.secondaryAxisIndex() !== calibrator.focusedAxisIndex()) {
+                      <span class="rounded-md border border-(--border-color) bg-(--card-bg) px-1.5 py-0.5 text-[10px] text-(--text-accent)">
+                        + {{ poleLabels[calibrator.secondaryAxisIndex()!] }}
+                      </span>
+                    }
                   </div>
 
                   <div class="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-2 text-[11px]">
-                    <span class="font-bold text-emerald-400">Boosted (+{{ calibrator.steeringBeta().toFixed(2) }}): </span>
+                    <span class="font-bold text-emerald-400">How this helps: </span>
                     <span class="text-(--text-color)">{{ calibrator.focusedAxisPair().axis.positiveAnchor }}</span>
                   </div>
 
-                  <div class="flex flex-wrap items-center justify-between gap-2 pt-0.5 text-[10.5px] text-(--text-color-muted)">
-                    <span>🛡️ {{ calibrator.focusedAxisPair().connectedFallacy }}</span>
-                    <button
-                      type="button"
-                      (click)="showUnderTheHood.set(!showUnderTheHood())"
-                      class="font-mono text-(--text-accent) hover:underline cursor-pointer"
-                    >
-                      {{ showUnderTheHood() ? 'Hide J++' : 'J++ (L6→L32)' }}
-                    </button>
+                  <!-- Expected Strategy Outcome Contracts (Plain English) -->
+                  <div class="pt-2 border-t border-(--border-color)/60 space-y-1.5 text-[11px]">
+                    <div class="flex flex-wrap items-center justify-between gap-1.5">
+                      <span class="text-[11px] font-bold text-(--text-accent)">
+                        🎯 What Your Selected Strategies Will Deliver
+                      </span>
+                      <span class="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-mono font-bold text-emerald-400">
+                        {{ ((calibrator.currentTurn().outcomeFulfillmentScore ?? 0.94) * 100).toFixed(0) }}% Goal Match
+                      </span>
+                    </div>
+                    <div class="space-y-1.5">
+                      @for (contract of calibrator.activeOutcomeContracts().slice(0, 3); track contract.id) {
+                        <div class="rounded-lg border border-(--border-color)/70 bg-(--card-bg) p-2 space-y-0.5">
+                          <div class="font-bold text-(--text-color) text-[11px]">{{ contract.title }}</div>
+                          <div class="text-[10.5px] text-emerald-400 leading-snug">
+                            ✓ <strong>Goal:</strong> {{ contract.expectedOutcomeFormula }}
+                          </div>
+                          <div class="text-[10px] text-(--text-color-muted) leading-snug">
+                            ✕ <span class="text-rose-400 font-semibold">Avoids:</span> {{ contract.orthodoxyTrap }}
+                          </div>
+                        </div>
+                      }
+                    </div>
                   </div>
-                  <!-- 2-Step Lateral Leap -> $0 Grounded Landing Exemplar Card -->
+
+                  <!-- 2-Step Real-World Example Card (Plain English) -->
                   <div class="pt-2 border-t border-(--border-color)/60 space-y-1.5 text-[11px]">
                     <div class="flex items-center justify-between gap-2">
-                      <span class="font-mono text-[10px] uppercase tracking-wider text-(--text-accent) font-bold">
-                        ⚡ 2-Step Lateral Exemplar ({{ activeExemplarIndex() + 1 }}/{{ calibrator.lateralExemplars.length }})
+                      <span class="text-[11px] font-bold text-(--text-accent)">
+                        💡 Real-World Example ({{ activeExemplarIndex() + 1 }}/{{ calibrator.lateralExemplars.length }})
                       </span>
                       <button
                         type="button"
                         (click)="nextExemplar()"
                         class="rounded border border-(--border-color) bg-(--card-bg) px-2 py-0.5 text-[10px] font-semibold text-(--text-color) hover:border-(--text-accent) cursor-pointer"
                       >
-                        Next Domain →
+                        Next Example →
                       </button>
                     </div>
                     <div class="font-bold text-(--text-color)">{{ currentExemplar().domain }}</div>
                     <div class="text-(--text-color-muted)">
-                      <strong class="text-purple-400">1. Lateral Leap:</strong> {{ currentExemplar().lateralLeap }}
+                      <strong class="text-purple-400">1. Fresh Outside Idea:</strong> {{ cleanExemplarLeap(currentExemplar().lateralLeap) }}
                     </div>
                     <div class="text-(--text-color)">
-                      <strong class="text-emerald-400">2. $0 Grounded Landing:</strong> {{ currentExemplar().groundedLanding }}
+                      <strong class="text-emerald-400">2. Simple $0 Action Today:</strong> {{ currentExemplar().groundedLanding }}
                     </div>
                   </div>
                 </div>
@@ -347,27 +386,6 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
               </div>
             </div>
           }
-
-          @if (showUnderTheHood()) {
-            <div class="rounded-xl border border-(--border-color) bg-(--card-bg-subtle) p-3 grid grid-cols-2 gap-2 text-xs font-mono">
-              <div class="rounded border border-(--border-color) p-2">
-                <div class="text-[10px] text-(--text-color-muted)">L6 · Core Concepts</div>
-                <div class="mt-1 font-semibold">{{ calibrator.currentTurn().jppLayers.l6.join(', ') }}</div>
-              </div>
-              <div class="rounded border border-(--border-color) p-2">
-                <div class="text-[10px] text-(--text-color-muted)">L16 · Strategy Frame</div>
-                <div class="mt-1 font-semibold">{{ calibrator.currentTurn().jppLayers.l16.join(', ') }}</div>
-              </div>
-              <div class="rounded border border-(--border-color) p-2">
-                <div class="text-[10px] text-(--text-color-muted)">L24 · Tone Check</div>
-                <div class="mt-1 font-semibold">{{ calibrator.currentTurn().jppLayers.l24.join(', ') }}</div>
-              </div>
-              <div class="rounded border border-(--border-color) p-2">
-                <div class="text-[10px] text-(--text-color-muted)">L32 · Output Status</div>
-                <div class="mt-1 font-semibold text-(--text-accent)">{{ calibrator.currentTurn().jppLayers.l32.join(', ') }}</div>
-              </div>
-            </div>
-          }
         </div>
       }
     </section>
@@ -377,32 +395,42 @@ export class BrandDriftCalibratorComponent implements OnDestroy {
   readonly calibrator = inject(BrandDriftCalibratorService);
   readonly isExpanded = signal<boolean>(true);
   readonly lensMode = signal<'sunburst' | 'sunflower'>('sunburst');
-  readonly showUnderTheHood = signal<boolean>(false);
-  readonly activeExemplarIndex = signal<number>(0);
+  readonly exemplarOffset = signal<number>(0);
+  readonly activeExemplarIndex = computed(() => {
+    const len = this.calibrator.lateralExemplars.length || 1;
+    return (this.calibrator.focusedAxisIndex() + this.exemplarOffset()) % len;
+  });
   readonly currentExemplar = computed(() => {
     const list = this.calibrator.lateralExemplars;
     return list[this.activeExemplarIndex() % list.length];
   });
+  cleanExemplarLeap(text: string): string {
+    return (text || '').replace(/^PO:\s*/i, '');
+  }
+  onSelectWedge(wedgeIndex: number): void {
+    this.exemplarOffset.set(0);
+    this.calibrator.manipulateWedge(wedgeIndex);
+  }
   nextExemplar(): void {
-    this.activeExemplarIndex.update(i => (i + 1) % this.calibrator.lateralExemplars.length);
+    this.exemplarOffset.update(i => (i + 1) % this.calibrator.lateralExemplars.length);
   }
   readonly isBreathing = signal<boolean>(false);
   readonly breathPhase = signal<'inhale' | 'exhale'>('inhale');
   private breathTimer: ReturnType<typeof setInterval> | null = null;
 
   readonly poleLabels = [
-    'Craft',
-    'Falsifiable',
-    'Caslon',
-    'Synthesis',
-    'Agency',
-    '4-Slot',
-    'AI Slop',
-    'Hype',
-    'Filler',
-    'Orthodoxy',
-    'Paternalism',
-    'Overload',
+    'Practical',
+    'Testable',
+    'Clear Voice',
+    'Fresh Angle',
+    'Choice & Care',
+    'Bite-Sized',
+    'AI Clichés',
+    'Empty Hype',
+    'Chatty Fluff',
+    'Stale Advice',
+    'Bossy Rules',
+    'Overwhelm',
   ];
 
   readonly recentTurns = computed(() => {

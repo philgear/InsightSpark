@@ -458,11 +458,7 @@ export class AppComponent implements OnDestroy {
             ...group,
             insights: (group.insights || []).map(item => ({
               ...item,
-              text: item.text
-                .replace(/\b(sure thing!?|let us dive right in!?|buckle up!?)\s*/gi, '')
-                .replace(/\b(delve into|tapestry of|synergistic|paradigms?|holistic|game-changing|skyrocket|100x)\b/gi, 'practical step')
-                .replace(/\s{2,}/g, ' ')
-                .trim(),
+              text: this.brandDriftCalibrator.sanitizeDriftingCopy(item.text),
             })),
           }))
         );
@@ -686,6 +682,7 @@ export class AppComponent implements OnDestroy {
     if (scenario.recommendedStrategies?.length) {
       const capped = scenario.recommendedStrategies.slice(0, this.MAX_STRATEGY_SELECTION);
       this.selectedStrategyIds.set(new Set(capped));
+      this.brandDriftCalibrator.syncWheelFromManualStrategies(capped);
       this.brandDriftCalibrator.selectionLockMode.set('wheel');
     }
     this.insights.set(null);
@@ -969,6 +966,7 @@ export class AppComponent implements OnDestroy {
   };
   clearSelection = () => {
     this.selectedStrategyIds.set(new Set());
+    this.brandDriftCalibrator.activeStrategyIds.set([]);
     this.brandDriftCalibrator.selectionLockMode.set('none');
     this.synergyGraph.activeRecommendation.set(null);
   };
@@ -1044,6 +1042,7 @@ export class AppComponent implements OnDestroy {
     if (!preset) return;
 
     this.brandDriftCalibrator.selectionLockMode.set('wheel');
+    this.brandDriftCalibrator.activeStrategyIds.set([...preset.strategyIds]);
     this.selectedStrategyIds.set(new Set(preset.strategyIds));
     if (this.appMode() === 'care' && preset.roles) {
       this.activeCareRoles.set(new Set(preset.roles));
@@ -1064,6 +1063,7 @@ export class AppComponent implements OnDestroy {
       this.appMode(),
       this.brandDriftCalibrator.focusedAxisIndex()
     );
+    this.brandDriftCalibrator.activeStrategyIds.set([...recommendation.strategyIds]);
     this.selectedStrategyIds.set(new Set(recommendation.strategyIds));
 
     if (this.appMode() === 'care' && roles) {
@@ -1115,10 +1115,18 @@ export class AppComponent implements OnDestroy {
     this.structuredProblem.set(null);
     this.resultsViewMode.set('list');
 
-    const targetStrategies = this.selectedStrategyIds().size === 0
-      ? [...this.availableStrategies()].sort(() => 0.5 - Math.random()).slice(0, 3)
-      //? this.availableStrategies()
-      : this.availableStrategies().filter(s => this.selectedStrategyIds().has(s.id));
+    let targetStrategies = this.availableStrategies().filter(s => this.selectedStrategyIds().has(s.id));
+    if (targetStrategies.length === 0) {
+      if (this.brandDriftCalibrator.autonomousPilotEnabled()) {
+        const receipt = this.brandDriftCalibrator.autonomouslyDecideCalibration(this.problemInput(), this.appMode());
+        targetStrategies = this.availableStrategies().filter(s => receipt.recommendedStrategyIds.includes(s.id));
+      }
+      if (targetStrategies.length === 0) {
+        targetStrategies = [...this.availableStrategies()].sort(() => 0.5 - Math.random()).slice(0, 3);
+      }
+    } else if (this.brandDriftCalibrator.autonomousPilotEnabled()) {
+      this.brandDriftCalibrator.autonomouslyDecideCalibration(this.problemInput(), this.appMode());
+    }
 
     try {
       const mode = this.appMode();
@@ -1148,12 +1156,21 @@ export class AppComponent implements OnDestroy {
 
       const results = await promises[0] as InsightResult[]; // Wait primarily for insights
       if (results?.length) {
+        let recordedTelemetryTurn = false;
         const healedResults = results.map((group, gIdx) => ({
           ...group,
           insights: (group.insights || []).map((item, iIdx) => {
-            if (gIdx === 0 && iIdx === 0 && item.text) {
-              const healed = this.brandDriftCalibrator.autoHealBrandOutput(item.text);
+            if (!item.text) return item;
+            const scores = this.brandDriftCalibrator.computeAxisScores(item.text);
+            const isCardDrifting = scores.negScores.some(s => s >= 0.55);
+            if ((gIdx === 0 && iIdx === 0) || isCardDrifting) {
+              const healed = this.brandDriftCalibrator.autoHealBrandOutput(item.text, undefined, group.strategyName);
+              recordedTelemetryTurn = true;
               return { ...item, text: healed.outputText };
+            }
+            if (!recordedTelemetryTurn && gIdx === 0 && iIdx === 0) {
+              this.brandDriftCalibrator.recordGeneratedOutput(item.text, undefined, undefined, group.strategyName);
+              recordedTelemetryTurn = true;
             }
             return item;
           })

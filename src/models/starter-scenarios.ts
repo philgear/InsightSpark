@@ -197,6 +197,50 @@ export const STARTER_SCENARIOS: StarterScenario[] = [
       ]
     }
   },
+  {
+    id: 'care-sterile-cockpit',
+    category: 'craft',
+    categoryLabel: 'Home Recovery & Safety',
+    categoryIcon: 'shield',
+    mode: 'care',
+    title: 'Calm 3-Day Hospital-to-Home Family Handoff',
+    prompt: 'Create a simple 3-day home recovery plan and safe nighttime bathroom path for a 79-year-old coming home after hip surgery so family helpers stay on the same page without a thick medical binder or caregiver burnout.',
+    recommendedStrategies: ['fmea', 'critical-path', 'environmental-safety', 'respite-pacing'],
+    gist: 'Simple 3-color fridge magnet handoffs, soft nighttime motion lights, and a ready-to-go caregiver break tray.',
+    domainContext: {
+      identityAssets: 'Retired civil engineer and proud family problem-solver — values clear visual checklists, independence, and zero fuss.',
+      ecosystem: 'Cleared 36-inch bedroom-to-bathroom hallway with plug-in amber motion lights, waist-high bedside caddy, and 3 color-coded fridge magnets.',
+      relational: 'Daughter, son, and neighbor ally rotate shifts using a calm 10-minute kitchen table check-in; primary caregiver gets a protected 4-hour Tuesday break.',
+      perspectives: 'Discharge Nurse (safe medication tracking & fall prevention) + Elder (dignity and restful sleep) + Family Team (easy 3-step coordination).',
+      sampleInterventions: [
+        'Replace the 14-page hospital binder with 3 color-coded fridge magnets (Morning Green, Midday Amber, Night Blue) readable in 5 seconds.',
+        'Test nighttime safety first: plug in a $0 warm motion night-light and clear loose throw rugs before solo nighttime walks.',
+        'Stage a pre-packed "Caregiver Break Tray" by the front door so the Tuesday helper can step right in without a long briefing.'
+      ]
+    }
+  },
+  {
+    id: 'care-ataxia-studio',
+    category: 'textile',
+    categoryLabel: 'Seated Weaving & Craft',
+    categoryIcon: 'sparkles',
+    mode: 'care',
+    title: 'Seated Weaving & Calm Afternoon Art Studio',
+    prompt: 'Adapt a home weaving and yarn studio for a 64-year-old artist with hand tremors (ataxia) so she can comfortably lead 20-minute seated afternoon sessions when her energy is highest while her partner takes a 3-hour weekly break.',
+    recommendedStrategies: ['sensory-bridge', 'time-dilation', 'ethical-dignity', 'respite-pacing'],
+    gist: 'Steady seated armrests, warm relaxing lighting, and full creative choice at her own pace.',
+    domainContext: {
+      identityAssets: 'Master textile colorist and pattern designer — sharp eye for color, fabric texture intuition, and joy in mentoring.',
+      ecosystem: 'Seated studio table with padded forearm rests, oversized magnetic wooden shuttle guides, and warm indirect lamp lighting.',
+      relational: 'Local art student visits Thursday afternoons as studio helper; partner enjoys a guilt-free 3-hour afternoon break.',
+      perspectives: 'Physical Therapist (calm, unhurried focus reduces hand tremors) + Artist (chooses every project and color) + Helper (learning weaving techniques).',
+      sampleInterventions: [
+        'Set out a waist-high tray with 2 yarn color choices so the artist leads each session without reaching or bending.',
+        'Keep weaving sessions to comfortable 20-minute afternoon windows paired with a calm 5-second breathing pause.',
+        'Reserve Thursday 2 PM–5 PM as a guaranteed 3-hour caregiver break while the art student co-hosts the studio.'
+      ]
+    }
+  },
 
   // ── Creative Mode Scenarios ──────────────────────────────────────
   {
@@ -242,5 +286,27 @@ export const STARTER_SCENARIOS: StarterScenario[] = [
     prompt: 'Architecting a public winter reading pavilion that uses automated heliostat mirrors and circadian light spectrums to banish seasonal fatigue and nurture community warmth.',
     recommendedStrategies: ['sensory-bridge', 'future', 'constraints'],
     gist: 'Bending natural sunlight into urban depths to revitalize public mental health in cold seasons.',
+  },
+  {
+    id: 'creative-transit-inversion',
+    category: 'culinary',
+    categoryLabel: 'Morning Coffee & Transit',
+    categoryIcon: 'refresh',
+    mode: 'creative',
+    title: '30-Second Morning Coffee & Bus-Stop Warmup',
+    prompt: 'Flip the morning rush-hour line at a neighborhood corner bakery and bus stop so commuters and elders can grab a warm drink and connect in under 30 seconds.',
+    recommendedStrategies: ['opposite', 'butterfly', 'simplify', 'critical-path'],
+    gist: 'Replacing the slow cash-register line with a self-pour thermal carafe and wooden coffee tokens under the bus shelter.',
+  },
+  {
+    id: 'creative-mycelial-commons',
+    category: 'eco',
+    categoryLabel: 'Neighborhood Tool Share',
+    categoryIcon: 'shield',
+    mode: 'creative',
+    title: 'Neighborhood Tool & Solar Battery Library',
+    prompt: 'Build an everyday neighborhood tool library and backup solar battery share inspired by how forest trees share nutrients underground—with no apps or monthly fees.',
+    recommendedStrategies: ['porters-five-forces', 'first-principles', 'boundary-dissolution', 'feedback-loop'],
+    gist: 'Sharing spare tools and emergency power across 3 neighbor porch lockers using a simple pegboard tag system.',
   }
 ];
