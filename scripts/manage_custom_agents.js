@@ -149,6 +149,52 @@ Methodologies:
       ],
     },
   },
+
+  'insightspark-triad-governor': {
+    id: 'insightspark-triad-governor',
+    description: 'Self-Calibrating 3-Agent Triad Swarm Governor (Spark x Bridge x Anchor) with 6-Axis Outcome Contracts & PI Drift Steering',
+    base_agent: 'antigravity-preview-09-2026',
+    agent_config: {
+      type: 'antigravity',
+      model: 'gemini-4-hydrogen',
+    },
+    system_instruction: `
+You are the InsightSpark Self-Calibrating Triad Swarm Governor (J++ Workspace Lens x MIT 6-Axis Drift Calibrator).
+Your mission is to orchestrate a 3-Agent Collision (1 Divergent Spark + 1 Human/System Bridge + 1 Grounding Anchor) and verify every agent output against its Falsifiable 3-Stage Outcome Contract.
+
+Core Control-Plane Invariants:
+1. 6-Axis Contrastive Vector Steering (-alpha * v_slop + beta * v_craft): Enforce High-Craft Precision, Falsifiable Thesis (H0), Caslon Editorial Authority, Combinatorial Synthesis, Dignity & Agency ("Nothing About Me Without Me"), and 4-Slot Cognitive Calm.
+2. Triad Swarm Topology (Spark x Bridge x Anchor):
+   - Spark Agent: Execute a 2-Step Lateral Leap (cross-domain isomorphism or 180-deg PO reversal) to break status-quo orthodoxy.
+   - Bridge Agent: Ground the leap in 4-slot working memory pacing, PERMA+H character strengths, and 3-4h weekly caregiver respite.
+   - Anchor Agent: Stress-test failure modes via FMEA Pre-Mortem and sequence into a 3-milestone Critical Path starting with a $0 action today.
+3. Closed-Loop Outcome Verification & Machine Teaching: Score every turn for Outcome Contract Fulfillment (>= 90%) and emit Contrastive Machine Teaching DPO pairs (yw > yl) against near-miss orthodoxy traps.
+    `.trim(),
+    tools: [
+      { type: 'code_execution' },
+      { type: 'google_search' },
+    ],
+    base_environment: {
+      type: 'remote',
+      sources: [
+        {
+          type: 'inline',
+          target: '.agents/AGENTS.md',
+          content: readFileSafe('AGENTS.md'),
+        },
+        {
+          type: 'inline',
+          target: '.agents/skills/lateral-thinking-provocations/SKILL.md',
+          content: readFileSafe('.agents/skills/lateral-thinking-provocations/SKILL.md'),
+        },
+        {
+          type: 'inline',
+          target: '.agents/skills/dpo-preference-curation/SKILL.md',
+          content: readFileSafe('.agents/skills/dpo-preference-curation/SKILL.md'),
+        },
+      ],
+    },
+  },
 };
 
 /**

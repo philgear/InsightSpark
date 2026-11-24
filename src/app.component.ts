@@ -1214,6 +1214,10 @@ export class AppComponent implements OnDestroy {
       const problem = this.problemInput();
       const mode = this.appMode();
 
+      if (this.brandDriftCalibrator.autonomousPilotEnabled()) {
+        this.brandDriftCalibrator.autonomouslyDecideCalibration(problem, mode);
+      }
+
       // Run structure in parallel (care mode only)
       if (mode === 'care') {
         this.geminiService.structureHealthGoal(problem)
@@ -1235,8 +1239,39 @@ export class AppComponent implements OnDestroy {
         this.gistInput() || undefined
       );
 
-      this.agenticResult.set(result);
-      this.insights.set(result.initialInsights);
+      let recordedDebateTurn = false;
+      const healedInitial = (result.initialInsights || []).map((group, gIdx) => ({
+        ...group,
+        insights: (group.insights || []).map((item, iIdx) => {
+          if (!item.text) return item;
+          const scores = this.brandDriftCalibrator.computeAxisScores(item.text);
+          const isDrifting = scores.negScores.some(s => s >= 0.55);
+          if ((gIdx === 0 && iIdx === 0) || isDrifting) {
+            const healed = this.brandDriftCalibrator.autoHealBrandOutput(item.text, undefined, group.strategyName);
+            recordedDebateTurn = true;
+            return { ...item, text: healed.outputText };
+          }
+          if (!recordedDebateTurn && gIdx === 0 && iIdx === 0) {
+            this.brandDriftCalibrator.recordGeneratedOutput(item.text, undefined, 'Multi-Agent Debate', group.strategyName);
+            recordedDebateTurn = true;
+          }
+          return item;
+        }),
+      }));
+
+      const healedRefined = (result.refinedInsights || []).map(r => ({
+        ...r,
+        text: this.brandDriftCalibrator.sanitizeDriftingCopy(r.text || ''),
+      }));
+
+      const calibratedResult: AgenticResult = {
+        ...result,
+        initialInsights: healedInitial,
+        refinedInsights: healedRefined,
+      };
+
+      this.agenticResult.set(calibratedResult);
+      this.insights.set(calibratedResult.initialInsights);
       this.agenticPhase.set('complete');
     } catch (err) {
       const errMsg = (err as Error).message || 'Deep analysis failed. Please try again.';

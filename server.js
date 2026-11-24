@@ -2046,7 +2046,7 @@ app.post('/api/agent/pipeline', [
     const selectionRes = await generateJsonWithUsage({
       targetModel,
       genAI,
-      prompt: `Analyze this problem and select 3-5 optimal strategies:\n"${problem}"\n\nAvailable:\n${strategyList}`,
+      prompt: `Analyze this problem and select 3-4 optimal strategies forming a balanced Spark x Bridge x Anchor triad (1 Divergent Provocation + 1 Human/System Bridge + 1 Grounding Anchor such as fmea or critical-path):\n"${problem}"\n\nAvailable:\n${strategyList}`,
       schema: selectionSchema,
       req,
       isPipeline: true,
@@ -2090,10 +2090,17 @@ app.post('/api/agent/pipeline', [
       },
     };
 
+    const steeringHeader = req.headers['x-brand-steering']
+      ? `\n\n6-Axis Calibrator & Outcome Contract Directive:\n${String(req.headers['x-brand-steering']).slice(0, 450)}`
+      : '';
+    const bridgeHeader = req.headers['x-synergy-bridge']
+      ? `\nSmart Synergy Triad Bridge:\n${String(req.headers['x-synergy-bridge']).slice(0, 400)}`
+      : '';
+
     const initialInsightsRes = await generateJsonWithUsage({
       targetModel,
       genAI,
-      prompt: `${gist ? `Guiding principle: "${gist}"\n\n` : ''}Problem: "${problem}"\n\nApply each strategy:\n${strategyText}\n\nFor each, provide 2-3 specific, practical, and realistic insights that are genuinely doable without sci-fi or over-the-top gimmicks.`,
+      prompt: `${gist ? `Guiding principle: "${gist}"\n\n` : ''}Problem: "${problem}"\n\nApply each strategy:\n${strategyText}\n\nFor each, provide 2-3 specific, practical, and realistic insights using the 2-Step Lateral Leap & $0 Grounded Landing protocol (borrow an unexpected cross-domain mechanism, then translate it into a $0 everyday action today without clichés).${steeringHeader}${bridgeHeader}`,
       systemInstruction: mode === 'care' ? HIPAA_SYSTEM_INSTRUCTION : CIVIC_NEUTRALITY_INSTRUCTION,
       schema: insightsSchema,
       req,

@@ -17,6 +17,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  BrandDriftCalibratorService,
+  STRATEGY_OUTCOME_CONTRACTS,
+  BRAND_STRATEGY_AXES,
+} from '../src/services/brand-drift-calibrator.service.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,6 +36,7 @@ const DEFAULT_MODEL = 'pivotpulse'; // Unified Multi-Task on-device model
 
 /**
  * Smart Context Builder: Assembles structured, compressed context slots
+ * enriched with the 29 Strategy Outcome Contracts & 6-Axis Contrastive Anchors.
  */
 export function buildSmartContext({
   problem,
@@ -40,6 +46,9 @@ export function buildSmartContext({
   invariants = ['perma', 'respite', 'de-identified'],
 }) {
   const slots = {};
+  const contract = STRATEGY_OUTCOME_CONTRACTS[personaId] || STRATEGY_OUTCOME_CONTRACTS['kinship-triad'];
+  const primaryAxis = BRAND_STRATEGY_AXES[contract.primaryAxisIndex] || BRAND_STRATEGY_AXES[0];
+  const secondaryAxis = BRAND_STRATEGY_AXES[contract.secondaryAxisIndex] || BRAND_STRATEGY_AXES[1];
 
   // Slot 1: Core Persona & Stance
   if (personaId === 'kinship-triad') {
@@ -49,10 +58,10 @@ export function buildSmartContext({
   } else if (personaId === 'what-if') {
     slots.persona = 'You are the Divergent Lateral Thinker, introducing provocative constraint reversals and radical reframes.';
   } else {
-    slots.persona = 'You are a compassionate, dignified care planning partner.';
+    slots.persona = `You are the ${contract.title} Specialist Agent, anchored on ${primaryAxis.positivePole} × ${secondaryAxis.positivePole}.`;
   }
 
-  // Slot 2: Domain Invariants
+  // Slot 2: Domain Invariants + Strategy Outcome Contract
   const invariantRules = [];
   if (invariants.includes('perma')) {
     invariantRules.push('Focus on PERMA+H positive psychology: Positive emotion, Engagement, Relationships, Meaning, Accomplishment, and Vitality.');
@@ -63,7 +72,11 @@ export function buildSmartContext({
   if (invariants.includes('de-identified')) {
     invariantRules.push('Strict Zero-PII: Never repeat or output names, dates of birth, MRNs, phone numbers, or addresses.');
   }
+  invariantRules.push(`Expected Outcome Contract (${contract.id}): ${contract.expectedOutcomeFormula}`);
+  invariantRules.push(`Blocked Orthodoxy Trap: ${contract.orthodoxyTrap}`);
   slots.invariants = invariantRules.join('\n');
+  slots.outcomeContract = contract;
+  slots.primaryAxis = primaryAxis.positivePole;
 
   // Slot 3: Dynamic Working Memory (Compact Key-Value Store)
   if (Object.keys(workingMemory).length > 0) {
@@ -86,15 +99,94 @@ ${slots.workingMemory ? `Working Memory State:\n${slots.workingMemory}` : ''}
   const formattedPrompt = `
 Mode: ${mode.toUpperCase()}
 Input Challenge: "${problem}"
+Expected Strategy Outcome Trajectory: ${contract.expectedOutcomeFormula}
 
 Instructions:
-Synthesize 2-3 actionable, asset-framed insights using the 2-Step Lateral Leap & Grounded Landing protocol: (1) leap outside the box via cross-domain isomorphism or constraint reversal, then (2) land on a concrete $0 real-world household or team mechanism. Avoid predictable textbook advice and pathologizing deficit language.
+Synthesize 2-3 actionable, asset-framed insights using the 2-Step Lateral Leap & Grounded Landing protocol: (1) leap outside the box via cross-domain isomorphism or constraint reversal, then (2) land on a concrete $0 real-world household or team mechanism that fulfills [${contract.expectedOutcomeFormula}]. Avoid predictable textbook advice (${contract.orthodoxyTrap}) and pathologizing deficit language.
   `.trim();
 
   return {
     slots,
     systemInstruction,
     formattedPrompt,
+  };
+}
+
+/**
+ * Triad Swarm Topology Builder (Spark × Bridge × Anchor):
+ * Assembles a self-balancing 3-agent swarm context where:
+ *  - Agent 1 (Divergent Spark) breaks status-quo orthodoxy via 2-Step Lateral Leap
+ *  - Agent 2 (Human/System Bridge) grounds 4-slot cognitive calm, kinship, and respite
+ *  - Agent 3 (Grounding Anchor) stress-tests FMEA failure modes & sequences Critical Path dependencies
+ */
+export function buildTriadSwarmContext({
+  problem,
+  mode = 'care',
+  triadIds,
+}) {
+  const calibrator = new BrandDriftCalibratorService();
+  const receipt = calibrator.autonomouslyDecideCalibration(problem, mode);
+  const activeTriad = Array.isArray(triadIds) && triadIds.length === 3
+    ? triadIds
+    : receipt.recommendedStrategyIds;
+
+  const [sparkId, bridgeId, anchorId] = activeTriad;
+  const sparkContract = STRATEGY_OUTCOME_CONTRACTS[sparkId] || STRATEGY_OUTCOME_CONTRACTS['what-if'];
+  const bridgeContract = STRATEGY_OUTCOME_CONTRACTS[bridgeId] || STRATEGY_OUTCOME_CONTRACTS['kinship-triad'];
+  const anchorContract = STRATEGY_OUTCOME_CONTRACTS[anchorId] || STRATEGY_OUTCOME_CONTRACTS['fmea'];
+
+  const systemInstruction = `
+You are the InsightSpark 3-Agent Triad Swarm Governor (${receipt.selectedAxisName} · -${receipt.tunedAlpha.toFixed(2)}*v_slop + ${receipt.tunedBeta.toFixed(2)}*v_craft).
+Orchestrate three specialized agents in a single closed-loop pass:
+1. [SPARK AGENT · ${sparkContract.title}]: Execute Outcome Contract [${sparkContract.expectedOutcomeFormula}] while blocking [${sparkContract.orthodoxyTrap}].
+2. [BRIDGE AGENT · ${bridgeContract.title}]: Execute Outcome Contract [${bridgeContract.expectedOutcomeFormula}] while blocking [${bridgeContract.orthodoxyTrap}].
+3. [ANCHOR AGENT · ${anchorContract.title}]: Execute Outcome Contract [${anchorContract.expectedOutcomeFormula}] while blocking [${anchorContract.orthodoxyTrap}].
+  `.trim();
+
+  const formattedPrompt = `
+Mode: ${mode.toUpperCase()}
+Challenge: "${problem}"
+Autonomous Routing Rationale: ${receipt.rationale}
+Popperian H0 Override Rule: ${receipt.falsificationCriterion}
+
+Synthesize one unified Triad Action Plan where the Spark Agent's lateral leap is humanized by the Bridge Agent and stress-tested into a 72-hour $0 sequence by the Anchor Agent.
+  `.trim();
+
+  return {
+    receipt,
+    triadIds: [sparkId, bridgeId, anchorId],
+    contracts: [sparkContract, bridgeContract, anchorContract],
+    systemInstruction,
+    formattedPrompt,
+  };
+}
+
+/**
+ * Closed-Loop Agent Output Governor:
+ * Verifies an agent's output against both the 6-Axis Contrastive Vectors and the Strategy's Outcome Contract,
+ * applies 0ms contrastive phrase healing if drifting, and emits a Machine Teaching DPO lesson when healed.
+ */
+export function verifyAndHealAgentOutput({
+  rawText,
+  strategyId = 'first-principles',
+  sourceModel = 'pivotpulse:latest',
+}) {
+  const calibrator = new BrandDriftCalibratorService();
+  const healResult = calibrator.autoHealBrandOutput(rawText, sourceModel, strategyId);
+  const outcomeEval = calibrator.evaluateStrategyOutcome(healResult.outputText, strategyId);
+  const dpoQueue = calibrator.selfHealingDpoQueue();
+
+  return {
+    healed: healResult.healed,
+    outputText: healResult.outputText,
+    isDrifting: healResult.turn.isDrifting,
+    maxHazardScore: healResult.turn.maxHazardScore,
+    outcomeFulfillmentScore: outcomeEval.fulfillmentScore,
+    outcomeContract: outcomeEval.contract,
+    matchedMarkers: outcomeEval.matchedMarkers,
+    tunedAlpha: calibrator.steeringAlpha(),
+    tunedBeta: calibrator.steeringBeta(),
+    machineTeachingLesson: dpoQueue.length > 0 ? calibrator.buildMachineTeachingCurriculum().slice(-1)[0] : null,
   };
 }
 
@@ -259,9 +351,33 @@ InsightSpark Smart Context & Edge Agent Engine:
         prompt: context.formattedPrompt,
         system: context.systemInstruction,
       });
+      const verified = verifyAndHealAgentOutput({
+        rawText: result.response,
+        strategyId: personaId,
+      });
 
-      console.log(`\n⏱️ Speed: ${result.tokensPerSec || '—'} tokens/sec (${result.elapsedMs} ms)`);
-      console.log(`\n--- Agent Insights (${model}) ---\n${result.response}\n`);
+      console.log(`\n⏱️ Speed: ${result.tokensPerSec || '—'} tokens/sec (${result.elapsedMs} ms) | Outcome Match: ${(verified.outcomeFulfillmentScore * 100).toFixed(0)}% | Healed: ${verified.healed}`);
+      console.log(`\n--- Agent Insights (${model}) ---\n${verified.outputText}\n`);
+      break;
+    }
+
+    case 'swarm': {
+      const problem = args.join(' ');
+      if (!problem) throw new Error('Specify challenge for Triad Swarm execution.');
+      const swarmCtx = buildTriadSwarmContext({ problem, mode: 'care' });
+      console.log(`🤖 Triad Swarm Governor: ${swarmCtx.receipt.rationale}`);
+      const result = await queryLocalModel({
+        model: swarmCtx.receipt.selectedModel,
+        prompt: swarmCtx.formattedPrompt,
+        system: swarmCtx.systemInstruction,
+      });
+      const verified = verifyAndHealAgentOutput({
+        rawText: result.response,
+        strategyId: swarmCtx.triadIds[0],
+        sourceModel: swarmCtx.receipt.selectedModel,
+      });
+      console.log(`\n⏱️ Speed: ${result.tokensPerSec || '—'} tokens/sec | Outcome Match: ${(verified.outcomeFulfillmentScore * 100).toFixed(0)}%`);
+      console.log(`\n--- Triad Swarm Synthesis (${swarmCtx.receipt.selectedModel}) ---\n${verified.outputText}\n`);
       break;
     }
 

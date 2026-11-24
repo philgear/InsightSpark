@@ -26,6 +26,7 @@ describe('Google GenAI Custom Managed Agents Suite', () => {
     const registeredIds = Object.keys(AGENTS_REGISTRY);
     assert.ok(registeredIds.includes('insightspark-kinship-planner'), 'Must define insightspark-kinship-planner');
     assert.ok(registeredIds.includes('insightspark-lateral-provocateur'), 'Must define insightspark-lateral-provocateur');
+    assert.ok(registeredIds.includes('insightspark-triad-governor'), 'Must define insightspark-triad-governor');
   });
 
   test('Agent IDs must NOT use Google-reserved prefixes', () => {
