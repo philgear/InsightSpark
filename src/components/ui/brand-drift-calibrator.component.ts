@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnDestroy } from '@angular/core';
+import { Component, inject, signal, computed, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrator.service';
 
@@ -32,12 +32,12 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
           </p>
         </div>
 
-        <div class="flex items-center gap-1.5">
+        <div class="flex items-center gap-2">
           @if (calibrator.selectionLockMode() === 'manual') {
             <button
               type="button"
               (click)="calibrator.unlockWheel()"
-              class="rounded-lg border border-amber-500/40 bg-amber-500/15 px-2.5 py-1 text-xs font-mono font-bold text-amber-400 hover:bg-amber-500/25 transition-all cursor-pointer"
+              class="min-h-11 rounded-xl border border-amber-500/40 bg-amber-500/15 px-3.5 py-2 text-xs font-mono font-bold text-amber-400 hover:bg-amber-500/25 transition-all cursor-pointer"
               title="Unlock the 6-Axis Wheel to override your manual provocation picks"
             >
               🔒 Manual Picks (Unlock Wheel)
@@ -46,7 +46,7 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
             <button
               type="button"
               (click)="calibrator.applyBrandSteeringVector()"
-              class="rounded-lg bg-(--text-accent) px-2.5 py-1 text-xs font-mono font-bold text-white shadow-xs hover:opacity-90 transition-all cursor-pointer"
+              class="min-h-11 rounded-xl bg-(--text-accent) px-3.5 py-2 text-xs font-mono font-bold text-white shadow-xs hover:opacity-90 transition-all cursor-pointer"
             >
               ⚡ Tune Focus
             </button>
@@ -55,7 +55,7 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
             type="button"
             (click)="isExpanded.set(!isExpanded())"
             [attr.aria-expanded]="isExpanded()"
-            class="xl:hidden rounded-lg border border-(--border-color) bg-(--button-bg) px-2.5 py-1 text-xs font-semibold text-(--text-color-muted) hover:text-(--text-color) transition-all cursor-pointer"
+            class="xl:hidden min-h-11 rounded-xl border border-(--border-color) bg-(--button-bg) px-3.5 py-2 text-xs font-semibold text-(--text-color-muted) hover:text-(--text-color) transition-all cursor-pointer"
           >
             {{ isExpanded() ? 'Hide' : 'Show' }}
           </button>
@@ -66,25 +66,25 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
       @if (isExpanded()) {
         <div class="mt-4 space-y-4">
           <!-- 4-Slot Everyday Quality Check (Plain English) -->
-          <div class="grid grid-cols-2 gap-1.5" aria-label="4-Slot Everyday Quality Summary">
+          <div class="grid grid-cols-2 gap-2" aria-label="4-Slot Everyday Quality Summary">
             @for (slot of calibrator.fourSlotMetrics(); track slot.id) {
               <div
-                class="rounded-xl border border-(--border-color) bg-(--card-bg-subtle) px-2.5 py-1.5 flex items-center justify-between gap-2"
+                class="min-h-10 rounded-xl border border-(--border-color) bg-(--card-bg-subtle) px-3 py-2 flex items-center justify-between gap-2"
                 [title]="slot.description"
               >
-                <span class="text-[11px] font-semibold text-(--text-color) truncate">{{ slot.label }}</span>
-                <span class="text-[11px] font-mono font-bold text-emerald-400 shrink-0">{{ (slot.score * 100).toFixed(0) }}%</span>
+                <span class="text-xs font-semibold text-(--text-color) truncate">{{ slot.label }}</span>
+                <span class="text-xs font-mono font-bold text-emerald-400 shrink-0">{{ (slot.score * 100).toFixed(0) }}%</span>
               </div>
             }
           </div>
 
           <!-- Mode Toggle: 12-Pole Sunburst Wheel vs. 4-Petal Fibonacci Sunflower -->
           <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
-            <div class="flex items-center gap-1.5">
+            <div class="flex items-center gap-2">
               <button
                 type="button"
                 (click)="lensMode.set('sunburst')"
-                class="rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer"
+                class="min-h-11 rounded-xl border px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer"
                 [class.border-emerald-500]="lensMode() === 'sunburst'"
                 [class.bg-emerald-500/15]="lensMode() === 'sunburst'"
                 [class.border-(--border-color)]="lensMode() !== 'sunburst'"
@@ -94,7 +94,7 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
               <button
                 type="button"
                 (click)="lensMode.set('sunflower')"
-                class="rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all cursor-pointer"
+                class="min-h-11 rounded-xl border px-3.5 py-2 text-xs font-semibold transition-all cursor-pointer"
                 [class.border-amber-500]="lensMode() === 'sunflower'"
                 [class.bg-amber-500/15]="lensMode() === 'sunflower'"
                 [class.border-(--border-color)]="lensMode() !== 'sunflower'"
@@ -103,12 +103,12 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
               </button>
             </div>
 
-            <div class="flex flex-wrap items-center gap-1">
+            <div class="flex flex-wrap items-center gap-1.5">
               @for (turn of recentTurns(); track turn.turnIndex) {
                 <button
                   type="button"
                   (click)="calibrator.selectedTurnIndex.set(turn.turnIndex - 1)"
-                  class="rounded-lg border px-2 py-0.5 text-[10px] font-mono transition-all cursor-pointer"
+                  class="min-h-9 min-w-9 rounded-lg border px-2.5 py-1.5 text-[11px] font-mono font-semibold transition-all cursor-pointer"
                   [class.border-rose-500]="turn.isDrifting"
                   [class.text-rose-400]="turn.isDrifting"
                   [class.border-emerald-500]="!turn.isDrifting && calibrator.currentTurn().turnIndex === turn.turnIndex"
@@ -129,16 +129,16 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
                   <button
                     type="button"
                     (click)="calibrator.unlockWheel()"
-                    class="shrink-0 rounded-md bg-amber-500/20 px-2 py-0.5 font-mono font-bold text-amber-200 hover:bg-amber-500/30 cursor-pointer"
+                    class="min-h-9 shrink-0 rounded-lg bg-amber-500/20 px-3 py-1.5 font-mono font-bold text-amber-200 hover:bg-amber-500/30 cursor-pointer"
                   >
                     Use Wheel Instead
                   </button>
                 </div>
               }
 
-              <!-- Compact Interactive 12-Pole Sunburst SVG -->
+              <!-- Enlarged Tremor-Safe 12-Pole Sunburst SVG + Non-Chorded Prev/Next Axis Stepper -->
               <div class="flex flex-col items-center">
-                <svg viewBox="0 0 280 280" class="w-44 h-44 overflow-visible select-none" [class.opacity-80]="calibrator.selectionLockMode() === 'manual'" role="img" aria-label="Interactive 12-Pole Brand and Strategy Sunburst">
+                <svg viewBox="0 0 280 280" class="w-52 h-52 overflow-visible select-none" [class.opacity-80]="calibrator.selectionLockMode() === 'manual'" role="img" aria-label="Interactive 12-Pole Brand and Strategy Sunburst">
                   <circle cx="140" cy="140" r="105" fill="none" stroke="currentColor" stroke-opacity="0.12" stroke-dasharray="3 3" />
                   <circle cx="140" cy="140" r="65" fill="none" stroke="currentColor" stroke-opacity="0.15" stroke-dasharray="2 2" />
 
@@ -189,35 +189,49 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
                   </text>
                 </svg>
 
-                <div class="mt-1 flex flex-wrap items-center justify-center gap-3 text-[10px] text-(--text-color-muted)">
-                  <span class="flex items-center gap-1">
-                    <span class="h-2 w-2 rounded-xs bg-emerald-500 inline-block"></span>
-                    Tap Green (1–6) for More of This
+                <!-- Tremor-Safe 44px Prev / Next Axis Stepper Bar (Also bound to '[' and ']' Macropad keys) -->
+                <div class="mt-2 flex items-center justify-center gap-2 w-full">
+                  <button
+                    type="button"
+                    [disabled]="calibrator.selectionLockMode() === 'manual'"
+                    (click)="stepAxis(-1)"
+                    class="min-h-11 rounded-xl border border-(--border-color) bg-(--card-bg-subtle) px-3.5 py-2 text-xs font-semibold text-(--text-color) hover:border-emerald-400 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Previous Focus Axis (Shortcut: [ key)"
+                  >
+                    ◀ Prev Focus
+                  </button>
+                  <span class="text-[11px] font-mono text-(--text-color-muted) px-2">
+                    Focus {{ (calibrator.focusedAxisIndex() % 6) + 1 }}/6
                   </span>
-                  <span class="flex items-center gap-1">
-                    <span class="h-2 w-2 rounded-xs bg-rose-500 inline-block"></span>
-                    Tap Red (7–12) to Block Clichés
-                  </span>
+                  <button
+                    type="button"
+                    [disabled]="calibrator.selectionLockMode() === 'manual'"
+                    (click)="stepAxis(1)"
+                    class="min-h-11 rounded-xl border border-(--border-color) bg-(--card-bg-subtle) px-3.5 py-2 text-xs font-semibold text-(--text-color) hover:border-emerald-400 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Next Focus Axis (Shortcut: ] key)"
+                  >
+                    Next Focus ▶
+                  </button>
                 </div>
               </div>
 
               <!-- Connected Opposite-Axis Explainer & Live Steering -->
               <div class="space-y-2">
-                <!-- 6 Connected Axis Pills -->
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                <!-- 6 Connected Axis Pills (44px min-h-11 Tremor-Safe Targets) -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   @for (axis of calibrator.axes; track axis.id; let idx = $index) {
                     <button
                       type="button"
                       [disabled]="calibrator.selectionLockMode() === 'manual'"
                       (click)="onSelectWedge(idx)"
-                      class="rounded-lg border px-2 py-1 text-left text-[11px] transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      class="min-h-12 rounded-xl border px-2.5 py-2 text-left text-xs transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex flex-col justify-center"
                       [class.border-amber-400]="calibrator.focusedAxisIndex() === idx"
                       [class.bg-amber-500/10]="calibrator.focusedAxisIndex() === idx"
                       [class.border-(--border-color)]="calibrator.focusedAxisIndex() !== idx"
                       [class.bg-(--card-bg-subtle)]="calibrator.focusedAxisIndex() !== idx"
                     >
                       <div class="font-bold text-emerald-400 leading-tight">✓ {{ idx + 1 }}. {{ poleLabels[idx] }}</div>
-                      <div class="text-[9.5px] text-rose-400 leading-tight">↔ ✕ {{ idx + 7 }}. {{ poleLabels[idx + 6] }}</div>
+                      <div class="text-[10px] text-rose-400 leading-tight mt-0.5">↔ ✕ {{ idx + 7 }}. {{ poleLabels[idx + 6] }}</div>
                     </button>
                   }
                 </div>
@@ -278,7 +292,7 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
                       <button
                         type="button"
                         (click)="nextExemplar()"
-                        class="rounded border border-(--border-color) bg-(--card-bg) px-2 py-0.5 text-[10px] font-semibold text-(--text-color) hover:border-(--text-accent) cursor-pointer"
+                        class="min-h-9 rounded-lg border border-(--border-color) bg-(--card-bg) px-3 py-1.5 text-xs font-semibold text-(--text-color) hover:border-(--text-accent) cursor-pointer"
                       >
                         Next Example →
                       </button>
@@ -300,7 +314,7 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
               <div class="flex flex-col items-center">
                 <svg
                   viewBox="0 0 280 280"
-                  class="w-44 h-44 overflow-visible select-none"
+                  class="w-52 h-52 overflow-visible select-none"
                   role="img"
                   aria-label="Interactive 4-Petal Fibonacci Sunflower"
                 >
@@ -374,7 +388,7 @@ import { BrandDriftCalibratorService } from '../../services/brand-drift-calibrat
                   <button
                     type="button"
                     (click)="calibrator.cycleCircadianScene()"
-                    class="rounded-lg border border-(--border-color) bg-(--card-bg-subtle) px-2.5 py-1 text-[11px] font-mono text-(--text-color) cursor-pointer"
+                    class="min-h-11 rounded-xl border border-(--border-color) bg-(--card-bg-subtle) px-3.5 py-2 text-xs font-mono text-(--text-color) cursor-pointer"
                   >
                     ☀️ {{ circadianLabel() }}
                   </button>
@@ -410,6 +424,27 @@ export class BrandDriftCalibratorComponent implements OnDestroy {
   onSelectWedge(wedgeIndex: number): void {
     this.exemplarOffset.set(0);
     this.calibrator.manipulateWedge(wedgeIndex);
+  }
+  stepAxis(delta: -1 | 1): void {
+    if (this.calibrator.selectionLockMode() === 'manual') return;
+    const nextIdx = (this.calibrator.focusedAxisIndex() + delta + 6) % 6;
+    this.onSelectWedge(nextIdx);
+  }
+  @HostListener('window:keydown', ['$event'])
+  onMacropadKeydown(event: KeyboardEvent): void {
+    if (event.ctrlKey || event.altKey || event.metaKey) return;
+    const target = event.target as HTMLElement | null;
+    const tag = target?.tagName?.toUpperCase() || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) {
+      return;
+    }
+    if (event.key === '[') {
+      event.preventDefault();
+      this.stepAxis(-1);
+    } else if (event.key === ']') {
+      event.preventDefault();
+      this.stepAxis(1);
+    }
   }
   nextExemplar(): void {
     this.exemplarOffset.update(i => (i + 1) % this.calibrator.lateralExemplars.length);

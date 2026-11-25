@@ -1427,7 +1427,12 @@ export class BrandDriftCalibratorService {
     const isClinicalOrCare =
       mode === 'care' ||
       /\b(care|patient|discharge|respite|hospital|fall|ataxia|tremor|med|grandmother|grandfather|nurse)\b/i.test(problemText);
+    const hasAtaxiaOrFatigueSignal = /\b(ataxia|tremor|exhaust|fatigue|burnout|overwhelm)\b/i.test(problemText);
     const isEditorialBrief = /\b(copy|write|sign|guide|card|message|editorial|simplify)\b/i.test(problemText) && !isClinicalOrCare;
+
+    if (hasAtaxiaOrFatigueSignal) {
+      this.circadianScene.set('hemp');
+    }
 
     const chosenModel: CalibratorOutputModel = isClinicalOrCare
       ? 'pocketgull-clinical:latest'
