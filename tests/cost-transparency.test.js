@@ -303,9 +303,20 @@ describe('Cost Model, Telemetry & Transparency Audit Suite', () => {
       }
     }
 
+    const gitignore = fs.readFileSync(path.join(ROOT, '.gitignore'), 'utf8');
     assert.ok(
-      fs.existsSync(path.join(ROOT, 'scratch', 'operator-gcp-audit.md')),
-      'Private operator GCP audit should be generated in gitignored scratch/operator-gcp-audit.md'
+      /^\s*scratch\/\s*$/m.test(gitignore),
+      '.gitignore must ignore scratch/ so private operator audits are never committed'
+    );
+    const costSimulatorSource = fs.readFileSync(path.join(ROOT, 'scripts', 'cost-simulator.mjs'), 'utf8');
+    assert.ok(
+      costSimulatorSource.includes("path.join(ROOT, 'scratch', 'operator-gcp-audit.md')"),
+      'scripts/cost-simulator.mjs must write private operator GCP audit into gitignored scratch/operator-gcp-audit.md'
+    );
+    assert.ok(
+      !fs.existsSync(path.join(ROOT, 'docs', 'operator-gcp-audit.md')) &&
+        !fs.existsSync(path.join(ROOT, 'public', 'operator-gcp-audit.md')),
+      'Private operator GCP audit must not exist in tracked docs/ or public/ directories'
     );
 
     const serverSource = fs.readFileSync(path.join(ROOT, 'server.js'), 'utf8');
