@@ -19,7 +19,7 @@ test.describe('Combinatorial Synergy Collision Flow E2E', () => {
     // 2. Click Demo Mode to enter the workbench cleanly
     const demoButton = page.locator('button:has-text("Demo Mode")');
     if (await demoButton.isVisible()) {
-      await demoButton.click({ force: true });
+      await demoButton.click();
     }
 
     // 3. Select the 3 strategies: The Butterfly Effect, Combinatorial Evolution, Intergenerational Kinship
@@ -27,7 +27,7 @@ test.describe('Combinatorial Synergy Collision Flow E2E', () => {
     await expect(problemInput).toBeVisible({ timeout: 10000 });
 
     // Clear initial selection first so we can pick the exact 3 collision strategies
-    const clearBtn = page.locator('button:has-text("Clear")');
+    const clearBtn = page.getByRole('button', { name: 'Clear', exact: true });
     if (await clearBtn.isVisible()) {
       await clearBtn.click();
     }
@@ -58,7 +58,8 @@ test.describe('Combinatorial Synergy Collision Flow E2E', () => {
     // 6. Click Generate
     const generateBtn = page.locator('button.generate-button');
     await expect(generateBtn).toBeEnabled();
-    await generateBtn.click({ force: true });
+    await generateBtn.scrollIntoViewIfNeeded();
+    await generateBtn.click();
 
     // 7. Wait for results region to appear and cards to render
     const resultsRegion = page.locator('section[role="region"]');

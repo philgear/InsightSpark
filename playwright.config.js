@@ -14,6 +14,7 @@ export default defineConfig({
   use: {
     actionTimeout: 0,
     baseURL: 'http://localhost:8080',
+    serviceWorkers: 'block',
     trace: 'on-first-retry',
   },
   projects: [
@@ -39,5 +40,9 @@ export default defineConfig({
     url: 'http://localhost:8080',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
+    env: {
+      ...process.env,
+      PLAYWRIGHT_E2E: '1',
+    },
   },
 });

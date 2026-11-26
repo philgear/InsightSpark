@@ -52,6 +52,7 @@ app.use(compression({
 }));
 app.set('trust proxy', 1);
 const port = process.env.PORT || 8080;
+const IS_PLAYWRIGHT_E2E = process.env.PLAYWRIGHT_E2E === '1';
 
 app.use(helmet({
   hsts: {
@@ -87,6 +88,7 @@ app.use(helmet({
         "https://philgear.dev"
       ],
       objectSrc: ["'none'"],
+      ...(IS_PLAYWRIGHT_E2E ? { upgradeInsecureRequests: null } : {}),
     },
   },
 }));
@@ -121,17 +123,22 @@ app.use(cors({
 app.use(express.json());
 app.use(morgan('combined')); // Enable HTTP request logging
 
+const isLoopbackRequest = (req) => {
+  const remote = req.socket?.remoteAddress || '';
+  return remote === '127.0.0.1' || remote === '::1' || remote === '::ffff:127.0.0.1';
+};
+
 // Apply rate limiting to all requests
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  limit: (req) => (IS_PLAYWRIGHT_E2E && isLoopbackRequest(req) ? 5000 : 100), // limit each IP to 100 requests per windowMs
 });
 app.use(limiter);
 
 // Stricter rate limiting for API endpoints
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // limit each IP to 20 requests per windowMs
+  limit: (req) => (IS_PLAYWRIGHT_E2E && isLoopbackRequest(req) ? 500 : 20), // limit each IP to 20 requests per windowMs
   message: { error: 'Too many requests, please try again later.' }
 });
 app.use('/api/', apiLimiter);

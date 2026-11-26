@@ -22,7 +22,7 @@ test.describe('HTTP Security Headers, ASCII Fetch Headers & Mobile Header Layout
     // Enter Demo Mode
     const demoBtn = page.locator('button:has-text("Demo Mode")');
     await expect(demoBtn).toBeVisible();
-    await demoBtn.click({ force: true });
+    await demoBtn.click();
 
     // Verify mobile header controls stay in a single horizontal row (all chips share similar Y top)
     const creativeChip = page.locator('button[aria-label="Switch to Creative mode"]');
@@ -36,7 +36,8 @@ test.describe('HTTP Security Headers, ASCII Fetch Headers & Mobile Header Layout
     // Click Roll Smart Synergy (populates x-synergy-bridge in localStorage)
     const rollBtn = page.locator('button:has-text("Roll Smart Synergy")');
     await expect(rollBtn).toBeVisible();
-    await rollBtn.click({ force: true });
+    await rollBtn.scrollIntoViewIfNeeded();
+    await rollBtn.click();
 
     // Verify localStorage headers contain zero non-ISO-8859-1 characters (> 0xFF)
     const headerCheck = await page.evaluate(() => {
@@ -56,11 +57,13 @@ test.describe('HTTP Security Headers, ASCII Fetch Headers & Mobile Header Layout
     // Verify tapping a provocation pill directly works in 1 tap (auto-unlocks wheel lock)
     const simplifyPill = page.locator('button.strategy-button:has-text("Eliminate & Simplify")');
     await expect(simplifyPill).toBeEnabled();
-    await simplifyPill.click({ force: true });
+    await simplifyPill.scrollIntoViewIfNeeded();
+    await simplifyPill.click();
 
     // Generate insights and verify zero Generation Error banner
     const generateBtn = page.locator('button.generate-button');
-    await generateBtn.click({ force: true });
+    await generateBtn.scrollIntoViewIfNeeded();
+    await generateBtn.click();
 
     const errorBanner = page.locator('text=Generation Error');
     await expect(errorBanner).toBeHidden();
@@ -78,10 +81,11 @@ test.describe('HTTP Security Headers, ASCII Fetch Headers & Mobile Header Layout
     // Click Private On-Device AI (sets webgpu-active, which calls /api/insights when window.ai is absent)
     const onDeviceBtn = page.locator('button:has-text("Private On-Device AI")');
     await expect(onDeviceBtn).toBeVisible();
-    await onDeviceBtn.click({ force: true });
+    await onDeviceBtn.click();
 
     const generateBtn = page.locator('button.generate-button');
-    await generateBtn.click({ force: true });
+    await generateBtn.scrollIntoViewIfNeeded();
+    await generateBtn.click();
 
     const resultsRegion = page.locator('section[role="region"]');
     await expect(resultsRegion).toBeVisible({ timeout: 15000 });
