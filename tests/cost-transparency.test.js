@@ -429,10 +429,25 @@ describe('Cost Model, Telemetry & Transparency Audit Suite', () => {
       assert.ok(serverSource.includes(hfHost), `server.js CSP connectSrc must include ${hfHost}`);
     }
 
-    const firebaseJson = fs.readFileSync(path.join(ROOT, 'firebase.json'), 'utf8');
-    assert.ok(firebaseJson.includes("script-src 'self';"), 'firebase.json must keep strict static script-src');
-    assert.ok(firebaseJson.includes("worker-src 'self' blob:;"), 'firebase.json must allow WebGPU worker-src');
-    assert.ok(firebaseJson.includes('https://huggingface.co'), 'firebase.json connect-src must include Hugging Face Hub');
+    const firebaseConfig = JSON.parse(fs.readFileSync(path.join(ROOT, 'firebase.json'), 'utf8'));
+    const rootHeaders = firebaseConfig.hosting?.headers?.find((entry) => entry.source === '**')?.headers || [];
+    const cspHeader = rootHeaders.find((header) => header.key === 'Content-Security-Policy')?.value || '';
+    const cspDirectives = new Map(
+      cspHeader
+        .split(';')
+        .map((part) => part.trim())
+        .filter(Boolean)
+        .map((part) => {
+          const [directive, ...tokens] = part.split(/\s+/);
+          return [directive, new Set(tokens)];
+        })
+    );
+    const scriptSrcTokens = cspDirectives.get('script-src') || new Set();
+    const workerSrcTokens = cspDirectives.get('worker-src') || new Set();
+    const connectSrcTokens = cspDirectives.get('connect-src') || new Set();
+    assert.deepStrictEqual([...scriptSrcTokens], ["'self'"], 'firebase.json must keep strict static script-src');
+    assert.deepStrictEqual([...workerSrcTokens], ["'self'", 'blob:'], 'firebase.json must allow WebGPU worker-src');
+    assert.ok(connectSrcTokens.has('https://huggingface.co'), 'firebase.json connect-src must include Hugging Face Hub');
 
     const ngsw = JSON.parse(fs.readFileSync(path.join(ROOT, 'ngsw-config.json'), 'utf8'));
     const assetFiles = ngsw.assetGroups.find((g) => g.name === 'assets')?.resources?.files || [];
